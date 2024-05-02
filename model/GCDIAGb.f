@@ -1338,7 +1338,11 @@ C****
       USE DOMAIN_DECOMP_1D, only : HALO_UPDATEj, HALO_UPDATE_COLUMN
       USE DOMAIN_DECOMP_1D, only : SOUTH, NORTH, GLOBALSUM
       USE DOMAIN_DECOMP_1D, only : SUMXPE, broadcast, AM_I_ROOT
+#ifdef TRACERS_GC
+      use praecisionem_mod
+#else
       USE PRECISION_MOD
+#endif
       USE GETTIME_MOD
       IMPLICIT NONE
 
@@ -2326,7 +2330,11 @@ C****
       USE DOMAIN_DECOMP_1D, only : HALO_UPDATE, AM_I_ROOT
       USE DOMAIN_DECOMP_1D, only : GLOBALSUM, SOUTH, WRITE_PARALLEL
       USE DOMAIN_DECOMP_1D, only : SUMXPE, broadcast
+#ifdef TRACERS_GC
+      use praecisionem_mod
+#else
       USE PRECISION_MOD
+#endif
       IMPLICIT NONE
       INTEGER :: M5,NDT
 

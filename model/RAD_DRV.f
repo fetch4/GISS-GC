@@ -5642,7 +5642,11 @@ c
      *     ,HOURI,DATEI,MONTHI,YEARI
       use MODEL_COM, only: modelEclock, calendar
       use ModelClock_mod, only: ModelClock
+#ifdef TRACERS_GC
+      use Tempus_mod
+#else
       use Time_mod
+#endif
       use BaseTime_mod
       use Rational_mod
       use TimeInterval_mod

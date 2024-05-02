@@ -1463,7 +1463,11 @@ c allocate master copies of budget- and jk-arrays on root
       End Subroutine Gather_Diagnostics
 
       Subroutine Collect_Scalars()
+#ifdef TRACERS_GC
+      use praecisionem_mod
+#else
       use precision_mod
+#endif
       use domain_decomp_atm, only : grid,sumxpe,am_i_root
       use diag_com
       implicit none

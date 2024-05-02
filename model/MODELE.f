@@ -860,7 +860,11 @@ C****
 
       use TimeConstants_mod, only: INT_HOURS_PER_DAY
       use ModelClock_mod, only: ModelClock
+#ifdef TRACERS_GC
+      use Tempus_mod, only: Time, newTime
+#else
       use Time_mod, only: Time, newTime
+#endif
       use MODEL_COM, only: calendar, orbit
       use CalendarMonth_mod, only: LEN_MONTH_ABBREVIATION
       use TimeInterval_mod
