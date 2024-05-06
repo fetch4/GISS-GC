@@ -48,6 +48,28 @@ module CHEM_COM
 !@var ijlt_power: power of 10 used for tracer IJL 3D diags
       INTEGER, DIMENSION(kgcaijl) :: ijlt_power
 
+      ! Indices to radiatively active species
+      INTEGER :: i_H2O   = 0
+      INTEGER :: i_CO2   = 0
+      INTEGER :: i_O3    = 0
+      INTEGER :: i_O2    = 0
+      INTEGER :: i_NO2   = 0
+      INTEGER :: i_N2O   = 0
+      INTEGER :: i_CH4   = 0
+      INTEGER :: i_CFC11 = 0
+      INTEGER :: i_CFC12 = 0
+      INTEGER :: i_N2    = 0
+      INTEGER :: i_CFCY  = 0
+      INTEGER :: i_CFCZ  = 0
+      INTEGER :: i_SO2   = 0
+      INTEGER :: i_SO4   = 0
+      INTEGER :: i_NIT   = 0
+      INTEGER :: i_OCPI  = 0
+      INTEGER :: i_OCPO  = 0
+      INTEGER :: i_BCPI  = 0
+      INTEGER :: i_BCPO  = 0
+      INTEGER :: i_SOAS  = 0
+      
 ! This section declares arrays used to write tracer
 ! diagnostics accumulations in a format suitable for offline
 ! postprocessing.  The size of these arrays cannot be known

@@ -4854,7 +4854,79 @@ c
         ia_ij(k) = ia_rad_frc
         scale_ij(k) = 1.
 #endif /* ACCMIP_LIKE_DIAGS */
-
+#ifdef TRACERS_GC
+      k=k+1
+        ij_fcghg(1,1) = k
+        lname_ij(k) = 'SW TOA CH4 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'swf_ch4_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(2,1) = k
+        lname_ij(k) = 'LW TOA CH4 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'lwf_ch4_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(1,2) = k
+        lname_ij(k) = 'SW TOA N2O RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'swf_n2o_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(2,2) = k
+        lname_ij(k) = 'LW TOA N2O RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'lwf_n2o_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(1,3) = k
+        lname_ij(k) = 'SW TOA CFC11 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'swf_cfc11_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(2,3) = k
+        lname_ij(k) = 'LW TOA CFC11 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'lwf_cfc11_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(1,4) = k
+        lname_ij(k) = 'SW TOA CFC12 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'swf_cfc12_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(2,4) = k
+        lname_ij(k) = 'LW TOA CFC12 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'lwf_cfc12_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(1,5) = k
+        lname_ij(k) = 'SW TOA O3 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'swf_o3_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+      k=k+1
+        ij_fcghg(2,5) = k
+        lname_ij(k) = 'LW TOA O3 RADIATIVE FORCING'
+        units_ij(k) = 'W/m^2'
+        name_ij(k) = 'lwf_o3_toa'
+        ia_ij(k) = ia_rad_frc
+        scale_ij(k) = 1.
+#endif /* TRACERS_GC */
+        
 c
 c the following are not accumulated
 c

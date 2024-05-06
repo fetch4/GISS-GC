@@ -646,6 +646,24 @@ CONTAINS
          'v/v dry', RC )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
+    IF ( Am_I_Root() .and. .false. ) THEN
+    print*,NTM     ! 278 in 12.9.0 (199 advected)
+    print*,i_H2O   ! 61
+    print*,i_CO2   ! 200
+    print*,i_O3    ! 164
+    print*,i_O2    ! 277
+    print*,i_NO2   ! 161
+    print*,i_N2O   ! 154
+    print*,i_CH4   ! 154
+    print*,i_CFC11 ! 36
+    print*,i_CFC12 ! 21
+    print*,i_N2    ! 276
+    print*,i_CFCY  ! 0
+    print*,i_CFCZ  ! 0
+    print*,i_SO2   ! 191
+    CALL FLUSH(6)
+    ENDIF
+    
     !=====================
     ! Call GEOS-Chem
     !=====================
@@ -1183,7 +1201,7 @@ CONTAINS
     REAL*8    :: DT
 
     INTEGER   :: I, J, L, N, NN, II, JJ, I_0H, I_1H
-    INTEGER   :: NYMDb, NHMSb, NYMDe, NHMSe, NSP
+    INTEGER   :: NYMDb, NHMSb, NYMDe, NHMSe, NSP, PLC
 
     ! Fill Input_Opt with input.geos
     WRITE(6,*) "Calling Set_Input_Opt"
@@ -1474,9 +1492,9 @@ CONTAINS
     Input_Opt%TS_DIAG = INT( DTsrc  )
 
     ! Set start and finish time from rundeck
-    Input_Opt%NYMDb   = 20141201 ! nymdB
+    Input_Opt%NYMDb   = 20160701 ! nymdB
     Input_Opt%NHMSb   = 000000   ! nhmsB
-    Input_Opt%NYMDe   = 20141202 ! nymdE
+    Input_Opt%NYMDe   = 20160801 ! nymdE
     Input_Opt%NHMSe   = 000000   ! nhmsE
 
     ! Set GEOS-Chem timesteps on all CPUs
@@ -1538,7 +1556,7 @@ CONTAINS
     ALLOCATE( t_qlimit(NTM) )
     ALLOCATE(     TrM(       I_0H:I_1H, J_0H:J_1H, LM, NTM  ) )
     ALLOCATE(   TrMom( NMOM, I_0H:I_1H, J_0H:J_1H, LM, NTM ) )
-
+    
     NN=1
     DO N = 1, NSP
        IF ( State_Chm%SpcData(N)%Info%Is_Advected .or. &
@@ -1548,6 +1566,36 @@ CONTAINS
        TrFullName(NN) = TRIM( State_Chm%SpcData(N)%Info%FullName ) // " (" // &
                         TRIM( State_Chm%SpcData(N)%Info%Formula  ) // ")"
        IsAdvected(NN) = State_Chm%SpcData(N)%Info%Is_Advected
+       SELECT CASE ( TrName(NN) )
+         CASE('H2O')
+           i_H2O   = N
+         CASE('CO2')
+           i_CO2   = N
+         CASE('O3')
+           i_O3    = N
+         CASE('O2')
+           i_O2    = N
+         CASE('NO2')
+           i_NO2   = N
+         CASE('N2O')
+           i_N2O   = N
+         CASE('CH4')
+           i_CH4   = N
+         CASE('CFC11')
+           i_CFC11 = N
+         CASE('CFC12')
+           i_CFC12 = N
+         CASE('N2')
+           i_N2    = N
+         CASE('CFCY')
+           i_CFCY  = N
+         CASE('CFCZ')
+           i_CFCZ  = N
+         CASE('SO2')
+           i_SO2   = N
+         CASE DEFAULT
+           plc = 0
+       END SELECT
 
        IF ( Am_I_Root() ) WRITE(6,*) NN, N, TrName(NN)
 

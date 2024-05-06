@@ -487,7 +487,7 @@ c
           endif
           call inc_subdd_alijh(subdd,k,arr)
         endif
-      case ('aijleh' )
+      case ('aijleh','rijleh' )
         call inc_subdd_aijleh(subdd,k,arr)
       case ('aijph')
         if(jdim_ .eq. 2) then
@@ -1131,6 +1131,7 @@ c
      &     catshape,category,grpname,
      &     namedd,kdd,is_inst,
      &     diaglist,listlen,ndiags,dsize3_input)
+      use atm_com, only : lm_req
       use model_com, only : nday,dtsrc
       use model_com, only : itimei,itimee
       use resolution, only : lm ! temporary?
@@ -1321,6 +1322,47 @@ c
 #endif
         deallocate(lvlarr)
 
+      case('rijleh' )
+        if(catshape.eq.'rijleh') then
+          dsize3 = lmaxsubdd+lm_req+1
+          subdd%accshape =
+     &      'dist_im,dist_jm,lmaxsubdd+lm_req+1,nperiod_'//trim(grpname)
+        else
+          dsize3 = dsize3_input
+          subdd%accshape =
+     &         'dist_im,dist_jm,lm_'//trim(grpname)//
+     &         ',nperiod_'//trim(grpname)
+        endif
+#ifdef GCAP
+#ifdef CUBED_SPHERE
+        subdd%tile_dim_out = 4
+        dimstr='(time,tile,lev,y,x) ;'
+#else
+        dimstr='(time,lev,lat,lon) ;'
+#endif
+#else
+#ifdef CUBED_SPHERE
+        subdd%tile_dim_out = 4
+        dimstr='(time,tile,level,y,x) ;'
+#else
+        dimstr='(time,level,lat,lon) ;'
+#endif
+#endif
+        allocate(lvlarr(dsize3))
+        do l=1,dsize3
+          lvlarr(l) = l
+        enddo
+#ifdef GCAP
+        call add_coord(subdd%cdl0,'lev',size(lvlarr),
+     &       long_name="level edges",
+     &       units = "1",
+     &       coordvalues=lvlarr)
+#else
+        call add_coord(subdd%cdl0,'level',size(lvlarr),
+     &       coordvalues=lvlarr)
+#endif
+        deallocate(lvlarr)
+        
       case('aijph')
         if( (.not.is_inst) .and. vinterp_using_timeavgs) then
           ! deferred vertical regridding of model-level accumulations
@@ -1474,6 +1516,7 @@ c
 !@+   and declare subdaily diag metadata and allocate space
 !@+   for requested outputs
 !@auth M. Kelley
+      use atm_com, only : lm_req      
       use model_com, only : dtsrc,nday,itime
       use resolution, only : lm
       use constant, only : kapa
@@ -1672,6 +1715,11 @@ c add (calls to) the analogs of ijh_defs et al.
       input_sizes3(k) = lm+1
       call ijleh_defs(diaglists(1,k),nmax_possible,diaglens(k))
 
+      k = k + 1
+      catshapes(k) = 'rijleh'; categories(k) = 'rijleh'
+      input_sizes3(k) = lm+lm_req+1
+      call rijleh_defs(diaglists(1,k),nmax_possible,diaglens(k))
+      
       k = k + 1
       catshapes(k) = 'aijh'; categories(k) = 'rijh'
       input_sizes3(k) = 0
@@ -2603,7 +2651,131 @@ c
      &  sched = sched_rad      
      &     )      
 #endif
-      
+
+#ifdef TRACERS_GC
+      arr(next()) = info_type_(
+     &  sname = 'SW_CH4',
+     &  lname = 'toa_shortwave_methane_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CH4',
+     &  lname = 'toa_longwave_methane_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_N2O',
+     &  lname = 'toa_shortwave_nitrous_oxide_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_N2O',
+     &  lname = 'toa_longwave_nitrous_oxide_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_CFC11',
+     &  lname = 'toa_shortwave_cfc11_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CFC11',
+     &  lname = 'toa_longwave_cfc11_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_CFC12',
+     &  lname = 'toa_shortwave_cfc12_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CFC12',
+     &  lname = 'toa_longwave_cfc12_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_O3',
+     &  lname = 'toa_shortwave_ozone_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_O3',
+     &  lname = 'toa_longwave_ozone_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+
+      arr(next()) = info_type_(
+     &  sname = 'SW_CH4_TP',
+     &  lname = 'tropopause_shortwave_methane_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CH4_TP',
+     &  lname = 'tropopause_oa_longwave_methane_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_N2O_TP',
+     &  lname = 'tropopause_shortwave_nitrous_oxide_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_N2O_TP',
+     &  lname = 'tropopause_longwave_nitrous_oxide_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_CFC11_TP',
+     &  lname = 'tropopause_shortwave_cfc11_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CFC11_TP',
+     &  lname = 'tropopause_longwave_cfc11_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_CFC12_TP',
+     &  lname = 'tropopause_shortwave_cfc12_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CFC12_TP',
+     &  lname = 'tropopause_longwave_cfc12_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_O3_TP',
+     &  lname = 'tropopause_shortwave_ozone_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_O3_TP',
+     &  lname = 'tropopause_longwave_ozone_radiative_forcing',
+     &  units = 'W m-2',
+     &  sched = sched_rad
+     &     )
+#endif
+
       return
       contains
       integer function next()
@@ -3153,6 +3325,94 @@ c
       end function next
       end subroutine ijleh_defs
 
+      subroutine rijleh_defs(arr,nmax,decl_count)
+c
+c 3D model-level edge outputs
+c
+      use subdd_mod, only : info_type,sched_rad
+! info_type_ is a homemade structure constructor for older compilers
+      use subdd_mod, only : info_type_
+      use constant, only : bygrav,kapa
+      implicit none
+      integer :: nmax,decl_count
+      type(info_type) :: arr(nmax)
+c
+c note: next() is a locally declared function to increment decl_count
+c
+
+      decl_count = 0
+
+#ifdef TRACERS_GC
+      arr(next()) = info_type_(
+     &  sname = 'LW_FLUX',
+     &  lname = 'net_upward_longwave_flux',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_FLUX',
+     &  lname = 'net_upward_shortwave_flux',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CH4_3D',
+     &  lname = 'change_in_net_upward_longwave_flux_from_methane',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_CH4_3D',
+     &  lname = 'change_in_net_upward_shortwave_flux_from_methane',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_N2O_3D',
+     &  lname = 'change_in_net_upward_longwave_flux_from_n2o',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_N2O_3D',
+     &  lname = 'change_in_net_upward_shortwave_flux_from_n2o',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CFC11_3D',
+     &  lname = 'change_in_net_upward_longwave_flux_from_cfc11',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_CFC11_3D',
+     &  lname = 'change_in_net_upward_shortwave_flux_from_cfc11',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_CFC12_3D',
+     &  lname = 'change_in_net_upward_longwave_flux_from_cfc12',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_CFC12_3D',
+     &  lname = 'change_in_net_upward_shortwave_flux_from_cfc12',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'LW_O3_3D',
+     &  lname = 'change_in_net_upward_longwave_flux_from_ozone',
+     &  units = 'W m-2'
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'SW_O3_3D',
+     &  lname = 'change_in_net_upward_shortwave_flux_from_ozone',
+     &  units = 'W m-2'
+     &     )
+#endif
+
+      return
+      contains
+      integer function next()
+      decl_count = decl_count + 1
+      next = decl_count
+      end function next
+      end subroutine rijleh_defs
+      
       subroutine get_subdd_vinterp_coeffs
       use geom, only : imaxj
       use resolution, only : lm

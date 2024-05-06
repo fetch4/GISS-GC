@@ -1,0 +1,885 @@
+#include  "rundeck_opts.h"
+
+#ifdef SKIP_TRACERS_RAD
+#undef TRACERS_ON
+#endif
+      MODULE RAD_COM
+!@sum  RAD_COM Model radiation arrays and parameters
+!@auth Original Development Team
+      USE RESOLUTION, ONLY : IM, JM, LM
+      USE ATM_COM, ONLY : LM_REQ
+      USE RADPAR, ONLY : S0, NRAERO_AOD => NTRACE
+      USE ABSTRACTORBIT_MOD, ONLY : ABSTRACTORBIT
+#ifdef TRACERS_AMP
+      USE AERO_CONFIG, ONLY : NMODES
+#endif
+#ifdef TRACERS_TOMAS
+      USE TOMAS_AEROSOL, ONLY : ICOMP
+#endif
+#if (defined TRACERS_DUST) || (defined TRACERS_MINERALS)
+      USE TRDUST_MOD, ONLY : NSUBCLAYS
+      USE TRACER_COM, ONLY : NTM_DUST, NTM_CLAY, NTM_SIL1, NTM_SIL2,      &
+         NTM_SIL3, NTM_SIL4, NTM_SIL5
+#endif
+!@var S0 solar 'constant' needs to be saved between calls to radiation
+      IMPLICIT NONE
+      SAVE 
+ 
+!@dbparam NRad :    DT_Rad      =  NRad*DTsrc
+#ifdef GCAP
+      INTEGER  ::  NRad = 1
+#else
+      INTEGER  ::  NRad = 5
+#endif
+!@var MODRD :  if MODRD=0 do radiation, else skip
+      INTEGER  ::  MODRD
+
+!**** DEFAULT ORBITAL PARAMETERS FOR EARTH
+!**** Note PMIP runs had specified values that do not necesarily
+!**** coincide with those used as the default, or the output of ORBPAR.
+!****                    OMEGT          OBLIQ        ECCEN
+!**** DEFAULT (2000 AD) :  282.9          23.44        0.0167
+!**** PMIP CONTROL :       282.04         23.446       0.016724
+!**** PMIP 6kyr BP :       180.87         24.105       0.018682
+!**** PMIP LGM (21k) :     294.42         22.949       0.018994
+!@param OMEGT_def precession angle (degrees from vernal equinox)
+      REAL*8, PARAMETER  ::  OMEGT_DEF = 282.9D0
+!@param OBLIQ_def obliquity angle  (degrees)
+      REAL*8, PARAMETER  ::  OBLIQ_DEF = 23.44D0
+!@param ECCN_def eccentricity
+      REAL*8, PARAMETER  ::  ECCN_DEF = .0167D0
+!@var OMEGT,OBLIQ,ECCN actual orbital parameters used
+      REAL*8 OMEGT, OBLIQ, ECCN
+ 
+!**** Database parameters to control orbital parameter calculation
+!**** Note :  setting variable_orb_par=0, orb_par_year_bp=-50 (=year 2000)
+!**** does not produce exactly the same as the default values.
+!@dbparam variable_orb_par 1 if orbital parameters are time dependent
+!@+       1  :  use orb par from year "JYEAR - orb_par_year_bp"
+!@+       0  :  use orb par from year orb_par_year_bp (BP=before 1950)
+!@+      -1  :  set eccn/obliq/omegt to orb_par(1 : 3)
+!@+    else  :  set eccn/obliq/omegt to defaults of orb_par
+      INTEGER  ::  variable_orb_par = -2
+!@dbparam orb_par_year_bp = offset from model_year or 1950 (fixed case)
+      INTEGER  ::  orb_par_year_bp = 0
+!@dbparam orb_par :: directly specifies orbital parameters
+      REAL*8, DIMENSION(3)  ::  orb_par = (/ECCN_DEF,OBLIQ_DEF,         &
+                               OMEGT_DEF/)
+ 
+!@var dimrad_sv dimension sum of input fields saved for radia_only runs
+      INTEGER, PARAMETER  ::  DIMRAD_SV = IM*JM*(7*LM+3*LM_REQ+24)
+!@var RQT Radiative equilibrium temperatures above model top
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  RQT
+!@var Tchg Total temperature change in adjusted forcing runs
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  Tchg
+!@var SRHR(0) Solar   raditive net flux into the ground          (W/m^2)
+!@var TRHR(0) Thermal raditive downward flux into ground(W/O -StB*T^4)(W/m^2)
+!@*   Note :  -StB*T^4 is added in SURFACE, since T varies betw. rad. calls
+!@var SRHR(1->LM) Solar   raditive heating rate (W/m^2)  (short wave)
+!@var TRHR(1->LM) Thermal raditive heating rate (W/m^2)  (long wave)
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  SRHR, TRHR
+!@var TRSURF upward thermal radiation at the surface from rad step W/m2
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  TRSURF
+!@var FSF Solar Forcing over each type (W/m^2)
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  FSF
+!@var FSRDIR Solar incident at surface, direct fraction (1)
+!@var DIRVIS Direct beam solar incident at surface (W/m^2)
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  FSRDIR, DIRVIS
+!@var SRVISSURF Incident solar direct+diffuse visible at surface (W/m^2)
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  SRVISSURF
+!@var SRDN Total incident solar at surface (W/m^2)
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  SRDN
+                                                   ! saved in rsf
+!@var FSRDIF diffuse visible incident solar at surface
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  FSRDIF
+!@var DIRNIR direct  nir     incident solar at surface
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  DIRNIR
+!@var DIFNIR diffuse nir     incident solar at surface
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  DIFNIR
+!@var srnflb_save  Net solar radiation (W/m^2)
+!@var trnflb_save  Net thermal radiation (W/m^2)
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  srnflb_save,           &
+                                    trnflb_save
+#ifdef GCAP
+!@var save_alb Surface albedo (unitless)
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  save_alb
+!@var TAUW3D,TAUI3D water,ice cloud opt. depths (for diags)
+      REAL*8, DIMENSION( : , : , : ), ALLOCATABLE  ::  TAUW3D, TAUI3D
+#endif
+!@var TAUSUMW,TAUSUMI column-sum water,ice cloud opt. depths (for diags)
+      REAL*8, DIMENSION(:,:), ALLOCATABLE  ::  TAUSUMW, TAUSUMI
+#ifdef mjo_subdd
+!@var OLR_acc, OLR_cnt --  Net thermal radiation at TOA (W/m^2) for SUBDD
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  OLR_acc
+      REAL*8  ::  OLR_cnt = 0.D0
+!@var SWHR,LWHR,SWHR_cnt,LWHR_cnt -- shortwave/longwave heating rates for SUBDD (C/d)
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  SWHR, LWHR
+      REAL*8  ::  SWHR_cnt = 0.D0
+      REAL*8  ::  LWHR_cnt = 0.D0
+!@var swu_avg,swu_cnt -- upward shortwave fluxes at srf for SUBDD (C/d)
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  swu_avg
+      REAL*8  ::  swu_cnt = 0.D0
+#endif
+#ifdef TRACERS_ON
+ 
+!@var DIAG_FC Controls the number of radiation calls for the calculation of
+!@+           aerosol radiative forcing. One call if =1, multiple calls if
+!@+           =2, with their number depending on the aerosol scheme used.
+!@+           Use =2 sparingly, it is s l o w. Default is 1. No calls if zero.
+      INTEGER  ::  diag_fc = 1
+! nraero_xxxx are the aerosol-specific nraero_aod (old ntrace) components of
+! aerosol-active species in radiation. nraero_aod=sum(nraero_xxxx)
+!@var nraero_aod Number of aerosol types in optical depth calculations
+!@var nraero_rf Number of aerosol types in forcing calculations, which is
+!@+             different from nraero_aod when DIAG_FC=1 (default)
+      INTEGER  ::  nraero_rf = 0
+#ifdef TRACERS_AEROSOLS_Koch
+#ifdef SULF_ONLY_AEROSOLS
+      INTEGER, PARAMETER  ::  NRAERO_KOCH = 1
+#else
+#ifdef TRACERS_AEROSOLS_VBS
+#ifdef TRACERS_AEROSOLS_SOA
+      INTEGER, PARAMETER  ::  NRAERO_KOCH = 5
+#else
+      INTEGER, PARAMETER  ::  NRAERO_KOCH = 4
+#endif  /* TRACERS_AEROSOLS_SOA */
+#else
+#ifdef TRACERS_AEROSOLS_SOA
+      INTEGER, PARAMETER  ::  NRAERO_KOCH = 6
+#else
+      INTEGER, PARAMETER  ::  NRAERO_KOCH = 5
+#endif  /* TRACERS_AEROSOLS_SOA */
+#endif  /* TRACERS_AEROSOLS_VBS */
+#endif  /* SULF_ONLY_AEROSOLS */
+#else
+      INTEGER, PARAMETER  ::  NRAERO_KOCH = 0
+#endif  /* TRACERS_AEROSOLS_Koch */
+ 
+#ifdef TRACERS_NITRATE
+      INTEGER, PARAMETER  ::  NRAERO_NITRATE = 1
+#else
+      INTEGER, PARAMETER  ::  NRAERO_NITRATE = 0
+#endif  /* TRACERS_NITRATE */
+ 
+#if (defined TRACERS_DUST) || (defined TRACERS_MINERALS)
+      INTEGER, PARAMETER  ::  NRAERO_CLAY = NSUBCLAYS*NTM_CLAY
+      INTEGER, PARAMETER  ::  NRAERO_DUST = NRAERO_CLAY + NTM_SIL1 +    &
+                             NTM_SIL2 + NTM_SIL3 + NTM_SIL4 + NTM_SIL5
+!@var nr_soildust First index of dust tracers in radiation (nraero_aod)
+      INTEGER  ::  nr_soildust = 0
+#else
+      INTEGER, PARAMETER  ::  NRAERO_CLAY = 0
+      INTEGER, PARAMETER  ::  NRAERO_DUST = 0
+#endif  /* TRACERS_DUST */
+ 
+!@var nraero_OMA Number of OMA tracers that have an AOD value
+!@var nraero_AMP Number of AMP tracers that have an AOD value
+!@var nraero_TOMAS Number of TOMAS tracers that have an AOD value
+      INTEGER  ::  nraero_OMA = 0
+      INTEGER  ::  nraero_AMP = 0
+      INTEGER  ::  nraero_TOMAS = 0
+ 
+#ifdef TRACERS_AEROSOLS_SEASALT
+      INTEGER, PARAMETER  ::  NRAERO_SEASALT = 2
+#else
+      INTEGER, PARAMETER  ::  NRAERO_SEASALT = 0
+#endif  /* TRACERS_AEROSOLS_SEASALT */
+ 
+#ifdef TRACERS_ON
+!@var njaero max expected rad code tracers passed to photolysis
+!@var nraero_aod_rsf value of nraero_aod found in the rsf file
+!@var nraero_rf_rsf value of nraero_rf found in the rsf file
+!@var save_dry_aod_rsf value of save_dry_aod found in the rsf file
+!@var tau_as All-sky aerosol optical saved 1 : nraero_aod not 1 : ntm
+!@+   This is so clays are separate. Now also used for old parameter
+!@+   mxfastj :  Number of aerosol/cloud types currently active in the model
+!@var tau_cs Same as tau_as for clear-sky
+!@var tau_dry Same as tau_as for dry aerosol (RH=0%)
+      INTEGER  ::  njaero
+                        ! nraero_aod+2 cloud types (water/ice)
+      INTEGER  ::  nraero_aod_rsf = 0
+      INTEGER  ::  nraero_rf_rsf = 0
+      INTEGER  ::  save_dry_aod_rsf = 0
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  tau_as
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  tau_cs
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  tau_dry
+#ifdef CACHED_SUBDD
+!@var abstau_as Same as tau_as for absorption
+!@var abstau_cs Same as tau_cs for absorption
+!@var abstau_dry Same as tau_dry for absorption
+!@var swfrc Shortwave aerosol radiative forcing
+!@var lwfrc Shortwave aerosol radiative forcing
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  abstau_as
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  abstau_cs
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  abstau_dry
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  swfrc, lwfrc
+#endif  /* CACHED_SUBDD */
+#endif
+#endif
+!@var CFRAC Total cloud fraction as seen be radiation
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)  ::  CFRAC
+                                                   ! saved in rsf
+!@var RCLD Total cloud optical depth as seen be radiation
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  RCLD
+                                                    ! saved in rsf
+!@var chem_tracer_save 3D O3, CH4 saved elsewhere for use in radiation
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  chem_tracer_save
+                                                                 !saved rsf
+#ifdef GCC_COUPLE_RAD
+!@var GCCco2_tracer_save 3D CO2 saved elsewhere for use in radiation
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  GCCco2_tracer_save
+                                                                 !saved rsf
+#endif
+#if (defined SHINDELL_STRAT_EXTRA) && (defined ACCMIP_LIKE_DIAGS)
+!@var stratO3_tracer_save 3D stratOx saved elsewhere for use in rad code
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  stratO3_tracer_save
+                                                              !saved rsf
+#endif
+!@var rad_to_chem save 3D quantities from radiation code for use in
+!@+   chemistry (or rest of model). 1=Ozone, 2=aerosol ext, 3=N2O, 4=CH4,
+!@+   5=CFC11+CFC12
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  rad_to_chem
+                                                             !saved in rsf
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  rad_to_file
+#ifdef GCC_COUPLE_RAD
+!@var GCCco2rad_to_chem save 3D quantities from radiation code
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  GCCco2rad_to_chem
+                                                                 !saved in rsf
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  GCCco2rad_to_file
+#endif
+!@var KLIQ Flag indicating dry(0)/wet(1) atmosphere (memory feature)
+      INTEGER, ALLOCATABLE, DIMENSION( : , : , : , : )  ::  KLIQ
+                                                       ! saved in rsf
+!@dbparam Ikliq 0,1,-1 initialize kliq as dry,equil,current model state
+      INTEGER  ::  Ikliq = -1
+                             !  get kliq-array from restart file
+!@dbparam RHfix const.rel.humidity passed to radiation for aeros. tests
+      REAL*8  ::  RHfix = -1.
+                             !  pass the current model rel.humidity
+!@dbparam dalbsnX global coeff for snow alb change by black carbon depos
+      REAL*8  ::  dalbsnX = 0.
+!@dbparam albsn_yr year of blk carb depos used for snow alb. reduction
+      INTEGER  ::  albsn_yr = 1951
+ 
+!     variables related to aerosol indirect effects : 
+!     (CDNC=cloud droplet number concentration)
+!@dbparam CC_CDNCx scaling factor relating cld cvr change and CDNC change
+      REAL*8  ::  CC_CDNCX = .0000D0
+                                    ! .0036d0
+!@dbparam OC_CDNCx scaling factor relating cld opt depth and CDNC change
+      REAL*8  ::  OD_CDNCX = .0000D0
+                                    ! .007d0
+!@var pcdnc,vcdnc pressure,vertical profile for cld.cvr change
+      REAL*8, PARAMETER, DIMENSION(7)                                   &
+                                   ::  PCDNC = (/984.D0,964.D0,934.D0, &
+                                  884.D0,810.D0,710.D0,550.D0/),       &
+                                  VCDNC = (/.35D0,.20D0,.10D0,.17D0,   &
+                                  .10D0,.08D0,0.D0/)
+!@var cdncl = vcdnc interpolated to current vertical resolution
+      REAL*8 cdncl(LM)
+ 
+!@var COSZ1 Mean Solar Zenith angle for curr. physics(not rad) time step
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)       :: COSZ1
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)       :: save_COSZ2
+      REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:)   :: save_RF
+      REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:)   :: save_RF_TP
+						REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:) :: save_RF_3D
+!@var COSZ_day Mean Solar Zenith angle for current day
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)       :: COSZ_day
+!@var SUNSET Time of sunset for current day (radians from local noon)
+      REAL*8, ALLOCATABLE, DIMENSION(:,:)       ::  SUNSET
+!@dbparam S0X solar constant multiplication factor
+      REAL*8  ::  S0X = 1.
+!@dbparam S0_yr,S0_day obs.date of solar constant (if 0 :  time var)
+      INTEGER  ::  S0_yr = 1951, S0_day = 182
+!@dbparam CO2X,... scaling factors for CO2 N2O CH4 CFC11 CFC12 XGHG
+      REAL*8  ::  CO2X = 1., N2OX = 1., CH4X = 1., CFC11X = 1.,         &
+                 CFC12X = 1., XGHGX = 1., O2X = 1., NO2X = 1.,         &
+                 N2CX = 1., YGHGX = 2., SO2X = 0.,                     &
+                 CH4X_RADoverCHEM = 1.D0
+!@dbparm ref_mult factor to control REFDRY from rundeck
+      REAL*8  ::  ref_mult = 1.
+!@dbparam GHG_yr,GHG_day obs.date of well-mixed GHgases (if 0 :  time var)
+      INTEGER  ::  GHG_yr = 1951, GHG_day = 182
+!@dbparam Volc_yr,Volc_day obs.date of Volc.Aerosols (if 0 :  time var)
+!@+   special cases :  Volc_yr=-1     :  150-yr mean 1850-1999
+!@+                  Volc_yr=-2010  :  current year up to 2010 then
+!@+                                  repeat volcanos from 100 yrs ago
+!@+                  Volc_yr=-2000  :  older way of creating future volc
+      INTEGER  ::  Volc_yr = 1951, Volc_day = 182
+!@dbparam Aero_yr obs.year of troposph.Aerosols (if 0 :  use current yr)
+      INTEGER  ::  Aero_yr = 1951  ! always use annual cycle
+!@dbparam dust_yr nominal year for prescribed dust climatology (if 0 :  use current yr)
+      INTEGER  ::  dust_yr = 1951  ! always use annual cycle
+!@dbparam O3_yr obs.year of Ozone (if 0 :  use current year)
+      INTEGER  ::  O3_yr = 1951    ! always use annual cycle
+!@dbparam H2OstratX strat_water_vapor, cloud, Ozone scaling factor
+      REAL*8  ::  H2OstratX = 1., cldX = 1., O3X = 1.
+!@dbparam H2ObyCH4 if not 0 :  add CH4 produced H2O into layers 1->LM
+      REAL*8  ::  H2ObyCH4 = 1.
+!@var dH2O  zonal H2O-prod.rate in kg/m^2/ppm_CH4/second in layer L
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  dH2O
+!@var RSDIST,SIND,COSD orbit related variables computed once a day
+      REAL*8  ::  RSDIST, SIND, COSD
+!@var ALB is SRNFLB(1)/(SRDFLB(1)+1.D-20),PLAVIS,PLANIR,ALBVIS,ALBNIR,
+!@+       SRRVIS,SRRNIR,SRAVIS,SRANIR (see RADIATION)
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : ), TARGET  ::  ALB
+ 
+!@var SALB (1.-broadband surface albedo) - saved in rsf
+      REAL*8, POINTER, DIMENSION(:,:)  ::  SALB ! = ALB( : , : ,1)
+!      EQUIVALENCE (SALB,ALB)
+ 
+#ifdef ALTER_RADF_BY_LAT
+!@var FULGAS_lat multiplicative factors for altering FULGAS by latitude
+!@+ for non-transient runs. (greenhouse gas regional forcing)
+      REAL*8, DIMENSION(13,46)  ::  FULGAS_lat
+                                            !rad not model grid, 13 gasses
+!@var FS8OPX_lat multiplicative factors for altering FS8OPX by latitude
+!@+ for non-transient runs. (aerosol regional forcing) SOLAR
+!@var FT8OPX_lat multiplicative factors for altering FT8OPX by latitude
+!@+ for non-transient runs. (aerosol regional forcing) THERMAL
+      REAL*8, DIMENSION(8,46)  ::  FS8OPX_lat, FT8OPX_lat
+                                                      !rad not model grid
+                                                !8 groups of aerosols
+#endif
+!@dbparam rad_interact_aer =1 for radiatively active non-chem tracers
+      INTEGER  ::  rad_interact_aer = 0
+                                       ! defaults to 0
+!@dbparam clim_interact_chem=1 for radiatively active chem tracers
+!@+ also affects chemisty to humidity feedback
+      INTEGER  ::  clim_interact_chem = 0
+                                        ! defaults to 0
+ 
+!@dbparam nradfrc sets frequency of inst. rad. forcing calculations
+      INTEGER  ::  nradfrc = 1
+                           ! do them every nrad*nradfrc physics steps
+!                nradfrc=0 :  skip all, no repeated radiation calculations
+!**** the radiative forcing level for instantaneous forcing calcs is set
+!**** using the rad_forc_lev parameter.
+!@dbparam rad_forc_lev = 0 for TOA, 1 for LTROPO (default=0)
+      INTEGER  ::  rad_forc_lev = 0
+ 
+!@dbparam cloud_rad_forc = 1 for calculation of cloud radiative forcing
+      INTEGER  ::  cloud_rad_forc = 0
+ 
+!@dbparam TAero_aod_diag = 1 outputs offline aerosol optical properties,
+!@+   = 2 outputs band 6 only. Note this only works for background aerosols,
+!@+   not tracers.
+      INTEGER  ::  TAero_aod_diag = 0
+!@dbparam aer_rad_forc = 1 for calculation of aerosol radiative forcing
+!@+   note this only works for background aerosols, not tracers
+      INTEGER  ::  aer_rad_forc = 0
+ 
+!@var co2ppm Current CO2 level as seen by radiation
+      REAL*8  ::  co2ppm = 280.  ! set a reasonable default value
+ 
+!**** Local variables initialised in init_RAD
+!@var PLB0,QL0 global parts of local arrays (to avoid OMP-copyin)
+      REAL*8, DIMENSION(LM_REQ)  ::  PLB0, SHL0
+!@var ntrix_aod Indexing array for aerosol optical depth tracer names
+!@var ntrix_rf Indexing array for aerosol radiative forcing tracer names
+      INTEGER, ALLOCATABLE, DIMENSION( : )  ::  ntrix_aod, ntrix_rf
+!@var WTTR weighting array for optional aerosol-ratiation interactions
+      REAL*8, ALLOCATABLE, DIMENSION( : )  ::  WTTR
+ 
+#ifdef CUBED_SPHERE
+!@var JM_DH2O number of latitudes in CH4->H2O input file
+!@var LAT_DH2O latitudes in CH4->H2O input file (converted to radians)
+      INTEGER, PARAMETER  ::  JM_DH2O = 18
+      REAL*8  ::  lat_dh2o(JM_DH2O)
+#endif
+ 
+!@dbparam snoage_def determines how snowage is calculated : 
+!@+       = 0     independent of temperature
+!@+       = 1     only when max daily local temp. over type > 0
+      INTEGER  ::  snoage_def = 0
+      REAL*8, ALLOCATABLE, DIMENSION( : , : , : )  ::  SNOAGE
+      class (AbstractOrbit), allocatable :: orbit
+ 
+!@dbparam chl_from_obio =1 to use chl from obio when computing ocean albedo
+      INTEGER  ::  chl_from_obio = 0
+!@dbparam chl_from_seawifs =1 to use chl from SeaWIFs when computing ocn albedo
+      INTEGER  ::  chl_from_seawifs = 0
+ 
+      CONTAINS
+ 
+      SUBROUTINE RADIATIONSETORBIT(anOrbit)
+      class (AbstractOrbit), intent(in) :: anOrbit
+      ALLOCATE( orbit,SOURCE=anOrbit)
+      END SUBROUTINE RADIATIONSETORBIT
+ 
+      END MODULE RAD_COM
+
+      SUBROUTINE ALLOC_RAD_COM(grid)
+!@sum  To allocate arrays who sizes now need to be determined at
+!@+    run-time
+!@auth Rodger Abel
+ 
+      USE DOMAIN_DECOMP_ATM, ONLY : DIST_GRID
+      USE DOMAIN_DECOMP_ATM, ONLY : GETDOMAINBOUNDS
+      USE RESOLUTION, ONLY : IM, JM, LM
+      USE ATM_COM, ONLY : LM_REQ
+#ifdef TRACERS_ON
+      USE TRACER_COM, ONLY : NTM
+#endif
+      USE RAD_COM, ONLY : RQT, Tchg, SRHR, TRHR, FSF, FSRDIR, SRVISSURF,  &
+          TRSURF, SRDN, CFRAC, RCLD, chem_tracer_save, rad_to_chem,     &
+          rad_to_file, KLIQ, COSZ1, COSZ_day, SUNSET, dH2O, ALB, SALB,  &
+          SNOAGE, srnflb_save, trnflb_save, FSRDIF, DIRNIR, DIFNIR,     &
+          TAUSUMW, TAUSUMI, DIRVIS
+#ifdef GCC_COUPLE_RAD
+      USE RAD_COM, ONLY : GCCco2_tracer_save, GCCco2rad_to_chem,          &
+          GCCco2rad_to_file
+#endif
+#ifdef GCAP
+      USE RAD_COM, ONLY : save_alb, tauw3d, taui3d, save_cosz2, save_rf, save_rf_TP, save_rf_3D
+#endif
+#ifdef mjo_subdd
+      USE RAD_COM, ONLY : SWHR_cnt, LWHR_cnt, SWHR, LWHR, OLR_acc,        &
+          OLR_cnt, swu_avg, swu_cnt
+#endif
+#ifdef CUBED_SPHERE
+      USE RAD_COM, ONLY : JM_DH2O
+#endif
+#if (defined SHINDELL_STRAT_EXTRA) &  (defined ACCMIP_LIKE_DIAGS)
+      USE RAD_COM, ONLY : stratO3_tracer_save
+#endif
+      IMPLICIT NONE
+      TYPE (DIST_GRID), INTENT(IN) :: grid
+ 
+      INTEGER  ::  I_0H, I_1H, J_0H, J_1H
+      INTEGER  ::  IER
+ 
+      CALL GETDOMAINBOUNDS(grid,J_STRT_HALO=J_0H,J_STOP_HALO=J_1H)
+      I_0H = grid%I_STRT_HALO
+      I_1H = grid%I_STOP_HALO
+ 
+      ALLOCATE( RQT(LM_REQ,I_0H:I_1H,J_0H:J_1H),                        &
+                Tchg(LM+LM_REQ,I_0H:I_1H,J_0H:J_1H),                    &
+                SRHR(0 : LM,I_0H:I_1H,J_0H:J_1H),                         &
+                TRHR(0 : LM,I_0H:I_1H,J_0H:J_1H),                         &
+                TRSURF(4,I_0H:I_1H,J_0H:J_1H),FSF(4,I_0H:I_1H,J_0H:J_1H)&
+                ,FSRDIR( I_0H:I_1H, J_0H:J_1H ),DIRVIS( I_0H:I_1H, J_0H:J_1H )&
+                ,SRVISSURF( I_0H:I_1H, J_0H:J_1H ),                        &
+                FSRDIF( I_0H:I_1H, J_0H:J_1H ),DIRNIR( I_0H:I_1H, J_0H:J_1H ),&
+                DIFNIR( I_0H:I_1H, J_0H:J_1H ),TAUSUMW( I_0H:I_1H, J_0H:J_1H )&
+                ,TAUSUMI( I_0H:I_1H, J_0H:J_1H ), STAT=IER )
+#ifdef GCAP
+      ALLOCATE( TAUW3D(I_0H:I_1H,J_0H:J_1H,LM),                         &
+                TAUI3D(I_0H:I_1H,J_0H:J_1H,LM), STAT=IER )
+#endif
+      ALLOCATE( SRDN( I_0H:I_1H, J_0H:J_1H ),CFRAC( I_0H:I_1H, J_0H:J_1H ), &
+                RCLD(LM,I_0H:I_1H,J_0H:J_1H), STAT=IER )
+#ifdef GCC_COUPLE_RAD
+      ALLOCATE( GCCco2_tracer_save(LM,I_0H:I_1H,J_0H:J_1H),             &
+                GCCco2rad_to_chem(LM,I_0H:I_1H,J_0H:J_1H),              &
+                GCCco2rad_to_file(LM,I_0H:I_1H,J_0H:J_1H), STAT=IER )
+#endif
+      ALLOCATE( chem_tracer_save(2,LM,I_0H:I_1H,J_0H:J_1H),             &
+                rad_to_chem(5,LM,I_0H:I_1H,J_0H:J_1H),                  &
+                rad_to_file(5,LM,I_0H:I_1H,J_0H:J_1H),                  &
+                SNOAGE(3,I_0H:I_1H,J_0H:J_1H), STAT=IER )
+#if (defined SHINDELL_STRAT_EXTRA) &  (defined ACCMIP_LIKE_DIAGS)
+      ALLOCATE( stratO3_tracer_save(LM,I_0H:I_1H,J_0H:J_1H), STAT=IER )
+#endif
+      ALLOCATE( KLIQ(LM,4,I_0H:I_1H,J_0H:J_1H),                         &
+                COSZ1( I_0H:I_1H, J_0H:J_1H ), STAT=IER )
+
+#ifdef TRACERS_GC
+      ALLOCATE( save_COSZ2( I_0H:I_1H, J_0H:J_1H ), STAT=IER )
+						! Instantaneous radiative forcing arrays ! 21 species + clouds, 2 bands (SW/LW)
+      ! TOA
+      ALLOCATE( save_RF(I_0H:I_1H,J_0H:J_1H,          21, 2 ), STAT=IER ) 
+      save_RF(:,:,:,:) = 0d0
+      ! Tropopause
+						ALLOCATE( save_RF_TP(I_0H:I_1H,J_0H:J_1H,       21, 2 ), STAT=IER )       
+      save_RF_TP(:,:,:,:) = 0d0	
+      ! 3D (add extra index @ 0 for total flux)
+						ALLOCATE( save_RF_3D(I_0H:I_1H,J_0H:J_1H, 1:LM, 0:21, 2 ), STAT=IER )
+      save_RF_3D(:,:,:,:,:) = 0d0
+#endif
+
+      ALLOCATE( COSZ_day( I_0H:I_1H, J_0H:J_1H ),                          &
+                SUNSET( I_0H:I_1H, J_0H:J_1H ), STAT=IER )
+#ifdef CUBED_SPHERE
+      ALLOCATE( dH2O(JM_DH2O,LM,12), STAT=IER )
+#else
+      ALLOCATE( dH2O(J_0H:J_1H,LM,12), STAT=IER )
+#endif
+      ALLOCATE( ALB(I_0H:I_1H,J_0H:J_1H,9),                             &
+                srnflb_save(I_0H:I_1H,J_0H:J_1H,Lm),                    &
+                trnflb_save(I_0H:I_1H,J_0H:J_1H,Lm), STAT=IER )
+#ifdef mjo_subdd
+      ALLOCATE( OLR_acc( I_0H:I_1H, J_0H:J_1H ),                           &
+                SWHR(I_0H:I_1H,J_0H:J_1H,Lm),                           &
+                LWHR(I_0H:I_1H,J_0H:J_1H,Lm),                           &
+                swu_avg( I_0H:I_1H, J_0H:J_1H ), STAT=IER )
+#endif
+ 
+#ifdef GCAP
+!     Allocate and initialize array for holding surface albedo, which is only
+!     updated during daytime.
+      ALLOCATE( save_alb( I_0H:I_1H, J_0H:J_1H ), STAT=IER )
+      save_alb = 0.
+#endif
+ 
+#ifdef mjo_subdd
+      OLR_acc = 0.
+      OLR_cnt = 0.
+      SWHR = 0.
+      LWHR = 0.
+      SWHR_cnt = 0.
+      LWHR_cnt = 0.
+      swu_avg = 0.
+      swu_cnt = 0.
+#endif
+      KLIQ = 1
+      dH2O = 0.
+      SALB => ALB( : , : ,1)
+      SRVISSURF = 0
+      FSF = 0
+      TRSURF = 0
+      END SUBROUTINE ALLOC_RAD_COM
+ 
+      SUBROUTINE DEF_RSF_RAD(fid)
+!@sum  def_rsf_rad defines radiation array structure in restart files
+!@auth M. Kelley
+!@ver  beta
+      USE RAD_COM
+      USE DOMAIN_DECOMP_ATM, ONLY : grid
+      USE PARIO, ONLY : DEFVAR
+#ifdef TRACERS_ON
+      USE TRDIAG_COM, ONLY : save_dry_aod
+#endif
+      IMPLICIT NONE
+      INTEGER fid   !@var fid file id
+ 
+      CALL DEFVAR(grid,fid,s0,'s0')
+      CALL DEFVAR(grid,fid,rqt,'rqt(lm_req,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,kliq,'kliq(lm,four,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,srhr,'srhr(zero_to_lm,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,trhr,'trhr(zero_to_lm,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,trsurf,'trsurf(nstype,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,fsf,'fsf(nstype,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,fsrdir,'fsrdir(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,srvissurf,'srvissurf(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,srdn,'srdn(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,cfrac,'cfrac(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,salb,'salb(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,fsrdif,'fsrdif(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,dirnir,'dirnir(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,difnir,'difnir(dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,rcld,'rcld(lm,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,snoage,'snoage(d3,dist_im,dist_jm)')
+ 
+#ifdef TRACERS_ON
+      IF ( nraero_aod>0 ) THEN
+         CALL DEFVAR(grid,fid,nraero_aod,'nraero_aod')
+         CALL DEFVAR(grid,fid,save_dry_aod,'save_dry_aod')
+         CALL DEFVAR(grid,fid,tau_as,                                   &
+                     'tau_as(dist_im,dist_jm,lm,nraero_aod)')
+         CALL DEFVAR(grid,fid,tau_cs,                                   &
+                     'tau_cs(dist_im,dist_jm,lm,nraero_aod)')
+         IF ( save_dry_aod>0 ) CALL DEFVAR(grid,fid,tau_dry,            &
+              'tau_dry(dist_im,dist_jm,lm,nraero_aod)')
+#ifdef CACHED_SUBDD
+         CALL DEFVAR(grid,fid,abstau_as,                                &
+                     'abstau_as(dist_im,dist_jm,lm,nraero_aod)')
+         CALL DEFVAR(grid,fid,abstau_cs,                                &
+                     'abstau_cs(dist_im,dist_jm,lm,nraero_aod)')
+         IF ( save_dry_aod>0 ) CALL DEFVAR(grid,fid,abstau_dry,         &
+              'abstau_dry(dist_im,dist_jm,lm,nraero_aod)')
+         CALL DEFVAR(grid,fid,nraero_rf,'nraero_rf')
+         IF ( nraero_rf>0 ) THEN
+            CALL DEFVAR(grid,fid,swfrc,                                 &
+                        'swfrc(dist_im,dist_jm,nraero_rf)')
+            CALL DEFVAR(grid,fid,lwfrc,                                 &
+                        'lwfrc(dist_im,dist_jm,nraero_rf)')
+         ENDIF
+#endif  /* CACHED_SUBDD */
+      ENDIF
+#ifdef GCC_COUPLE_RAD
+      CALL DEFVAR(grid,fid,GCCco2_tracer_save,                          &
+                  'GCCco2_tracer_save(lm,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,GCCco2rad_to_chem,                           &
+                  'GCCco2rad_to_chem(lm,dist_im,dist_jm)')
+#endif
+ 
+#if (defined TRACERS_SPECIAL_Shindell)
+      CALL DEFVAR(grid,fid,chem_tracer_save,                            &
+                  'chem_tracer_save(two,lm,dist_im,dist_jm)')
+      CALL DEFVAR(grid,fid,rad_to_chem,                                 &
+                  'rad_to_chem(five,lm,dist_im,dist_jm)')
+#if (defined SHINDELL_STRAT_EXTRA) &  (defined ACCMIP_LIKE_DIAGS)
+      CALL DEFVAR(grid,fid,strato3_tracer_save,                         &
+                  'strato3_tracer_save(lm,dist_im,dist_jm)')
+#endif
+#endif
+#ifdef TRACERS_DUST
+      CALL DEFVAR(grid,fid,srnflb_save,                                 &
+                  'srnflb_save(dist_im,dist_jm,lm)')
+      CALL DEFVAR(grid,fid,trnflb_save,                                 &
+                  'trnflb_save(dist_im,dist_jm,lm)')
+#endif
+#endif  /* TRACERS_ON */
+      END SUBROUTINE DEF_RSF_RAD
+ 
+      SUBROUTINE NEW_IO_RAD(fid,iaction)
+!@sum  new_io_rad read/write radiation arrays from/to restart files
+!@auth M. Kelley
+!@ver  beta new_ prefix avoids name clash with the default version
+      USE MODEL_COM, ONLY : IOREAD, IOWRITE
+#ifdef TRACERS_ON
+      USE TRACER_COM, ONLY : NTM
+      USE TRDIAG_COM, ONLY : save_dry_aod
+#endif
+      USE RAD_COM
+      USE DOMAIN_DECOMP_ATM, ONLY : grid, GETDOMAINBOUNDS
+      USE PARIO, ONLY : WRITE_DIST_DATA, READ_DIST_DATA, WRITE_DATA,      &
+          READ_DATA
+      IMPLICIT NONE
+      INTEGER fid   !@var fid unit number of read/write
+      INTEGER iaction !@var iaction flag for reading or writing to file
+ 
+      INTEGER  ::  I_0H, I_1H
+      INTEGER  ::  J_0H, J_1H
+ 
+      CALL GETDOMAINBOUNDS(grid,J_STRT_HALO=J_0H,J_STOP_HALO=J_1H)
+      I_0H = grid%I_STRT_HALO
+      I_1H = grid%I_STOP_HALO
+ 
+      SELECT CASE (iaction)
+      CASE (IOWRITE)            ! output to restart file
+         CALL WRITE_DATA(grid,fid,'s0',s0)
+         CALL WRITE_DIST_DATA(grid,fid,'rqt',rqt,JDIM=3)
+         CALL WRITE_DIST_DATA(grid,fid,'kliq',kliq,JDIM=4)
+         CALL WRITE_DIST_DATA(grid,fid,'srhr',srhr,JDIM=3)
+         CALL WRITE_DIST_DATA(grid,fid,'trhr',trhr,JDIM=3)
+         CALL WRITE_DIST_DATA(grid,fid,'trsurf',trsurf,JDIM=3)
+         CALL WRITE_DIST_DATA(grid,fid,'fsf',fsf,JDIM=3)
+         CALL WRITE_DIST_DATA(grid,fid,'salb',salb)
+         CALL WRITE_DIST_DATA(grid,fid,'fsrdir',fsrdir)
+         CALL WRITE_DIST_DATA(grid,fid,'srvissurf',srvissurf)
+         CALL WRITE_DIST_DATA(grid,fid,'fsrdif',fsrdif)
+         CALL WRITE_DIST_DATA(grid,fid,'dirnir',dirnir)
+         CALL WRITE_DIST_DATA(grid,fid,'difnir',difnir)
+         CALL WRITE_DIST_DATA(grid,fid,'srdn',srdn)
+         CALL WRITE_DIST_DATA(grid,fid,'cfrac',cfrac)
+         CALL WRITE_DIST_DATA(grid,fid,'rcld',rcld,JDIM=3)
+         CALL WRITE_DIST_DATA(grid,fid,'snoage',snoage,JDIM=3)
+#if (defined GCC_COUPLE_RAD)
+         CALL WRITE_DIST_DATA(grid,fid,'GCCco2_tracer_save',            &
+                              GCCco2_tracer_save,JDIM=3)
+         CALL WRITE_DIST_DATA(grid,fid,'GCCco2rad_to_chem',             &
+                              GCCco2rad_to_chem,JDIM=3)
+#endif
+#if (defined TRACERS_SPECIAL_Shindell)
+         CALL WRITE_DIST_DATA(grid,fid,'chem_tracer_save',              &
+                              chem_tracer_save,JDIM=4)
+         CALL WRITE_DIST_DATA(grid,fid,'rad_to_chem',rad_to_chem,JDIM=4)
+#if (defined SHINDELL_STRAT_EXTRA) &  (defined ACCMIP_LIKE_DIAGS)
+         CALL WRITE_DIST_DATA(grid,fid,'strato3_tracer_save',           &
+                              strato3_tracer_save,JDIM=3)
+#endif
+#endif
+#ifdef TRACERS_DUST
+         CALL WRITE_DIST_DATA(grid,fid,'srnflb_save',srnflb_save)
+         CALL WRITE_DIST_DATA(grid,fid,'trnflb_save',trnflb_save)
+#endif
+#ifdef TRACERS_ON
+         IF ( nraero_aod>0 ) THEN
+            CALL WRITE_DATA(grid,fid,'nraero_aod',nraero_aod)
+            CALL WRITE_DATA(grid,fid,'save_dry_aod',save_dry_aod)
+            CALL WRITE_DIST_DATA(grid,fid,'tau_as',tau_as)
+            CALL WRITE_DIST_DATA(grid,fid,'tau_cs',tau_cs)
+            IF ( save_dry_aod>0 )                                       &
+                  CALL WRITE_DIST_DATA(grid,fid,'tau_dry',tau_dry)
+#ifdef CACHED_SUBDD
+            CALL WRITE_DIST_DATA(grid,fid,'abstau_as',abstau_as)
+            CALL WRITE_DIST_DATA(grid,fid,'abstau_cs',abstau_cs)
+            IF ( save_dry_aod>0 )                                       &
+                  CALL WRITE_DIST_DATA(grid,fid,'abstau_dry',abstau_dry)
+            CALL WRITE_DATA(grid,fid,'nraero_rf',nraero_rf)
+            IF ( nraero_rf>0 ) THEN
+               CALL WRITE_DIST_DATA(grid,fid,'swfrc',swfrc)
+               CALL WRITE_DIST_DATA(grid,fid,'lwfrc',lwfrc)
+            ENDIF
+#endif  /* CACHED_SUBDD */
+         ENDIF
+#endif  /* TRACERS_ON */
+      CASE (IOREAD)
+         CALL READ_DATA(grid,fid,'s0',s0,BCAST_ALL=.TRUE.)
+         CALL READ_DIST_DATA(grid,fid,'rqt',rqt,JDIM=3)
+         CALL READ_DIST_DATA(grid,fid,'kliq',kliq,JDIM=4)
+         CALL READ_DIST_DATA(grid,fid,'srhr',srhr,JDIM=3)
+         CALL READ_DIST_DATA(grid,fid,'trhr',trhr,JDIM=3)
+         CALL READ_DIST_DATA(grid,fid,'trsurf',trsurf,JDIM=3)
+         CALL READ_DIST_DATA(grid,fid,'fsf',fsf,JDIM=3)
+         CALL READ_DIST_DATA(grid,fid,'salb',salb)
+         fsrdir = 0.
+         srvissurf = 0.
+         CALL READ_DIST_DATA(grid,fid,'fsrdir',fsrdir)
+         CALL READ_DIST_DATA(grid,fid,'srvissurf',srvissurf)
+         dirvis = fsrdir*srvissurf
+                                  ! reconstruct when restarting.
+         CALL READ_DIST_DATA(grid,fid,'fsrdif',fsrdif)
+         CALL READ_DIST_DATA(grid,fid,'dirnir',dirnir)
+         CALL READ_DIST_DATA(grid,fid,'difnir',difnir)
+         CALL READ_DIST_DATA(grid,fid,'srdn',srdn)
+         CALL READ_DIST_DATA(grid,fid,'cfrac',cfrac)
+         CALL READ_DIST_DATA(grid,fid,'rcld',rcld,JDIM=3)
+         CALL READ_DIST_DATA(grid,fid,'snoage',snoage,JDIM=3)
+#ifdef GCC_COUPLE_RAD
+         CALL READ_DIST_DATA(grid,fid,'GCCco2_tracer_save',             &
+                             GCCco2_tracer_save,JDIM=3)
+         CALL READ_DIST_DATA(grid,fid,'GCCco2rad_to_chem',              &
+                             GCCco2rad_to_chem,JDIM=3)
+#endif
+#if (defined TRACERS_SPECIAL_Shindell)
+         CALL READ_DIST_DATA(grid,fid,'chem_tracer_save',               &
+                             chem_tracer_save,JDIM=4)
+         CALL READ_DIST_DATA(grid,fid,'rad_to_chem',rad_to_chem,JDIM=4)
+#if (defined SHINDELL_STRAT_EXTRA) &  (defined ACCMIP_LIKE_DIAGS)
+         CALL READ_DIST_DATA(grid,fid,'strato3_tracer_save',            &
+                             strato3_tracer_save,JDIM=3)
+#endif
+#endif
+#ifdef TRACERS_DUST
+         CALL READ_DIST_DATA(grid,fid,'srnflb_save',srnflb_save)
+         CALL READ_DIST_DATA(grid,fid,'trnflb_save',trnflb_save)
+#endif
+#ifdef TRACERS_ON
+         IF ( .NOT.ALLOCATED(tau_as) ) THEN
+            CALL READ_DATA(grid,fid,'nraero_aod',nraero_aod_rsf,        &
+                           BCAST_ALL=.TRUE.)
+            CALL READ_DATA(grid,fid,'save_dry_aod',save_dry_aod_rsf,    &
+                           BCAST_ALL=.TRUE.)
+            IF ( nraero_aod_rsf/=0 ) THEN
+               ALLOCATE( tau_as(I_0H:I_1H,J_0H:J_1H,LM,nraero_aod_rsf))
+               ALLOCATE( tau_cs(I_0H:I_1H,J_0H:J_1H,LM,nraero_aod_rsf))
+               IF ( save_dry_aod_rsf>0 )                                &
+                    ALLOCATE( tau_dry(I_0H:I_1H,J_0H:J_1H,LM,           &
+                    nraero_aod_rsf))
+#ifdef CACHED_SUBDD
+               ALLOCATE( abstau_as(I_0H:I_1H,J_0H:J_1H,LM,nraero_aod_rsf&
+                         ))
+               ALLOCATE( abstau_cs(I_0H:I_1H,J_0H:J_1H,LM,nraero_aod_rsf&
+                         ))
+               IF ( save_dry_aod_rsf>0 )                                &
+                    ALLOCATE( abstau_dry(I_0H:I_1H,J_0H:J_1H,LM,        &
+                    nraero_aod_rsf))
+               CALL READ_DATA(grid,fid,'nraero_rf',nraero_rf_rsf,       &
+                              BCAST_ALL=.TRUE.)
+               IF ( nraero_rf_rsf>0 ) THEN
+                  ALLOCATE( swfrc(I_0H:I_1H,J_0H:J_1H,nraero_rf_rsf))
+                  ALLOCATE( lwfrc(I_0H:I_1H,J_0H:J_1H,nraero_rf_rsf))
+               ENDIF
+#endif  /* CACHED_SUBDD */
+            ENDIF
+         ENDIF
+         IF ( ALLOCATED(tau_as) ) THEN
+                                    ! needs to be separate from previous if
+            CALL READ_DIST_DATA(grid,fid,'tau_as',tau_as)
+            CALL READ_DIST_DATA(grid,fid,'tau_cs',tau_cs)
+            IF ( save_dry_aod_rsf>0 )                                   &
+                  CALL READ_DIST_DATA(grid,fid,'tau_dry',tau_dry)
+#ifdef CACHED_SUBDD
+            CALL READ_DIST_DATA(grid,fid,'abstau_as',abstau_as)
+            CALL READ_DIST_DATA(grid,fid,'abstau_cs',abstau_cs)
+            IF ( save_dry_aod_rsf>0 )                                   &
+                  CALL READ_DIST_DATA(grid,fid,'abstau_dry',abstau_dry)
+            IF ( nraero_rf_rsf>0 ) THEN
+               CALL READ_DIST_DATA(grid,fid,'swfrc',swfrc)
+               CALL READ_DIST_DATA(grid,fid,'lwfrc',lwfrc)
+            ENDIF
+#endif  /* CACHED_SUBDD */
+         ENDIF
+#endif  /* TRACERS_ON */
+      ENDSELECT
+      END SUBROUTINE NEW_IO_RAD
+ 
+      SUBROUTINE READ_RAD_IC
+!@sum   read_rad_ic read radiation coldstart initial conditions file.
+      USE RAD_COM, ONLY : snoage
+      USE DOMAIN_DECOMP_ATM, ONLY : grid
+      USE PARIO, ONLY : PAR_OPEN, PAR_CLOSE, READ_DIST_DATA
+      USE FILEMANAGER, ONLY : FILE_EXISTS
+      IMPLICIT NONE
+      INTEGER fid   !@var fid unit number of read/write
+ 
+      IF ( FILE_EXISTS('GIC') ) THEN
+        ! Read snow age using old-style IC (from rsf)
+         fid = PAR_OPEN(grid,'GIC','read')
+         CALL READ_DIST_DATA(grid,fid,'snoage',snoage,JDIM=3)
+         CALL PAR_CLOSE(grid,fid)
+      ELSE
+        ! Newer cold-start IC files contain only the fundamental state variables.
+        ! Set snow age to zero (Initial snow albedo irrelevant for cold starts).
+         snoage = 0D0
+      ENDIF
+      END SUBROUTINE READ_RAD_IC
+
+      MODULE DIAG_COM_RAD
+      IMPLICIT NONE
+ 
+      INTEGER  ::  j_h2och4 = 1, j_pcldss = 1, j_pcldmc = 1,             &
+                   j_clddep = 1, j_pcld = 1, j_srincp0 = 1,              &
+                   j_srnfp0 = 1, j_srnfp1 = 1, j_srincg = 1,             &
+                   j_srnfg = 1, j_brtemp = 1, j_trincg = 1, j_hsurf = 1, &
+                   j_hatm = 1, j_plavis = 1, j_planir = 1, j_albvis = 1, &
+                   j_albnir = 1, j_srrvis = 1, j_srrnir = 1,             &
+                   j_sravis = 1, j_sranir = 1, j_trnfp0 = 1,             &
+                   j_trnfp1 = 1, j_clrtoa = 1, j_clrtrp = 1,             &
+                   j_tottrp = 1, jl_srhr = 1, jl_trcr = 1,               &
+                   jl_totcld = 1, jl_sscld = 1, jl_mccld = 1,            &
+                   jl_wcld = 1, jl_icld = 1, jl_wcod = 1, jl_icod = 1,   &
+                   jl_wcsiz = 1, jl_icsiz = 1, jl_wcldwt = 1,            &
+                   jl_icldwt = 1, ij_pmccld = 1, ij_trnfp0 = 1,          &
+                   ij_cldcv = 1, ij_pcldl = 1, ij_pcldm = 1,             &
+                   ij_pcldh = 1, ij_pcldl_ss = 1, ij_cldtppr = 1,        &
+                   ij_srvis = 1, ij_rnfp1 = 1, ij_srnfp0 = 1,            &
+                   ij_srincp0 = 1, ij_srnfg = 1, ij_srincg = 1,          &
+                   ij_btmpw = 1, ij_srref = 1, ij_frmp = 1,              &
+                   ij_clr_srincg = 1, ij_CLDTPT = 1, ij_cldt1t = 1,      &
+                   ij_cldt1p = 1, ij_cldcv1 = 1, ij_wtrcld = 1,          &
+                   ij_icecld = 1, ij_optdw = 1, ij_optdi = 1,            &
+                   ij_swcrf = 1, ij_lwcrf = 1, ij_srntp = 1,             &
+                   ij_trntp = 1, ij_clr_srntp = 1, ij_clr_trntp = 1,     &
+                   ij_clr_srnfg = 1, ij_clr_trdng = 1,                   &
+                   ij_clr_sruptoa = 1, ij_clr_truptoa = 1,               &
+                   ij_swdcls = 1, ij_swncls = 1, ij_lwdcls = 1,          &
+                   ij_swnclt = 1, ij_lwnclt = 1, ij_srvdir = 1,          &
+                   ij_srvissurf = 1, ij_chl = -1, ij_swaerrf = 1,        &
+                   ij_lwaerrf = 1, ij_swaersrf = 1, ij_lwaersrf = 1,     &
+                   ij_swaerrfnt = 1, ij_lwaerrfnt = 1,                   &
+                   ij_swaersrfnt = 1, ij_lwaersrfnt = 1, ij_swcrf2 = 1,  &
+                   ij_lwcrf2 = 1, ij_siswd = 1, ij_siswu = 1,            &
+                   ij_lwprad = 1, ij_iwprad = 1, ij_h2och4 = 1,          &
+                   ij_sw_cs_noa = 1, ij_lw_cs_noa = 1, ij_sw_as_noa = 1, &
+                   ij_lw_as_noa = 1, ijl_rc = 1, ijl_cf = 1,             &
+                   ijl_QLrad = 1, ijl_QIrad = 1, ijl_wtrtau = 1,         &
+                   ijl_icetau = 1, idd_cl7 = 1, idd_ccv = 1,             &
+                   idd_isw = 1, idd_palb = 1, idd_galb = 1, idd_aot = 1, &
+                   idd_aot2 = 1, idd_absa = 1
+ 
+#ifdef HEALY_LM_DIAGS
+      INTEGER  ::  j_vtau = 1, j_ghg = 1
+#endif
+ 
+#ifdef ACCMIP_LIKE_DIAGS
+!@var IJ_fcghg GHG forcing diagnostics (2=LW,SW, 4=CH4,N2O,CFC11,CFC12)
+      INTEGER, DIMENSION(2,4)  ::  ij_fcghg
+#endif
+ 
+#ifdef TRACERS_GC
+!@var GEOS-Chem radiative forcing diagnostics
+! First index is: 
+!  1=SW, 2=LW 
+! Second index is:
+!  1 = CH4; 2 = N2O; 3 = CFC11; 4 = CFC12
+!  5 = O3; 6 = SO4; 7 = NIT; 8 = BCO; 9 = BCI
+!  10 = OCO; 11 = OCI; 12 = SOA
+      INTEGER, DIMENSION(2,4)  ::  ij_fcghg
+#endif
+	
+      END MODULE DIAG_COM_RAD
