@@ -258,6 +258,7 @@ C**** does not produce exactly the same as the default values.
 
 !@var COSZ1 Mean Solar Zenith angle for curr. physics(not rad) time step
       REAL*8, ALLOCATABLE, DIMENSION(:,:) :: COSZ1
+      REAL*8, ALLOCATABLE, DIMENSION(:,:) :: save_COSZ2
 !@var COSZ_day Mean Solar Zenith angle for current day
       REAL*8, ALLOCATABLE, DIMENSION(:,:) :: COSZ_day
 !@var SUNSET Time of sunset for current day (radians from local noon)
@@ -399,7 +400,7 @@ C**** Local variables initialised in init_RAD
      *     ,GCCco2_tracer_save,GCCco2rad_to_chem,GCCco2rad_to_file
 #endif
 #ifdef GCAP
-     *     ,save_alb,tauw3d,taui3d
+     *     ,save_alb,tauw3d,taui3d,save_cosz2
 #endif
 #ifdef mjo_subdd
      *     ,SWHR_cnt,LWHR_cnt,SWHR,LWHR,OLR_acc,OLR_cnt
@@ -456,6 +457,9 @@ C**** Local variables initialised in init_RAD
 #endif
      *     KLIQ(LM,4, I_0H:I_1H, J_0H:J_1H),
      *     COSZ1   (I_0H:I_1H, J_0H:J_1H),
+#ifdef TRACERS_GC
+     *     save_COSZ2(I_0H:I_1H, J_0H:J_1H),
+#endif      
      *     COSZ_day(I_0H:I_1H, J_0H:J_1H),
      *     SUNSET  (I_0H:I_1H, J_0H:J_1H),
 #ifdef CUBED_SPHERE

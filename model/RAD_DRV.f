@@ -190,6 +190,9 @@ C****
       use lakes_com, only : flake
       use seaice_com, only : si_atm
       use clouds_com, only : svlhx,svlat,rhsav
+#ifdef GCAP
+      use rad_com, only : save_cosz2
+#endif      
       !use clouds_com, only : lmid,lhi
       ! end section for radiation-only SCM
       IMPLICIT NONE
@@ -1769,7 +1772,7 @@ C     OUTPUT DATA
       use DIAG_COM, only: ij_nintaerext,ij_nintaersca,ij_nintaerasy
       use RADPAR, only: nintaerext,nintaersca,nintaerasy
 #ifdef GCAP
-      use RAD_COM, only : save_alb
+      use RAD_COM, only : save_alb, save_cosz2
       use O3mod,   only : save_to3
 #endif
       IMPLICIT NONE
@@ -2074,6 +2077,9 @@ C****
 C**** Calculate mean cosine of zenith angle for the full radiation step
       ROT2=ROT1+TWOPI*NRAD*DTsrc/SECONDS_PER_DAY
       CALL COSZS (ROT1,ROT2,COSZ2,COSZA)
+#ifdef GCAP
+      save_COSZ2 = COSZ2
+#endif      
       JDAYR=dayOfYear
       JYEARR=YEAR
 

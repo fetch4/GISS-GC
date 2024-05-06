@@ -96,8 +96,13 @@ do_main $(RUN).bin: main.o  $(OBJS) #  $(COMPONENTS:=_dir)
 	-rm -f libmodel.a
 	ar rcs libmodel.a $(OBJS)
 	@echo "===> linking"
+ifeq ($(GC),YES)
+	$(F90) main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
+	  $(COMPLIBS) $(LIBS) -L./geos-chem/src/lib -lGeosCore -lIsorropia -lObsPack -lHistory -lHCOI -lHCOX -lHCO -lGeosUtil -lHeaders -lKpp -lNcUtils -lnetcdff -lnetcdf -o $(RUN).bin  $(LINK_OUTPUT)
+else
 	$(F90) main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
 	  $(COMPLIBS) $(LIBS) -o $(RUN).bin  $(LINK_OUTPUT)
+endif
 	@echo "===> linking ok"
 	@echo
 

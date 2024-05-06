@@ -857,7 +857,10 @@ C****
       USE RESOLUTION, only : LM ! atm reference for init_tracer hack
 #endif
 #endif
-
+#ifdef TRACERS_GC
+      USE CHEM_DRV, only : nymdB, nymdE, nhmsB, nhmsE
+#endif
+      
       use TimeConstants_mod, only: INT_HOURS_PER_DAY
       use ModelClock_mod, only: ModelClock
 #ifdef TRACERS_GC
@@ -1164,6 +1167,12 @@ C****
       end if
       ITimeE = nint((modelEtimeE - modelEtime0) / dtSrcUsed)
 
+#ifdef TRACERS_GC
+      nymdB = 10000*YEARI + 10*MONTHI + DATEI
+      nymdE = 10000*YEARE + 10*MONTHE + DATEE
+      nhmsB = 10000*HOURI
+      nhmsE = 10000*HOURE
+#endif
 
 C**** Check consistency of DTsrc with NDAY
       if (is_set_param("DTsrc") .and.

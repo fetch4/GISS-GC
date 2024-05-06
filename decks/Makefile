@@ -123,6 +123,14 @@ endif
 
 
 gcm $(BIN_DIR)/$(RUN).exe: $(RUN).mk $(BIN_DIR) depend check_vars
+ifeq ($(GC),YES)
+	@echo "***************************************************************"
+	@echo "Compiling GEOS-Chem"
+	@echo "***************************************************************"
+	cd $(MODEL_DIR)/geos-chem/src && make FC=$(FC) EXTERNAL_GRID=y EXTERNAL_FORCING=y GISS=y OMP=n NO_EXE=y all MAKEFLAGS=
+	#cd $(MODEL_DIR)/geos-chem/src && make FC=$(FC) EXTERNAL_GRID=y EXTERNAL_FORCING=y GISS=y OMP=n DEBUG=y TRACEBACK=y NO_EXE=y all MAKEFLAGS=
+	cp $(MODEL_DIR)/geos-chem/src/mod/* $(MODEL_DIR)/mod/
+endif
 	$(MAKE) -C $(MODEL_DIR) gcm RUN=$(RUN) DECKS_DIR=$(DECKS_DIR) $(OPTS_MAIN)
 	-mv $(MODEL_DIR)/$(RUN).bin $(BIN_DIR)/$(RUN).exe
 	@echo '----    Looks like compilation finished successfully     ----'
@@ -217,6 +225,9 @@ ifneq ($(PFUNIT),)
 	$(MAKE) -C $(TESTS_DIR) clean
 endif
 	$(MAKE) -C $(AUX_DIR) $@ $(OPTS_MAIN)
+ifeq ($(GC),YES)
+	cd $(MODEL_DIR)/geos-chem/src && make realclean
+endif
 
 exe: $(RUN)/$(RUN) gcm
 	@if [ ! -s $(CMRUNDIR)/$(RUN)/I ] ; then \

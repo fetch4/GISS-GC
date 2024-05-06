@@ -36,6 +36,10 @@
      &     ,COMPUTE_DYNAM_AIJ_DIAGNOSTICS
 #endif
 
+#if defined( TRACERS_GC )
+      USE CHEM_DRV, only : TrDYNAM
+#endif
+      
 #if defined(TRACERS_ON) || defined(TRACERS_OCEAN)
       USE TRACER_COM, only: mtrace
 #endif
@@ -143,7 +147,7 @@ C**** Scale WM mixing ratios to conserve liquid water
       CALL QDYNAM  ! Advection of Q by integrated fluxes
          CALL TIMER (NOW,MDYN)
 
-#if defined(TRACERS_ON)
+#if defined(TRACERS_ON) || defined(TRACERS_GC)
       CALL TrDYNAM   ! tracer dynamics
 #endif
 
@@ -429,6 +433,9 @@ c
       USE MODEL_COM
       USE DYNAMICS, only : nidyn,nfiltr,mfiltr
       USE GETTIME_MOD
+#if defined( TRACERS_GC )
+      USE CHEM_DRV, only : DO_CHEM, accumGCsubdd
+#endif
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
       USE TRACER_COM, only: mtrace
 #endif
@@ -489,6 +496,9 @@ C**** SEA LEVEL PRESSURE FILTER
            CALL DIAGCA (8)
       END IF
 #endif
+#ifdef TRACERS_GC
+      CALL DO_CHEM
+#endif      
 #ifdef TRACERS_ON
 #ifdef CUBED_SPHERE
 ! Reinitialize instantaneous consrv qtys (every timestep since
@@ -520,6 +530,14 @@ C****
         if (mod(Itime+1,Nsubdd).eq.0) call get_subdd
       end if
 #endif
+
+#ifdef TRACERS_GC
+#ifdef CACHED_SUBDD
+         ! Accumulate diagnostics
+         CALL accumGCsubdd
+#endif
+#endif
+      
 #ifdef TRACERS_DUST
       call ahourly
 #endif
@@ -798,6 +816,9 @@ c set-up for MPI implementation
       USE MOMENTS, only : initMoments
 #endif
 #endif
+#if defined( TRACERS_GC )
+      use CHEM_DRV, only : init_chem
+#endif      
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
       use TRACER_COM, only: initTracerCom, alloc_tracer_com
 #ifndef TRACERS_ATM_ONLY
@@ -819,6 +840,10 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 
       call geom_atm
 
+#if defined( TRACERS_GC ) 
+      call init_chem( grid )
+#endif
+      
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
       call initTracerCom
 #ifndef TRACERS_ATM_ONLY
@@ -921,6 +946,9 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 !@sum  def_rsf_atmvars defines atm prognostic array structure in rsf
 !@auth M. Kelley
 !@ver  beta
+#if defined( TRACERS_GC )
+      use CHEM_DRV, only : io_chem
+#endif      
       implicit none
       integer :: fid
       call def_rsf_atm    (fid)
@@ -947,6 +975,9 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 #ifdef TRACERS_ON
       call tracerIO(fid, 'define')
 #endif
+#ifdef TRACERS_GC
+      call IO_CHEM( fid, 'define' )
+#endif      
       call def_rsf_subdd  (fid)
       call def_rsf_fluxes (fid)
       return
@@ -954,6 +985,9 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 
       subroutine new_io_atmvars(fid,iorw)
       use model_com, only: ioread, iowrite
+#if defined( TRACERS_GC )
+      use CHEM_DRV, only : init_chem, io_chem
+#endif      
       implicit none
       integer, intent(in) :: fid,iorw
       call new_io_atm    (fid,iorw)
@@ -989,6 +1023,15 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       end select
 
 #endif
+#ifdef TRACERS_GC
+      select case (iorw)
+      case (ioread)
+         call IO_CHEM(fid, 'read_dist')
+      case (iowrite)
+         call IO_CHEM(fid, 'write_dist')
+      end select
+#endif
+      
       call new_io_subdd  (fid,iorw)
       call new_io_fluxes (fid,iorw)
       return
