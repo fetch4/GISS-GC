@@ -1,0 +1,4 @@
+[submodule "model/geos-chem/src"]
+	path = model/geos-chem/src
+	url = git@github.com:fetch4/geos-chem.git
+	branch = dev/giss-gc
