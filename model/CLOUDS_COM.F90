@@ -73,7 +73,7 @@ module CLOUDS_COM
                    pflcu,          & ! Downward flux of convective liq precipitation [kg/m2/s]
                    pfilsan,        & ! Downward flux of large-scale ice precipitation [kg/m2/s]
                    pfllsan           ! Downward flux of large-scale liq precipitation [kg/m2/s]                   
-    integer LMIN
+  integer LMIN
 #endif
 !@var CLDMC moist convective cloud cover area (percent)
   real*8, allocatable, dimension(:,:,:) :: CLDMC

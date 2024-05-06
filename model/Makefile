@@ -97,8 +97,11 @@ do_main $(RUN).bin: main.o  $(OBJS) #  $(COMPONENTS:=_dir)
 	ar rcs libmodel.a $(OBJS)
 	@echo "===> linking"
 ifeq ($(GC),YES)
-	$(F90) main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
-	  $(COMPLIBS) $(LIBS) -L./geos-chem/src/lib -lGeosCore -lIsorropia -lObsPack -lHistory -lHCOI -lHCOX -lHCO -lGeosUtil -lHeaders -lKpp -lNcUtils -lnetcdff -lnetcdf -o $(RUN).bin  $(LINK_OUTPUT)
+	$(F90) -I./mod main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
+	  $(COMPLIBS) $(LIBS) \
+	  -L./geos-chem/lib -lGeosCore -lObsPack -lHistory -lIsorropia -lKPP -lGeosUtil -lNcdfUtil -lJulDay -lHeaders -lKPP_FirstPass -lCloudJ_Core -lHCOI_Shared -lHCOX -lHCO -lGeosUtilHco -lNcdfUtilHco -lJulDayHco -lHeadersHco \
+	  -o $(RUN).bin $(LINK_OUTPUT)
+#geos-chem/build/src/HEMCO/src/Core/libHCO.a geos-chem/build/src/HEMCO/src/Extensions/libHCOX.a geos-chem/build/src/HEMCO/src/Shared/Headers/libHeadersHco.a geos-chem/build/src/HEMCO/src/Shared/GeosUtil/libJulDayHco.a geos-chem/build/src/HEMCO/src/Shared/GeosUtil/libGeosUtilHco.a geos-chem/build/src/HEMCO/src/Shared/NcdfUtil/libNcdfUtilHco.a geos-chem/build/src/HEMCO/src/Interfaces/Shared/libHCOI_Shared.a geos-chem/build/src/GEOS-Chem/ISORROPIA/libIsorropia.a geos-chem/build/src/GEOS-Chem/Headers/libHeaders.a geos-chem/build/src/GEOS-Chem/ObsPack/libObsPack.a geos-chem/build/src/GEOS-Chem/History/libHistory.a geos-chem/build/src/GEOS-Chem/KPP/fullchem/libKPP_FirstPass.a geos-chem/build/src/GEOS-Chem/KPP/fullchem/libKPP.a geos-chem/build/src/GEOS-Chem/GeosCore/libGeosCore.a geos-chem/build/src/GEOS-Chem/GeosUtil/libGeosUtil.a geos-chem/build/src/GEOS-Chem/GeosUtil/libJulDay.a geos-chem/build/src/GEOS-Chem/NcdfUtil/libNcdfUtil.a geos-chem/build/src/Cloud-J/src/Core/libCloudJ_Core.a -o $(RUN).bin  $(LINK_OUTPUT)
 else
 	$(F90) main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
 	  $(COMPLIBS) $(LIBS) -o $(RUN).bin  $(LINK_OUTPUT)

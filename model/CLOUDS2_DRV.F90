@@ -215,6 +215,8 @@ subroutine CONDSE
   use CLOUDS, only : mc_up_mf, mc_dd_mf, mc_up_ent, mc_dd_ent, mc_up_det, mc_dd_det
   use CLOUDS, only : mc_dqcond, mc_dqevap, ls_dqcond, ls_dqevap
   use CLOUDS, only : mc_pflx_l, mc_pflx_i, ls_pflx_l, ls_pflx_i
+  use CLOUDS_COM, only : pficu, pflcu, pfilsan, pfllsan
+  use CLOUDS_COM, only : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
 #endif
   use PBLCOM, only : dclev,egcm,w2gcm,pblht,pblptop
   use ATM_COM, only : pk,pek,pmid,pedn,gz,PMIDOLD,pdsig,MWs, &

@@ -1782,6 +1782,15 @@ c add (calls to) the analogs of ijh_defs et al.
       
 #endif
 
+#ifdef TRACERS_GC
+      
+      k = k + 1
+      catshapes(k) = 'aijlh'; categories(k) = 'taijlh'
+      input_sizes3(k) = lm
+      call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
+      
+#endif
+
 c
 c check whether each requested diagnostic is in the list
 c of declared possible outputs
