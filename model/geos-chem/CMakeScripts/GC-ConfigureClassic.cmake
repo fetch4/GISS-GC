@@ -111,7 +111,7 @@ function(configureGCClassic)
     # Always set MODEL_CLASSIC when building GEOS-Chem Classic
     #-------------------------------------------------------------------------
     target_compile_definitions(GEOSChemBuildProperties
-	INTERFACE MODEL_GISS MODEL_ EXTERNAL_GRID EXTERNAL_FORCINGS
+        INTERFACE MODEL_GISS MODEL_CLASSIC EXTERNAL_GRID EXTERNAL_FORCINGS
     )
 
     # Header for next section
