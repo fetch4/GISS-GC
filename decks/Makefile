@@ -28,6 +28,8 @@ else
   MODEL_E_BUILD_DIR = $(MODEL_E_ROOT)
 endif
 MODEL_DIR = $(MODEL_E_BUILD_DIR)/model
+GC_BUILD_DIR = $(MODEL_DIR)/geos-chem/build
+GC_LIB_DIR = $(MODEL_DIR)/geos-chem/lib
 AUX_DIR = $(MODEL_E_ROOT)/aux
 SCRIPTS_DIR = $(MODEL_E_ROOT)/exec
 DECKS_DIR = $(shell pwd)
