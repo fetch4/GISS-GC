@@ -129,8 +129,7 @@ ifeq ($(GC),YES)
 	@echo "***************************************************************"
 	@echo "Compiling GEOS-Chem"
 	@echo "***************************************************************"
-	rm -rf $(GC_BUILD_DIR)
-	mkdir $(GC_BUILD_DIR)
+	mkdir -p $(GC_BUILD_DIR)
 	mkdir -p $(GC_LIB_DIR)
 	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. \
 		-DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
@@ -251,9 +250,7 @@ ifneq ($(PFUNIT),)
 	$(MAKE) -C $(TESTS_DIR) clean
 endif
 	$(MAKE) -C $(AUX_DIR) $@ $(OPTS_MAIN)
-ifeq ($(GC),YES)
-	cd $(MODEL_DIR)/geos-chem/src && make realclean
-endif
+	rm -rf $(GC_BUILD_DIR)
 
 exe: $(RUN)/$(RUN) gcm
 	@if [ ! -s $(CMRUNDIR)/$(RUN)/I ] ; then \
