@@ -10,9 +10,9 @@ LFLAGS = -O2 -ftz
 CPPFLAGS += -DCOMPILER_Intel8 -DCONVERT_BIGENDIAN
 F90_VERSION = $(shell $(F90) -v 2>&1)
 ifeq ($(MP),YES)
-FFLAGS += -openmp
-F90FLAGS += -openmp
-LFLAGS += -openmp
+FFLAGS += -qopenmp
+F90FLAGS += -qopenmp
+LFLAGS += -qopenmp
 endif
 R8 = -r8
 EXTENDED_SOURCE = -extend_source
