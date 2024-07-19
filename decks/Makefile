@@ -132,6 +132,7 @@ ifeq ($(GC),YES)
 	mkdir -p $(GC_BUILD_DIR)
 	mkdir -p $(GC_LIB_DIR)
 	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. \
+		-DOMP=$(MP) \
 		-DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
 	cd $(GC_BUILD_DIR) && make -j install
 	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
