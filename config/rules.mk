@@ -165,6 +165,7 @@ ifeq ($(FVCUBED),YES)
   LIBS += -L$(FVCUBED_ROOT)/$(MACHINE)/lib -lMAPL_cfio -lMAPL_Base -lFVdycoreCubed_GridComp -lfvdycore -lGMAO_mpeu
   # this extra -lesmf would not be needed if the ESMF stuff came after this section
   LIBS += $(ESMFLIBDIR)/libesmf.a
+
   ifdef NETCDFHOME
     NETCDFLIB ?= -L$(NETCDFHOME)/lib -lnetcdf
     LIBS += $(subst ",,$(NETCDFLIB))
@@ -229,36 +230,43 @@ endif
 
 ifneq ($(CUBED_SPHERE),YES)
 
-ifdef NETCDFHOME
-  ifneq ($(wildcard $(NETCDFHOME)/include/netcdf.inc),)
-    NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include
-  else
-    ifneq ($(wildcard $(NETCDFHOME)/include/netcdf-3/netcdf.inc),)
-      NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include/netcdf-3
+ifneq ($(and $(NETCDF_HOME),$(NETCDF_F_HOME)),)
+  LIBS += -L$(NETCDF_HOME)/lib -lnetcdf -L$(NETCDF_F_HOME)/lib -lnetcdff
+  FFLAGS += -I$(NETCDF_HOME)/include -I$(NETCDF_F_HOME)/include
+  F90FLAGS += -I$(NETCDF_HOME)/include -I$(NETCDF_F_HOME)/include
+  INCS += -I$(NETCDF_HOME)/include -I$(NETCDF_F_HOME)/include
+else
+  ifdef NETCDFHOME
+    ifneq ($(wildcard $(NETCDFHOME)/include/netcdf.inc),)
+      NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include
     else
-      $(error NetCDF include files not found)
+      ifneq ($(wildcard $(NETCDFHOME)/include/netcdf-3/netcdf.inc),)
+        NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include/netcdf-3
+      else
+        $(error NetCDF include files not found)
+      endif
+    endif
+
+    ifneq ($(wildcard $(NETCDFHOME)/$(LIBABI)/libnetcdf*),)
+      NETCDFLIBDIR ?= $(NETCDFHOME)/$(LIBABI)
+    else
+      NETCDFLIBDIR ?= $(NETCDFHOME)/lib
     endif
   endif
 
-  ifneq ($(wildcard $(NETCDFHOME)/$(LIBABI)/libnetcdf*),)
-    NETCDFLIBDIR ?= $(NETCDFHOME)/$(LIBABI)
-  else
-    NETCDFLIBDIR ?= $(NETCDFHOME)/lib
+  ifdef NETCDFINCLUDEDIR
+    FFLAGS += -I$(NETCDFINCLUDEDIR)
+    F90FLAGS += -I$(NETCDFINCLUDEDIR)
+    INCS += -I$(NETCDFINCLUDEDIR)
   endif
-endif
 
-ifdef NETCDFINCLUDEDIR
-  FFLAGS += -I$(NETCDFINCLUDEDIR)
-  F90FLAGS += -I$(NETCDFINCLUDEDIR)
-  INCS += -I$(NETCDFINCLUDEDIR)
-endif
-
-ifdef NETCDFLIBDIR
-  LIBS += -L$(NETCDFLIBDIR) -lnetcdf
-  ifeq ($(wildcard $(NETCDFLIBDIR)/libnetcdff.*),)
+  ifdef NETCDFLIBDIR
     LIBS += -L$(NETCDFLIBDIR) -lnetcdf
-  else
-    LIBS += -L$(NETCDFLIBDIR) -L/opt/local/lib -lnetcdff -lnetcdf
+    ifeq ($(wildcard $(NETCDFLIBDIR)/libnetcdff.*),)
+      LIBS += -L$(NETCDFLIBDIR) -lnetcdf
+    else
+      LIBS += -L$(NETCDFLIBDIR) -L/opt/local/lib -lnetcdff -lnetcdf
+    endif
   endif
 endif
 
