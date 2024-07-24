@@ -6,7 +6,10 @@ FMAKEDEP = $(SCRIPTS_DIR)/sfmakedepend
 CMP_MOD = $(SCRIPTS_DIR)/compare_module_file.pl -compiler INTEL-ifort-9-0-on-LINUX
 FFLAGS = -fpp -O2 -ftz         -convert big_endian 
 F90FLAGS = -fpp -O2 -ftz        -convert big_endian -free 
-LFLAGS = -O2 -ftz -nostartfiles -nofor-main
+LFLAGS = -O2 -ftz
+ifeq ($(GC),YES)
+LFLAGS += -nostartfiles -nofor-main
+endif
 CPPFLAGS += -DCOMPILER_Intel8 -DCONVERT_BIGENDIAN
 F90_VERSION = $(shell $(F90) -v 2>&1)
 ifeq ($(MP),YES)
