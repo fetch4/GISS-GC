@@ -16,3 +16,6 @@ build/*
 *.pik
 spack-build.*
 spconfig.py
+decks/*
+!decks/Makefile
+
