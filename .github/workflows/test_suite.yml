@@ -37,6 +37,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Setup submodules
+      run: |
+        git config --global --add safe.directory ${GISS_HOME}
+        git submodule init
+        git submodule update
+
     - name: Create fake inputs
       run: |
         # Make run directories
@@ -118,12 +124,8 @@ jobs:
         # Environment variable for OpenMPI build
         export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx
         # Copy over rundeck and modelErc
-        cp .github/rundecks/GISS_GC_14.R decks
+        cp .github/rundecks/${RUNID}.R decks
         cp .github/modelErc ~/.modelErc
-        # Setup submodules
-        git config --global --add safe.directory ${GISS_HOME}
-        git submodule init
-        git submodule update
         # Build the model
         cd decks
         make -j setup RUN=${RUNID} F90=mpif90 GC=YES
