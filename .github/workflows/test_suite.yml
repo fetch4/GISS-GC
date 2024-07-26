@@ -8,8 +8,21 @@ on:
   # Trigger the CI whenever a commit is pushed to an open PR
   pull_request:
 
-jobs:
+env:
+  # Environment variables
+  GISS_HOME: /__w/GISS-GC/GISS-GC
+  # Environment variables for compiler
+  CC: gcc
+  CXX: g++
+  FC: gfortran
+  F90: gfortran
+  F77: gfortran
+  # Misc. environment variables
+  F_UFMTENDIAN: big
+  KMP_STACKSIZE: 100000000
+  OMP_NUM_THREADS: 36
 
+jobs:
   # Test that GISS-GC can be compiled without error
   compile:
     runs-on: ubuntu-22.04
@@ -24,7 +37,6 @@ jobs:
 
     - name: Create fake inputs
       run: |
-        export GISS_HOME=/__w/GISS-GC/GISS-GC
         export ModelE_Support=${GISS_HOME}/run
         mkdir -p ${ModelE_Support}
         # Make run directories
@@ -92,14 +104,7 @@ jobs:
     - name: Build GISS-GC with GISS_GC_14 rundeck
       run: |
         . /opt/spack-environment/activate.sh
-        # Environment variables for compiler
-        export CC=gcc
-        export CXX=g++
-        export FC=gfortran
-        export F90=gfortran
-        export F77=gfortran
         # Environment variables for GISS-GC
-        export GISS_HOME=/__w/GISS-GC/GISS-GC
         export RUNID=GISS_GC_14
         export ModelE_Support=${GISS_HOME}/run
         mkdir -p ${ModelE_Support}
@@ -115,10 +120,6 @@ jobs:
         export GC_F_LIB=${NETCDF_F_HOME}/lib
         # Environment variable for OpenMPI build
         export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx/
-        # Misc settings
-        export F_UFMTENDIAN=big
-        export KMP_STACKSIZE=100000000
-        export OMP_NUM_THREADS=36
         # Copy over rundeck and modelErc
         cp .github/rundecks/GISS_GC_14.R decks/
         cp .github/modelErc ~/.modelErc
