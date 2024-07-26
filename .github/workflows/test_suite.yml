@@ -9,8 +9,10 @@ on:
   pull_request:
 
 env:
-  # Environment variables
+  # Environment variables for GISS modelE
   GISS_HOME: /__w/GISS-GC/GISS-GC
+  ModelE_Support: /__w/GISS-GC/GISS-GC/run
+  DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
   # Environment variables for compiler
   CC: gcc
   CXX: g++
@@ -37,77 +39,72 @@ jobs:
 
     - name: Create fake inputs
       run: |
-        export ModelE_Support=${GISS_HOME}/run
-        mkdir -p ${ModelE_Support}
         # Make run directories
+        mkdir -p ${DATA}
         mkdir -p ${ModelE_Support}/exec
         mkdir -p ${ModelE_Support}/huge_space
         mkdir -p ${ModelE_Support}/prod_decks
-        mkdir -p ${ModelE_Support}/prod_input_files
         mkdir -p ${ModelE_Support}/prod_runs
         # Fake input files
-        touch ${ModelE_Support}/prod_input_files/CD144X90.ext.nc
-        touch ${ModelE_Support}/prod_input_files/cloud.epsilon4.72x46
-        touch ${ModelE_Support}/prod_input_files/CO2profile.Jul16-2017.txt
-        touch ${ModelE_Support}/prod_input_files/CROPS_and_pastures_Pongratz_to_Hurtt_144X90N_nocasp.nc
-        touch ${ModelE_Support}/prod_input_files/dH2O_by_CH4_monthly
-        touch ${ModelE_Support}/prod_input_files/GHG.CMIP6.1-2014.txt
-        touch ${ModelE_Support}/prod_input_files/GIC.144X90.DEC01.1.ext_1.nc
-        touch ${ModelE_Support}/prod_input_files/GLMELT_144X90_gas.OCN.nc
-        touch ${ModelE_Support}/prod_input_files/H2Ocont_MT_CKD
-        touch ${ModelE_Support}/prod_input_files/Irrig144x90_1848to2100_FixedFuture_v3.nc
-        touch ${ModelE_Support}/prod_input_files/ISCCP.tautables
-        touch ${ModelE_Support}/prod_input_files/LWCorrTables33k
-        touch ${ModelE_Support}/prod_input_files/LWTables33k_lowH2O_CO2_O3_planck_1-800
-        touch ${ModelE_Support}/prod_input_files/miescatpar.abcdv2
-        touch ${ModelE_Support}/prod_input_files/MSU_SSU_RSS_weights.txt
-        touch ${ModelE_Support}/prod_input_files/NCARIC.144x90.D7712010_ext.nc
-        touch ${ModelE_Support}/prod_input_files/o3_2010_shindell_144x90x49_April1850.nc
-        touch ${ModelE_Support}/prod_input_files/oct2003.relhum.nr.Q633G633.table
-        touch ${ModelE_Support}/prod_input_files/OST_144x90.1876-1885avg.CMIP6.nc
-        touch ${ModelE_Support}/prod_input_files/RD_Fd.nc
-        touch ${ModelE_Support}/prod_input_files/RD_Fd.names.txt
-        touch ${ModelE_Support}/prod_input_files/REG2X2.5
-        touch ${ModelE_Support}/prod_input_files/S144X900098M.ext.nc
-        touch ${ModelE_Support}/prod_input_files/sgpgxg.table8
-        touch ${ModelE_Support}/prod_input_files/SICE_144x90.1876-1885avg.CMIP6.nc
-        touch ${ModelE_Support}/prod_input_files/soil_textures_top30cm_2x2.5
-        touch ${ModelE_Support}/prod_input_files/soilcarb_top30cm_2x2.5.nc
-        touch ${ModelE_Support}/prod_input_files/solar.CMIP6official.ann1850-2299_with_E3_fastJ.nc
-        touch ${ModelE_Support}/prod_input_files/STRATAER.VOL.1850-2014_CMIP6_hdr
-        touch ${ModelE_Support}/prod_input_files/top_index_144x90_a.ij.ext.nc
-        touch ${ModelE_Support}/prod_input_files/topcld.trscat8
-        touch ${ModelE_Support}/prod_input_files/V144x90_EntMM16_height_trimmed_scaled_ext.nc
-        touch ${ModelE_Support}/prod_input_files/V144x90_EntMM16_lai_max_trimmed_scaled_ext.nc
-        touch ${ModelE_Support}/prod_input_files/V144x90_EntMM16_lai_trimmed_scaled_ext.nc
-        touch ${ModelE_Support}/prod_input_files/V144x90_EntMM16_lc_max_trimmed_scaled_nocrops.ext.nc
-        touch ${ModelE_Support}/prod_input_files/Z2HX2fromZ1QX1N.BS1.nc
-        touch ${ModelE_Support}/prod_input_files/ZSIfac_144x90.1876-1885avg.CMIP6.nc
-        touch ${ModelE_Support}/prod_input_files/ZVAR2X25A.nc
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/BCA
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/BCB
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/BCdalbsn
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/DUST
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/NIT
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/O3
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/OCA
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/SSA
-        mkdir -p ${ModelE_Support}/prod_input_files/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/SUL
-        mkdir -p ${ModelE_Support}/prod_input_files/nudging/merra2/
-        touch ${ModelE_Support}/prod_input_files/nudging/merra2/uwnd.2014.MERRA2onGISSE2.nc4
-        touch ${ModelE_Support}/prod_input_files/nudging/merra2/vwnd.2014.MERRA2onGISSE2.nc4
-        touch ${ModelE_Support}/prod_input_files/nudging/merra2/uwnd.2015.MERRA2onGISSE2.nc4
-        touch ${ModelE_Support}/prod_input_files/nudging/merra2/vwnd.2015.MERRA2onGISSE2.nc4
-        touch ${ModelE_Support}/prod_input_files/nudging/merra2/uwnd.2016.MERRA2onGISSE2.nc4
-        touch ${ModelE_Support}/prod_input_files/nudging/merra2/vwnd.2016.MERRA2onGISSE2.nc4
+        touch ${DATA}/CD144X90.ext.nc
+        touch ${DATA}/cloud.epsilon4.72x46
+        touch ${DATA}/CO2profile.Jul16-2017.txt
+        touch ${DATA}/CROPS_and_pastures_Pongratz_to_Hurtt_144X90N_nocasp.nc
+        touch ${DATA}/dH2O_by_CH4_monthly
+        touch ${DATA}/GHG.CMIP6.1-2014.txt
+        touch ${DATA}/GIC.144X90.DEC01.1.ext_1.nc
+        touch ${DATA}/GLMELT_144X90_gas.OCN.nc
+        touch ${DATA}/H2Ocont_MT_CKD
+        touch ${DATA}/Irrig144x90_1848to2100_FixedFuture_v3.nc
+        touch ${DATA}/ISCCP.tautables
+        touch ${DATA}/LWCorrTables33k
+        touch ${DATA}/LWTables33k_lowH2O_CO2_O3_planck_1-800
+        touch ${DATA}/miescatpar.abcdv2
+        touch ${DATA}/MSU_SSU_RSS_weights.txt
+        touch ${DATA}/NCARIC.144x90.D7712010_ext.nc
+        touch ${DATA}/o3_2010_shindell_144x90x49_April1850.nc
+        touch ${DATA}/oct2003.relhum.nr.Q633G633.table
+        touch ${DATA}/OST_144x90.1876-1885avg.CMIP6.nc
+        touch ${DATA}/RD_Fd.nc
+        touch ${DATA}/RD_Fd.names.txt
+        touch ${DATA}/REG2X2.5
+        touch ${DATA}/S144X900098M.ext.nc
+        touch ${DATA}/sgpgxg.table8
+        touch ${DATA}/SICE_144x90.1876-1885avg.CMIP6.nc
+        touch ${DATA}/soil_textures_top30cm_2x2.5
+        touch ${DATA}/soilcarb_top30cm_2x2.5.nc
+        touch ${DATA}/solar.CMIP6official.ann1850-2299_with_E3_fastJ.nc
+        touch ${DATA}/STRATAER.VOL.1850-2014_CMIP6_hdr
+        touch ${DATA}/top_index_144x90_a.ij.ext.nc
+        touch ${DATA}/topcld.trscat8
+        touch ${DATA}/V144x90_EntMM16_height_trimmed_scaled_ext.nc
+        touch ${DATA}/V144x90_EntMM16_lai_max_trimmed_scaled_ext.nc
+        touch ${DATA}/V144x90_EntMM16_lai_trimmed_scaled_ext.nc
+        touch ${DATA}/V144x90_EntMM16_lc_max_trimmed_scaled_nocrops.ext.nc
+        touch ${DATA}/Z2HX2fromZ1QX1N.BS1.nc
+        touch ${DATA}/ZSIfac_144x90.1876-1885avg.CMIP6.nc
+        touch ${DATA}/ZVAR2X25A.nc
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/BCA
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/BCB
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/BCdalbsn
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/DUST
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/NIT
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/O3
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/OCA
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/SSA
+        mkdir -p ${DATA}/cmip6_nint_inputs_E14TomaOCNf10_4av_decadal/SUL
+        mkdir -p ${DATA}/nudging/merra2
+        touch ${DATA}/nudging/merra2/uwnd.2014.MERRA2onGISSE2.nc4
+        touch ${DATA}/nudging/merra2/vwnd.2014.MERRA2onGISSE2.nc4
+        touch ${DATA}/nudging/merra2/uwnd.2015.MERRA2onGISSE2.nc4
+        touch ${DATA}/nudging/merra2/vwnd.2015.MERRA2onGISSE2.nc4
+        touch ${DATA}/nudging/merra2/uwnd.2016.MERRA2onGISSE2.nc4
+        touch ${DATA}/nudging/merra2/vwnd.2016.MERRA2onGISSE2.nc4
 
     - name: Build GISS-GC with GISS_GC_14 rundeck
       run: |
         . /opt/spack-environment/activate.sh
-        # Environment variables for GISS-GC
         export RUNID=GISS_GC_14
-        export ModelE_Support=${GISS_HOME}/run
-        mkdir -p ${ModelE_Support}
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
         export NETCDF_HOME=$(nc-config --prefix)
         export GC_BIN=${NETCDF_HOME}/bin
@@ -119,14 +116,14 @@ jobs:
         export GC_F_INCLUDE=${NETCDF_F_HOME}/include
         export GC_F_LIB=${NETCDF_F_HOME}/lib
         # Environment variable for OpenMPI build
-        export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx/
+        export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx
         # Copy over rundeck and modelErc
-        cp .github/rundecks/GISS_GC_14.R decks/
+        cp .github/rundecks/GISS_GC_14.R decks
         cp .github/modelErc ~/.modelErc
         # Setup submodules
         git config --global --add safe.directory ${GISS_HOME}
         git submodule init
         git submodule update
         # Build the model
-        cd decks/
+        cd decks
         make -j setup RUN=${RUNID} F90=mpif90 GC=YES
