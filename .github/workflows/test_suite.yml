@@ -22,39 +22,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Build GISS-GC with GISS_GC_14 rundeck
+    - name: Create fake inputs
       run: |
-        . /opt/spack-environment/activate.sh
-        # Environment variables for compiler
-        export CC=gcc
-        export CXX=g++
-        export FC=gfortran
-        export F90=gfortran
-        export F77=gfortran
-        # Environment variables for GISS-GC
         export GISS_HOME=/__w/GISS-GC/GISS-GC
-        export RUNID=GISS_GC_14
         export ModelE_Support=${GISS_HOME}/run
         mkdir -p ${ModelE_Support}
-        # Environment variables for passing NetCDF-C paths to GEOS-Chem
-        export NETCDF_HOME=$(nc-config --prefix)
-        export GC_BIN=${NETCDF_HOME}/bin
-        export GC_INCLUDE=${NETCDF_HOME}/include
-        export GC_LIB=${NETCDF_HOME}/lib
-        # Environment variables for passing NetCDF-Fortran paths to GEOS-Chem
-        export NETCDF_F_HOME=$(nf-config --prefix)
-        export GC_F_BIN=${NETCDF_F_HOME}/bin
-        export GC_F_INCLUDE=${NETCDF_F_HOME}/include
-        export GC_F_LIB=${NETCDF_F_HOME}/lib
-        # Environment variable for OpenMPI build
-        export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx/
-        # Misc settings
-        export F_UFMTENDIAN=big
-        export KMP_STACKSIZE=100000000
-        export OMP_NUM_THREADS=36
-        # Copy over rundeck and modelErc
-        cp .github/rundecks/GISS_GC_14.R decks/
-        cp .github/modelErc ~/.modelErc
         # Make run directories
         mkdir -p ${ModelE_Support}/exec
         mkdir -p ${ModelE_Support}/huge_space
@@ -116,6 +88,40 @@ jobs:
         touch ${ModelE_Support}/prod_input_files/nudging/merra2/vwnd.2015.MERRA2onGISSE2.nc4
         touch ${ModelE_Support}/prod_input_files/nudging/merra2/uwnd.2016.MERRA2onGISSE2.nc4
         touch ${ModelE_Support}/prod_input_files/nudging/merra2/vwnd.2016.MERRA2onGISSE2.nc4
+
+    - name: Build GISS-GC with GISS_GC_14 rundeck
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for compiler
+        export CC=gcc
+        export CXX=g++
+        export FC=gfortran
+        export F90=gfortran
+        export F77=gfortran
+        # Environment variables for GISS-GC
+        export GISS_HOME=/__w/GISS-GC/GISS-GC
+        export RUNID=GISS_GC_14
+        export ModelE_Support=${GISS_HOME}/run
+        mkdir -p ${ModelE_Support}
+        # Environment variables for passing NetCDF-C paths to GEOS-Chem
+        export NETCDF_HOME=$(nc-config --prefix)
+        export GC_BIN=${NETCDF_HOME}/bin
+        export GC_INCLUDE=${NETCDF_HOME}/include
+        export GC_LIB=${NETCDF_HOME}/lib
+        # Environment variables for passing NetCDF-Fortran paths to GEOS-Chem
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        export GC_F_BIN=${NETCDF_F_HOME}/bin
+        export GC_F_INCLUDE=${NETCDF_F_HOME}/include
+        export GC_F_LIB=${NETCDF_F_HOME}/lib
+        # Environment variable for OpenMPI build
+        export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx/
+        # Misc settings
+        export F_UFMTENDIAN=big
+        export KMP_STACKSIZE=100000000
+        export OMP_NUM_THREADS=36
+        # Copy over rundeck and modelErc
+        cp .github/rundecks/GISS_GC_14.R decks/
+        cp .github/modelErc ~/.modelErc
         # Setup submodules
         git config --global --add safe.directory ${GISS_HOME}
         git submodule init
