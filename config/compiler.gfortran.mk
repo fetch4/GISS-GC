@@ -30,6 +30,11 @@ LFLAGS =
 ifeq ($(GC),YES)
 LFLAGS += -nostartfiles -Wno-main
 endif
+ifeq ($(MP),YES)
+FFLAGS += -fopenmp
+F90FLAGS += -fopenmp
+LFLAGS += -fopenmp
+endif
 
 F90_VERSION = $(shell $(F90) --version | head -1)
 
