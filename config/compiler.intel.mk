@@ -4,8 +4,8 @@ IFORT_RELEASE := $(shell ifort --version | perl -e \
   'while(<>){ if(/ifort.* (\d+\.\d+)/) { print "$$1"; } }')
 FMAKEDEP = $(SCRIPTS_DIR)/sfmakedepend
 CMP_MOD = $(SCRIPTS_DIR)/compare_module_file.pl -compiler INTEL-ifort-9-0-on-LINUX
-FFLAGS = -fpp -O2 -ftz         -convert big_endian 
-F90FLAGS = -fpp -O2 -ftz        -convert big_endian -free 
+FFLAGS = -fpp -O2 -ftz -convert big_endian
+F90FLAGS = $(FFLAGS) -free
 LFLAGS = -O2 -ftz
 ifeq ($(GC),YES)
 LFLAGS += -nostartfiles -nofor-main
