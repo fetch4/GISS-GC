@@ -1,7 +1,6 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-jammy:0.21 AS builder
 
-
 # What we want to install and how we want to install it
 # is specified in a manifest file (spack.yaml)
 RUN mkdir /opt/spack-environment \
@@ -58,7 +57,6 @@ RUN { \
 && chmod a+x /entrypoint.sh \
 && ln -s /opt/views/view /opt/view \
 && apt update && apt install -y ca-certificates cpp m4
-
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "/bin/bash" ]
