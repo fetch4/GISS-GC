@@ -459,7 +459,7 @@ C**** Local variables initialised in init_RAD
      *     COSZ1   (I_0H:I_1H, J_0H:J_1H),
 #ifdef TRACERS_GC
      *     save_COSZ2(I_0H:I_1H, J_0H:J_1H),
-#endif
+#endif      
      *     COSZ_day(I_0H:I_1H, J_0H:J_1H),
      *     SUNSET  (I_0H:I_1H, J_0H:J_1H),
 #ifdef CUBED_SPHERE

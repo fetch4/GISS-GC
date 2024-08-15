@@ -165,7 +165,6 @@ ifeq ($(FVCUBED),YES)
   LIBS += -L$(FVCUBED_ROOT)/$(MACHINE)/lib -lMAPL_cfio -lMAPL_Base -lFVdycoreCubed_GridComp -lfvdycore -lGMAO_mpeu
   # this extra -lesmf would not be needed if the ESMF stuff came after this section
   LIBS += $(ESMFLIBDIR)/libesmf.a
-
   ifdef NETCDFHOME
     NETCDFLIB ?= -L$(NETCDFHOME)/lib -lnetcdf
     LIBS += $(subst ",,$(NETCDFLIB))

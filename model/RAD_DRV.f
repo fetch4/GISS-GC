@@ -192,7 +192,7 @@ C****
       use clouds_com, only : svlhx,svlat,rhsav
 #ifdef GCAP
       use rad_com, only : save_cosz2
-#endif
+#endif      
       !use clouds_com, only : lmid,lhi
       ! end section for radiation-only SCM
       IMPLICIT NONE
