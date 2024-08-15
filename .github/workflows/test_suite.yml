@@ -13,12 +13,6 @@ env:
   GISS_HOME: /__w/GISS-GC/GISS-GC
   ModelE_Support: /__w/GISS-GC/GISS-GC/run
   DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
-  # Environment variables for compiler
-  CC: gcc
-  CXX: g++
-  FC: gfortran
-  F90: gfortran
-  F77: gfortran
   # Misc. environment variables
   F_UFMTENDIAN: big
   KMP_STACKSIZE: 100000000
@@ -27,7 +21,15 @@ env:
 jobs:
   # Test that GISS-GC can be compiled without error
   compile:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-latest
+        toolchain:
+        - {compiler: gcc, version: 13}
+        - {compiler: intel, version: '2021.6'}
     container:
       image: ghcr.io/fetch4/giss-gc-dev-env:latest
       credentials:
@@ -35,7 +37,18 @@ jobs:
         password: ${{ secrets.github_token }}
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout GISS-GC
+      uses: actions/checkout@v2
+
+    - name: Setup Fortran
+      uses: fortran-lang/setup-fortran@v1
+      with:
+        compiler: ${{ matrix.toolchain.compiler }}
+        version: ${{ matrix.toolchain.version }}
+
+    - name: Check compiler environment
+      run: |
+        ${{ steps.setup-fortran.outputs.fc }}
 
     - name: Setup submodules
       run: |
@@ -111,6 +124,12 @@ jobs:
       run: |
         . /opt/spack-environment/activate.sh
         export RUNID=GISS_GC_14
+        # Environment variables for compiler
+        export CC=${{ env.CC }}
+        export CXX=${{ env.CXX }}
+        export FC=${{ env.FC }}
+        export F90=${{ env.FC }}
+        export F77=${{ env.FC }}
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
         export NETCDF_HOME=$(nc-config --prefix)
         export GC_BIN=${NETCDF_HOME}/bin
@@ -125,7 +144,7 @@ jobs:
         export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx
         # Copy over rundeck and modelErc
         cp .github/rundecks/${RUNID}.R decks
-        cp .github/modelErc ~/.modelErc
+        cp .github/modelErc_${{ matrix.toolchain.compiler }} ~/.modelErc
         # Build the model
         cd decks
         make -j setup RUN=${RUNID} F90=mpif90 GC=YES
