@@ -1774,6 +1774,13 @@ c add (calls to) the analogs of ijh_defs et al.
       call tijph_defs(diaglists(1,k),nmax_possible,diaglens(k))
 #endif
 #ifdef TRACERS_GC
+      k = k + 1
+      catshapes(k) = 'aijlh'; categories(k) = 'taijlh'
+      input_sizes3(k) = lm
+      call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
+#endif
+
+#ifdef TRACERS_GC
       
       k = k + 1
       catshapes(k) = 'aijlh'; categories(k) = 'taijlh'

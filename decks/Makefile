@@ -28,6 +28,8 @@ else
   MODEL_E_BUILD_DIR = $(MODEL_E_ROOT)
 endif
 MODEL_DIR = $(MODEL_E_BUILD_DIR)/model
+GC_BUILD_DIR = $(MODEL_DIR)/geos-chem/build
+GC_LIB_DIR = $(MODEL_DIR)/geos-chem/lib
 AUX_DIR = $(MODEL_E_ROOT)/aux
 SCRIPTS_DIR = $(MODEL_E_ROOT)/exec
 DECKS_DIR = $(shell pwd)
@@ -127,9 +129,34 @@ ifeq ($(GC),YES)
 	@echo "***************************************************************"
 	@echo "Compiling GEOS-Chem"
 	@echo "***************************************************************"
-	cd $(MODEL_DIR)/geos-chem/src && make FC=$(FC) EXTERNAL_GRID=y EXTERNAL_FORCING=y GISS=y OMP=n NO_EXE=y all MAKEFLAGS=
-	#cd $(MODEL_DIR)/geos-chem/src && make FC=$(FC) EXTERNAL_GRID=y EXTERNAL_FORCING=y GISS=y OMP=n DEBUG=y TRACEBACK=y NO_EXE=y all MAKEFLAGS=
-	cp $(MODEL_DIR)/geos-chem/src/mod/* $(MODEL_DIR)/mod/
+	mkdir -p $(GC_BUILD_DIR)
+	mkdir -p $(GC_LIB_DIR)
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. \
+		-DOMP=$(MP) \
+		-DCMAKE_Fortran_FLAGS="$(F90FLAGS)" \
+		-DCMAKE_EXE_LINKER_FLAGS="$(LFLAGS)"
+	cd $(GC_BUILD_DIR) && make -j install
+	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/HEMCO/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/Cloud-J/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Core/libHCO.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Extensions/libHCOX.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/Headers/libHeadersHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/GeosUtil/libJulDayHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/GeosUtil/libGeosUtilHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/NcdfUtil/libNcdfUtilHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Interfaces/Shared/libHCOI_Shared.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/ISORROPIA/libIsorropia.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/Headers/libHeaders.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/ObsPack/libObsPack.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/History/libHistory.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP_FirstPass.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosCore/libGeosCore.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libGeosUtil.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libJulDay.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/NcdfUtil/libNcdfUtil.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/Cloud-J/src/Core/libCloudJ_Core.a $(GC_LIB_DIR)/
 endif
 	$(MAKE) -C $(MODEL_DIR) gcm RUN=$(RUN) DECKS_DIR=$(DECKS_DIR) $(OPTS_MAIN)
 	-mv $(MODEL_DIR)/$(RUN).bin $(BIN_DIR)/$(RUN).exe
@@ -225,9 +252,7 @@ ifneq ($(PFUNIT),)
 	$(MAKE) -C $(TESTS_DIR) clean
 endif
 	$(MAKE) -C $(AUX_DIR) $@ $(OPTS_MAIN)
-ifeq ($(GC),YES)
-	cd $(MODEL_DIR)/geos-chem/src && make realclean
-endif
+	rm -rf $(GC_BUILD_DIR)
 
 exe: $(RUN)/$(RUN) gcm
 	@if [ ! -s $(CMRUNDIR)/$(RUN)/I ] ; then \

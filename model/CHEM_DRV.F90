@@ -18,6 +18,7 @@ module CHEM_DRV
   USE State_Met_Mod,     ONLY : MetState
   USE State_Diag_Mod,    ONLY : DgnState
   USE DiagList_Mod,      ONLY : DgnList
+  USE TaggedDiagList_Mod, ONLY : TaggedDgnList
   USE HCO_Types_Mod,     ONLY : ConfigObj
   USE Precision_Mod
 
@@ -41,6 +42,7 @@ module CHEM_DRV
   TYPE(ChmState)             :: State_Chm  ! Chemistry state
   TYPE(DgnState)             :: State_Diag ! Diagnostics state
   TYPE(DgnList)              :: Diag_List  ! Diagnostics state
+  TYPE(TaggedDgnList)        :: TaggedDiag_List ! Diagnostics state
   TYPE(GrdState)             :: State_Grid ! Grid state
   TYPE(ConfigObj), POINTER   :: HcoConfig
   
@@ -118,7 +120,8 @@ CONTAINS
     USE CONSTANT,          ONLY : bygrav, lhe, tf, teeny
 
     ! GEOS-Chem modules
-    USE HCO_Interface_Mod, ONLY : SetHcoTime
+    USE HCO_State_GC_Mod,  ONLY : HcoState, ExtState
+    USE HCO_Interface_Common, ONLY : SetHcoTime
     USE Time_Mod,          ONLY : Accept_External_Date_Time
     USE Emissions_Mod,     ONLY : Emissions_Run         
     USE State_Chm_Mod,     ONLY : Ind_
@@ -127,9 +130,10 @@ CONTAINS
     USE Pressure_Mod,      ONLY : Set_Floating_Pressures
     USE Pressure_Mod,      ONLY : Accept_External_Pedge
     USE Calc_Met_Mod,      ONLY : Set_Dry_Surface_Pressure
-    USE Calc_Met_Mod,      ONLY : GIGC_Cap_Tropopause_Prs
+    USE Calc_Met_Mod,      ONLY : GCHP_Cap_Tropopause_Prs
     USE PBL_Mix_Mod,       ONLY : Compute_PBL_Height
     USE ERROR_MOD,         ONLY : Safe_Div, IT_IS_NAN
+    USE UnitConv_Mod
 
     IMPLICIT NONE
 
@@ -141,7 +145,7 @@ CONTAINS
     REAL*4    :: MINUTES, hElapsed, UTC
     REAL*8    :: sElapsed
     LOGICAL   :: IsChemTime
-    CHARACTER(LEN=63)  :: OrigUnit
+    INTEGER   :: OrigUnit
 
     ! External functions (from shared/Utilities.F90)
     REAL*8 SLP
@@ -241,7 +245,7 @@ CONTAINS
           if ( si_ocn%snowi(i,j) > 0. ) &
                State_Met%FRSNO(II,JJ) = si_atm%rsi(i,j)*flake(i,j)
           if ( atmlnd%SNOWE(i,j) > 0. ) &
-               State_Met%FRSNO(II,JJ) = State_Met%FRSNO(II,JJ) + atmlnd%snowfr(i,j)*fearth(i,j)
+               State_Met%FRSNO(II,JJ) = State_Met%FRSNO(I,J) + atmlnd%snowfr(i,j)*fearth(i,j)
           State_Met%FRSNO(II,JJ) = min( 1.0, State_Met%FRSNO(II,JJ) )
 
           ! Root soil wetness [1]
@@ -267,9 +271,10 @@ CONTAINS
           State_Met%LAI         (II,JJ) = lai_save(i,j)               
 
           ! Land/water/ice indices [1]
-          State_Met%LWI         (II,JJ) = 1                        
-          if ( focean(i,j) > fearth(i,j) ) State_Met%LWI(II,JJ) = 0
-          if ( si_atm%rsi(i,j)*focean(i,j) > 0.5 ) State_Met%LWI(II,JJ) = 2
+          ! TODO: Uncomment or drop the following
+          ! State_Met%LWI         (II,JJ) = 1
+          ! if ( focean(i,j) > fearth(i,j) ) State_Met%LWI(II,JJ) = 0
+          ! if ( si_atm%rsi(i,j)*focean(i,j) > 0.5 ) State_Met%LWI(II,JJ) = 2
 
           ! Direct photsynthetically active radiation [W/m2]
           State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)              
@@ -521,10 +526,10 @@ CONTAINS
     ENDDO
 
     ! Set the pressure at level edges [hPa] from the GCM
-    CALL Accept_External_Pedge( State_Met = State_Met,  &
-         RC        = RC         )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Accept_External_Pedge", 255 )
-    
+    CALL Accept_External_Pedge( State_Met  = State_Met,   &
+                                State_Grid = State_Grid,  &
+                                RC         = RC          )
+
     ! Set dry surface pressure (PS1_DRY) from State_Met%PS1_WET
     CALL SET_DRY_SURFACE_PRESSURE( State_Grid, State_Met, 1 )
     
@@ -532,23 +537,25 @@ CONTAINS
     CALL SET_DRY_SURFACE_PRESSURE( State_Grid, State_Met, 2 )
     
     ! Initialize surface pressures to match the post-advection pressures
+    State_Met%PSC2_WET = State_Met%PS1_WET
+    State_Met%PSC2_DRY = State_Met%PS1_DRY
     CALL SET_FLOATING_PRESSURES( State_Grid, State_Met, RC )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SET_FLOATING_PRESSURES", 255 )
+    IF ( RC /= GC_SUCCESS ) RETURN
     
     ! Define airmass and related quantities
-    CALL AirQnt( Input_Opt, State_Chm, State_Grid, State_Met, RC, .FALSE. )
+    CALL AirQnt( Input_Opt, State_Chm, State_Grid, State_Met, RC, .FALSE. )    
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "AirQnt", 255 )
     
     ! Cap the polar tropopause pressures at 200 hPa, in order to avoid
     ! tropospheric chemistry from happening too high up (cf. J. Logan)
-    CALL GIGC_Cap_Tropopause_Prs( Input_Opt      = Input_Opt,  &
+    CALL GCHP_Cap_Tropopause_Prs( Input_Opt      = Input_Opt,  &
                                   State_Grid     = State_Grid, &
                                   State_Met      = State_Met,  &
                                   RC             = RC         )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "GIGC_Cap_Tropopause_Prs", 255 )
+    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "GCHP_Cap_Tropopause_Prs", 255 )
 
     ! Call PBL quantities. Those are always needed
-    CALL COMPUTE_PBL_HEIGHT( State_Grid, State_Met, RC )
+    CALL Compute_Pbl_Height( Input_Opt, State_Grid, State_Met, RC )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "COMPUTE_PBL_HEIGHT", 255 )
 
     IF ( FIRST_CHEM ) THEN
@@ -572,7 +579,9 @@ CONTAINS
        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Accept_External_Date_Time", 255 )
 
        ! Set initial HEMCO time
-       CALL SetHcoTime ( .true., RC )
+       ! NOTE: DoEmis not defined yet, set to true
+       CALL SetHcoTime ( HcoState,   ExtState,   year,    month,   day,   &
+                         DOY,        hour,       minute,  second,  .true.,  RC )
        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SetHcoTime", 255 )
 
        !=======================================================================
@@ -583,7 +592,13 @@ CONTAINS
             State_Grid, State_Met, .True.,  0,  RC  )
        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "EMISSIONS_RUN - Phase 0", 255 )
 
-       CALL Convert_Spc_Units( Input_Opt, State_Chm, State_Grid, State_Met, 'kg', RC )
+       CALL Convert_Spc_Units(                                               &
+         Input_Opt  = Input_Opt,                                             &
+         State_Chm  = State_Chm,                                             &
+         State_Grid = State_Grid,                                            &
+         State_Met  = State_Met,                                             &
+         outUnit    = KG_SPECIES,                                            &
+         RC         = RC                                                    )
        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
        ! Copy initial conditions into TrM if absolute beginning
@@ -594,7 +609,7 @@ CONTAINS
          DO I=I_0,I_1
            II = I - I_0 + 1
            JJ = J - J_0 + 1
-           TrM( I, J, L, N )      = State_Chm%Species(II,JJ,L,N)
+           TrM( I, J, L, N )      = State_Chm%Species(N)%Conc(II,JJ,L)
            !TrMom( I, J, L, :, N ) = 0d0 ! Assuming initially uniformly distributed 
            ! Hack until HALO_UPDATE works for initial conditions
            if ( J_0 .ne. J_0H .and. J .eq. J_0 ) TrM( I, J_0H, L, N ) = TrM(I,J,L,N)
@@ -634,36 +649,22 @@ CONTAINS
     DO I=I_0,I_1
        II = I - I_0 + 1
        JJ = J - J_0 + 1
-       State_Chm%Species(II,JJ,L,N) = TrM( I, J, L, N )
+       State_Chm%Species(N)%Conc(II,JJ,L) = TrM( I, J, L, N )
     ENDDO
     ENDDO
     ENDDO
     ENDDO   
-    State_Chm%Spc_Units = 'kg'
        
     ! Convert to v/v dry
-    CALL Convert_Spc_Units( Input_Opt, State_Chm, State_Grid, State_Met, &
-         'v/v dry', RC )
+    CALL Convert_Spc_Units(                                               &
+      Input_Opt  = Input_Opt,                                             &
+      State_Chm  = State_Chm,                                             &
+      State_Grid = State_Grid,                                            &
+      State_Met  = State_Met,                                             &
+      outUnit    = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
+      RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
-    IF ( Am_I_Root() .and. .false. ) THEN
-    print*,NTM     ! 278 in 12.9.0 (199 advected)
-    print*,i_H2O   ! 61
-    print*,i_CO2   ! 200
-    print*,i_O3    ! 164
-    print*,i_O2    ! 277
-    print*,i_NO2   ! 161
-    print*,i_N2O   ! 154
-    print*,i_CH4   ! 154
-    print*,i_CFC11 ! 36
-    print*,i_CFC12 ! 21
-    print*,i_N2    ! 276
-    print*,i_CFCY  ! 0
-    print*,i_CFCZ  ! 0
-    print*,i_SO2   ! 191
-    CALL FLUSH(6)
-    ENDIF
-    
     !=====================
     ! Call GEOS-Chem
     !=====================
@@ -676,8 +677,13 @@ CONTAINS
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Chem_Chunk_Run", 255 )
 
     ! Convert back to kg for GCM advection
-    CALL Convert_Spc_Units( Input_Opt, State_Chm, State_Grid, State_Met, &
-         'kg', RC )
+    CALL Convert_Spc_Units(                                               &
+      Input_Opt  = Input_Opt,                                             &
+      State_Chm  = State_Chm,                                             &
+      State_Grid = State_Grid,                                            &
+      State_Met  = State_Met,                                             &
+      outUnit    = KG_SPECIES,                                            &
+      RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
     ! Copy State_Chm back in TrM
@@ -687,7 +693,7 @@ CONTAINS
              DO I=I_0,I_1
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
-                TrM( I, J, L, N ) = State_Chm%Species(II,JJ,L,N)
+                TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
              ENDDO
           ENDDO
        ENDDO
@@ -718,7 +724,6 @@ CONTAINS
 
     ! Uses the fluxes MUs,MVs,MWs from DYNAM and QDYNAM
     DO N=1,NTM
-       !IF ( Am_I_Root() ) WRITE(6,*) TrName(N), IsAdvected(N)
        IF ( IsAdvected(N) ) THEN
          CALL AADVQ( TrM(:,:,:,n), TrMom(:,:,:,:,n), .true., TrName(n) )
        ENDIF
@@ -739,7 +744,7 @@ CONTAINS
     ! Based on GIGC_Chunk_Run
 
     ! GEOS-Chem state objects
-    USE HCO_Interface_Mod,  ONLY : HcoState
+    USE HCO_State_GC_Mod,   ONLY : HcoState, ExtState
     USE Input_Opt_Mod,      ONLY : OptInput
     USE State_Chm_Mod,      ONLY : ChmState
     USE State_Diag_Mod
@@ -753,16 +758,19 @@ CONTAINS
     USE Emissions_Mod,      ONLY : Emissions_Run
     USE Mixing_Mod,         ONLY : Do_Tend, Do_Mixing
     USE WetScav_Mod,        ONLY : Setup_WetScav, Do_WetDep
+    USE UnitConv_Mod
 
     ! Specialized subroutines
     USE Calc_Met_Mod,       ONLY : AirQnt, Set_Dry_Surface_Pressure
-    USE Calc_Met_Mod,       ONLY : GIGC_Cap_Tropopause_Prs
+    USE Calc_Met_Mod,       ONLY : GCHP_Cap_Tropopause_Prs, GET_COSINE_SZA
     USE Set_Global_CH4_Mod, ONLY : Set_CH4
     USE MODIS_LAI_Mod,      ONLY : Compute_XLAI
     USE PBL_Mix_Mod,        ONLY : Compute_PBL_Height
     USE Pressure_Mod,       ONLY : Set_Floating_Pressures
     USE TOMS_Mod,           ONLY : Compute_Overhead_O3
     USE UCX_Mod,            ONLY : Set_H2O_Trac
+    USE HCO_Interface_GC_Mod, ONLY : Compute_Sflx_For_Vdiff
+    USE Vdiff_Mod,          ONLY : Max_PblHt_for_Vdiff
 
     ! Utilities
     USE ErrCode_Mod
@@ -771,11 +779,11 @@ CONTAINS
     USE State_Chm_Mod,      ONLY : IND_
     USE Time_Mod,           ONLY : Accept_External_Date_Time
     USE UnitConv_Mod,       ONLY : Convert_Spc_Units
-    USE HCO_Interface_Mod,  ONLY : SetHcoTime
+    USE HCO_Interface_Common, ONLY : SetHcoTime
 
     ! Diagnostics
     USE Diagnostics_Mod,    ONLY : Set_Diagnostics_EndofTimestep
-    USE Aerosol_Mod,        ONLY : Set_AerMass_Diagnostic
+    USE Diagnostics_Mod,    ONLY : Set_AerMass_Diagnostic
     USE CHEM_COM,           ONLY : gcaijl_out !, ijlt_vmr !, gcaijs=>gcaijs_loc
     USE DOMAIN_DECOMP_ATM,  ONLY : GRID, getDomainBounds, am_I_Root
   
@@ -811,8 +819,8 @@ CONTAINS
     ! First call?
     LOGICAL, SAVE                      :: FIRST = .TRUE.
 
-    CHARACTER(LEN=255)                 :: Iam, OrigUnit
-    INTEGER                            :: STATUS, HCO_PHASE, RST
+    CHARACTER(LEN=255)                 :: Iam
+    INTEGER                            :: STATUS, HCO_PHASE, RST, OrigUnit
 
     ! Local logicals to turn on/off individual components
     ! The parts to be executed are based on the input options,
@@ -834,11 +842,15 @@ CONTAINS
     ! Whether to scale mixing ratio with meteorology update in AirQnt
     LOGICAL, SAVE                      :: scaleMR = .FALSE.
 
-    INTEGER :: N, I, J, K, L, II, JJ
+    INTEGER :: N, I, J, K, L, II, JJ, PHASE
 
     !=======================================================================
     ! GIGC_CHUNK_RUN begins here
     !=======================================================================        
+
+    !  -1: Phase -1 is the standard setting in GCHP. It executes all components.
+    !      Phase is -1 if number of phases is set to 1 in config file GCHP.rc.
+    PHASE = -1
 
     ! By default, do processes as defined in rundeck
     DoConv   = DoGCConv                          ! dynamic time step
@@ -886,44 +898,104 @@ CONTAINS
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Accept_External_Date_Time", 255 )
 
     ! Set HEMCO time
-    CALL SetHcoTime ( DoEmis, RC )
+    CALL SetHcoTime ( HcoState,   ExtState,   year,    month,   day,   &
+                      dayOfYr,    hour,       minute,  second,  DoEmis,  RC )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SetHcoTime", 255 )
 
     ! Calculate MODIS leaf area indexes needed for dry deposition
     CALL Compute_XLAI( Input_Opt, State_Grid, State_Met, RC )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Compute_XLAI", 255 )
 
-    ! Convert to dry mixing ratio
-    CALL Convert_Spc_Units ( Input_Opt, State_Chm, State_Grid, State_Met, &
-         'kg/kg dry', RC, OrigUnit=OrigUnit )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )     
+    ! Set the pressure at level edges [hPa] from the ESMF environment
+    CALL Accept_External_Pedge( State_Met  = State_Met,   &
+                                State_Grid = State_Grid,  &
+                                RC         = RC          )
 
+    ! Set dry surface pressure (PS1_DRY) from State_Met%PS1_WET
+    CALL SET_DRY_SURFACE_PRESSURE( State_Grid, State_Met, 1 )
+
+    ! Set dry surface pressure (PS2_DRY) from State_Met%PS2_WET
+    CALL SET_DRY_SURFACE_PRESSURE( State_Grid, State_Met, 2 )
+
+    ! Initialize surface pressures to match the post-advection pressures
+    State_Met%PSC2_WET = State_Met%PS1_WET
+    State_Met%PSC2_DRY = State_Met%PS1_DRY
+    CALL SET_FLOATING_PRESSURES( State_Grid, State_Met, RC )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+! TODO: Uncomment or drop the following code
+!    ! Define airmass and related quantities
+!#if defined( MODEL_GEOS )
+!    CALL AirQnt( Input_Opt, State_Chm, State_Grid, State_Met, RC, .FALSE. )
+!#else
+!    ! Scale mixing ratio with changing met only if FV advection is off.
+!    ! Only do this the first timestep if DELP_DRY found in restart.
+!    IF ( FIRST .and. .not. Input_Opt%LTRAN ) THEN
+!       CALL MAPL_Get ( STATE, INTERNAL_ESMF_STATE=INTSTATE, __RC__ )
+!       CALL ESMF_StateGet( INTSTATE, 'DELP_DRY', IntField, RC=STATUS )
+!       _VERIFY(STATUS)
+!       CALL ESMF_AttributeGet( IntField, NAME="RESTART", VALUE=RST, RC=STATUS )
+!       _VERIFY(STATUS)
+!       IF ( .not. ( RST == MAPL_RestartBootstrap .OR. &
+!                    RST == MAPL_RestartSkipInitial ) ) scaleMR = .TRUE.
+!       CALL AirQnt( Input_Opt, State_Chm, State_Grid, State_Met, RC, scaleMR )
+!       scaleMR = .TRUE.
+!    ELSE
+!       CALL AirQnt( Input_Opt, State_Chm, State_Grid, State_Met, RC, scaleMR )
+!    ENDIF
+!#endif
+
+    ! Initialize/reset wetdep after air quantities computed
+    IF ( DoConv .OR. DoChem .OR. DoWetDep ) THEN
+       CALL SETUP_WETSCAV( Input_Opt, State_Chm, State_Grid, State_Met, RC )
+    ENDIF
+
+    ! Cap the polar tropopause pressures at 200 hPa, in order to avoid
+    ! tropospheric chemistry from happening too high up (cf. J. Logan)
+    CALL GCHP_Cap_Tropopause_Prs( Input_Opt      = Input_Opt,  &
+                                  State_Grid     = State_Grid, &
+                                  State_Met      = State_Met,  &
+                                  RC             = RC         )
+
+    ! Call PBL quantities. Those are always needed
+    CALL Compute_Pbl_Height( Input_Opt, State_Grid, State_Met, RC )
+
+    ! Convert to dry mixing ratio
+    CALL Convert_Spc_Units(                                                  &
+         Input_Opt  = Input_Opt,                                             &
+         State_Chm  = State_Chm,                                             &
+         State_Grid = State_Grid,                                            &
+         State_Met  = State_Met,                                             &
+         outUnit    = KG_SPECIES_PER_KG_DRY_AIR,                             &
+         origUnit   = origUnit,                                              &
+         RC         = RC                                                    )
+
+    !=======================================================================
+    ! Always prescribe H2O in both the stratosphere and troposhere in GEOS.
+    ! This is now done right after passing the species from the internal
+    ! state to State_Chm (in Chem_GridCompMod.F90). It is important to do it
+    ! there to make sure that any H2O tendencies are properly calculated
+    ! cakelle2, 2023/10/14
+    !=======================================================================
     ! SDE 05/28/13: Set H2O to STT if relevant
     IF ( IND_('H2O','A') > 0 ) THEN
-       
        SetStratH2O = .FALSE.
-       IF ( Input_Opt%LSETH2O .OR. .NOT. Input_Opt%LUCX ) THEN
+       IF ( Input_Opt%LSETH2O ) THEN
           SetStratH2O = .TRUE.
        ENDIF
        CALL SET_H2O_TRAC( SetStratH2O, Input_Opt, State_Chm, &
-            State_Grid,  State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SET_H2O_TRAC", 255 )   
+                          State_Grid,  State_Met, RC )
 
-       ! Only force strat once if using UCX
-       IF (Input_Opt%LSETH2O) Input_Opt%LSETH2O = .FALSE.
-
+      ! Only force strat once
+       IF ( Input_Opt%LSETH2O ) Input_Opt%LSETH2O = .FALSE.
     ENDIF
 
-    ! LTM 
-    !IF ( State_Grid%NY .eq. 2 ) THEN
-    !WRITE(6,'(A6,2(F8.2),8X,3X,A8,2(F8.2),8X,3X,A8,3(F8.2),8X)') "YMID: ", State_Grid%YMID(1,:), "YMID_R: ", State_Grid%YMID_R(1,:), "YEDGE", State_Grid%YEDGE(1,:)
-    !ENDIF
-
-    !IF ( State_Grid%NY .eq. 3 ) THEN
-    !WRITE(6,'(A6,3(F8.2),3X,A8,3(F8.2),3X,A8,4(F8.2))') "YMID: ", State_Grid%YMID(1,:), "YMID_R: ", State_Grid%YMID_R(1,:), "YEDGE:", State_Grid%YEDGE(1,:)
-    !ENDIF
-
-    !CALL FLUSH(6)
+    ! Compute the cosine of the solar zenith angle array:
+    !    State_Met%SUNCOS     => COS(SZA) at the current time
+    !    State_Met%SUNCOSmid  => COS(SZA) at the midpt of the chem timestep
+    !    COS(SZA) at the midpt of the chem timestep 5hrs ago is now
+    !    calculated elsewhere, in the HEMCO PARANOx extension
+    CALL GET_COSINE_SZA( Input_Opt, State_Grid, State_Met, RC )
 
     !=======================================================================
     ! EMISSIONS. Pass HEMCO Phase 1 which only updates the HEMCO clock
@@ -932,24 +1004,25 @@ CONTAINS
     !=======================================================================
     HCO_PHASE = 1
     CALL EMISSIONS_RUN( Input_Opt, State_Chm, State_Diag, &
-         State_Grid, State_Met, DoEmis, HCO_PHASE, RC  )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "EMISSIONS_RUN - Phase 1", 255 )
+                        State_Grid, State_Met, DoEmis, HCO_PHASE, RC  )
+
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!!!                                PHASE 1 or -1                           !!!
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     !=======================================================================
     ! 1. Convection
     !
     ! Call GEOS-Chem internal convection routines if convection is enabled
-    ! in input.geos. This should only be done if convection is not covered
-    ! by another gridded component and/or the GC species are not made
+    ! in geoschem_config.yml. This should only be done if convection is not
+    ! covered by another gridded component and/or the GC species are not made
     ! friendly to this component!!
     !=======================================================================
     IF ( DoConv ) THEN
-
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do convection now'
 
        CALL DO_CONVECTION ( Input_Opt, State_Chm, State_Diag, &
-            State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "DO_CONVECTION", 255 )
+                            State_Grid, State_Met, RC )
 
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Convection done!'
     ENDIF
@@ -968,11 +1041,9 @@ CONTAINS
 
        ! Do dry deposition
        CALL Do_DryDep ( Input_Opt, State_Chm, State_Diag, &
-            State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "DO_DryDep", 255 )
+                        State_Grid, State_Met, RC )
 
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Drydep done!'
-
     ENDIF
 
     !=======================================================================
@@ -986,51 +1057,61 @@ CONTAINS
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do emissions now'
 
        ! Do emissions. Pass HEMCO Phase 2 which performs the emissions
-       ! calculations. Note that this does not apply the emissions.
+       ! calculations.
        HCO_PHASE = 2
        CALL EMISSIONS_RUN( Input_Opt, State_Chm, State_Diag, &
-            State_Grid, State_Met, DoEmis, HCO_PHASE, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "EMISSIONS_RUN - Phase 2", 255 )
+                           State_Grid, State_Met, DoEmis, HCO_PHASE, RC )
+
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Emissions done!'
 
     ENDIF
 
-    !=======================================================================
-    ! If physics covers turbulence, simply add the emission and dry
-    ! deposition fluxes calculated above to the tracer array, without caring
-    ! about the vertical distribution. The tracer tendencies are only added
-    ! to the tracers array after emissions, drydep. So we need to use the
-    ! emissions time step here.
-    !=======================================================================
-    ! Not implemented   
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!!!                              PHASE 2 or -1                             !!!
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     !=======================================================================
     ! 4. Turbulence
     !
     ! Call GEOS-Chem internal turbulence routines if turbulence is enabled
-    ! in input.geos. This should only be done if turbulence is not covered
-    ! by another gridded component and/or the GC species are not made
+    ! in geoschem_config.yml. This should only be done if turbulence is not
+    ! covered by another gridded component and/or the GC species are not made
     ! friendly to this component!!
     !=======================================================================
     IF ( DoTurb ) THEN
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do turbulence now'
 
+       ! Only do the following for the non-local PBL mixing
+       IF ( Input_Opt%LNLPBL ) THEN
+
+          ! Once the initial met fields have been read in, we need to find
+          ! the maximum PBL level for the non-local mixing algorithm.
+          ! This only has to be done once. (bmy, 5/28/20)
+          IF ( FIRST ) THEN
+             CALL Max_PblHt_For_Vdiff( Input_Opt, State_Grid, State_Met, RC )
+          ENDIF
+
+          ! Compute the surface flux for the non-local mixing,
+          ! (which means getting emissions & drydep from HEMCO)
+          ! and store it in State_Chm%Surface_Flux
+          CALL Compute_Sflx_For_Vdiff( Input_Opt,  State_Chm, State_Diag,    &
+                                       State_Grid, State_Met, RC            )
+       ENDIF
+
        ! Do mixing and apply tendencies. This will use the dynamic time step,
        ! which is fine since this call will be executed on every time step.
-       !CALL DO_MIXING ( Input_Opt, State_Chm, State_Diag, &
-       !     State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "DO_MIXING", 255 )
+       CALL DO_MIXING ( Input_Opt, State_Chm, State_Diag,                    &
+                        State_Grid, State_Met, RC                           )
 
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Turbulence done!'
     ENDIF
 
     ! Set tropospheric CH4 concentrations and fill species array with
     ! current values.
-    IF ( Input_Opt%ITS_A_FULLCHEM_SIM  &
+    IF ( Phase /= 2 .AND. Input_Opt%ITS_A_FULLCHEM_SIM  &
          .AND. IND_('CH4','A') > 0 ) THEN
        CALL SET_CH4 ( Input_Opt, State_Chm, State_Diag, &
-            State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SET_CH4", 255 )
+                      State_Grid, State_Met, RC )
     ENDIF
 
     !=======================================================================
@@ -1039,23 +1120,22 @@ CONTAINS
     IF ( DoChem ) THEN
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do chemistry now'
 
-       ! Calculate TOMS O3 overhead. For now, always use it from the
-       ! Met field. State_Met%TO3 is imported from PCHEM (ckeller, 10/21/2014).
-       CALL COMPUTE_OVERHEAD_O3( Input_Opt, State_Grid, State_Chm, DAY, .TRUE., &
-            State_Met%TO3, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "COMPUTE_OVERHEAD_O3", 255 )
+       IF ( Input_Opt%ITS_A_FULLCHEM_SIM ) THEN
+          ! Calculate TOMS O3 overhead. For now, always use it from the
+          ! Met field. State_Met%TO3 is imported from PCHEM (ckeller, 10/21/2014).
+          CALL COMPUTE_OVERHEAD_O3( Input_Opt, State_Grid, State_Chm, DAY, &
+                                    .TRUE., State_Met%TO3, RC )
+       ENDIF
 
        ! Set H2O to species value if H2O is advected
        IF ( IND_('H2O','A') > 0 ) THEN
-          CALL SET_H2O_TRAC( (.not. Input_Opt%LUCX), Input_Opt, &
-               State_Chm, State_Grid, State_Met, RC )
-          IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SET_H2O_TRAC", 255 )
+          CALL SET_H2O_TRAC( .FALSE., Input_Opt, &
+                             State_Chm, State_Grid, State_Met, RC )
        ENDIF
        
        ! Do chemistry
        CALL Do_Chemistry( Input_Opt, State_Chm, State_Diag, &
-            State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Do_Chemistry", 255 )
+                          State_Grid, State_Met, RC )
 
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Chemistry done!'
 
@@ -1070,11 +1150,9 @@ CONTAINS
 
        ! Do wet deposition
        CALL DO_WETDEP( Input_Opt, State_Chm, State_Diag, &
-            State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Do_WetDep", 255 )
+                       State_Grid, State_Met, RC )
 
        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Wetdep done!'
-
     ENDIF
 
     !=======================================================================
@@ -1090,23 +1168,27 @@ CONTAINS
     ! (skim, 02/05/11)
     IF ( DoChem ) THEN
        CALL RECOMPUTE_OD ( Input_Opt, State_Chm, State_Diag, &
-            State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "RECOMPUTE_OD", 255 )
+                           State_Grid, State_Met, RC )
     ENDIF
+
+!#if defined( RRTMG )
+! TODO: Add in later
+!#endif
 
     if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do diagnostics now'
 
     ! Set certain diagnostics dependent on state at end of step. This
     ! includes species concentration and dry deposition flux.
+    ! For GEOS, this is now done in Chem_GridCompMod.F90. This makes sure
+    ! that the diagnostics include any post-run updates (e.g., if assimilation
+    ! increments are being applied (ckeller, 2/7/22).
     CALL Set_Diagnostics_EndofTimestep( Input_Opt,  State_Chm, State_Diag, &
-         State_Grid, State_Met, RC )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Set_Diagnostics_EndofTimestep", 255 )
+                                        State_Grid, State_Met, RC )
 
     ! Archive aerosol mass and PM2.5 diagnostics
     IF ( State_Diag%Archive_AerMass ) THEN
        CALL Set_AerMass_Diagnostic( Input_Opt,  State_Chm, State_Diag, &
-            State_Grid, State_Met, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Set_AerMass_Diagnostic", 255 )
+                                    State_Grid, State_Met, RC )
     ENDIF
 
     if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Diagnostics done!'
@@ -1114,49 +1196,264 @@ CONTAINS
     !=======================================================================
     ! Convert State_Chm%Species units
     !=======================================================================
-    CALL Convert_Spc_Units ( Input_Opt, State_Chm, State_Grid, State_Met, &
-         OrigUnit, RC )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units @ end of CHEM_CHUNK_RUN", 255 )    
-
-    if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Unit conversion done!'
-
-    !=======================================================================
-    ! Accumulate diagnostics
-    !=======================================================================
-
-    !IF ( .not. FIRST ) THEN
-    call getDomainBounds( grid, I_STRT = I_0, I_STOP = I_1, J_STRT = J_0, J_STOP = J_1 )
-    DO N=1,NTM
-    !IF ( ijlt_vmr(N) == 0 ) CALL STOP_MODEL( "Error with ijlt_vmr(N)", 255 )
-    DO L=1,LM
-    DO J=J_0,J_1
-    DO I=I_0,I_1
-       II = I - I_0 + 1
-       JJ = J - J_0 + 1
-       ! Archive volumetric mixing ratio in ppbv
-       gcaijl_out( I, J, L, N ) = gcaijl_out( I, J, L, N ) + &
-                                  State_Chm%Species(II,JJ,L,N) * 1d9 
-       !IF ( N .eq. 1 .and. I .eq. 1 .and. L .eq. 1 ) WRITE(6,*) 'LTM:', n, i, j, l, gcaijl_out(i,j,l,n)
-    ENDDO
-    ENDDO
-    ENDDO
-    ENDDO
-    !ENDIF
-
-    if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Diagnostic accumulation done!'
+    CALL Convert_Spc_Units(                                                  &
+         Input_Opt  = Input_Opt,                                             &
+         State_Chm  = State_Chm,                                             &
+         State_Grid = State_Grid,                                            &
+         State_Met  = State_Met,                                             &
+         outUnit    = origUnit,                                              &
+         RC         = RC                                                    )
 
     !=======================================================================
     ! Clean up
     !=======================================================================
 
     ! testing only
-    IF ( NCALLS < 10 ) NCALLS = NCALLS + 1
+    IF ( PHASE /= 1 .AND. NCALLS < 10 ) NCALLS = NCALLS + 1
 
     ! First call is done
     FIRST = .FALSE.
 
     ! Return success
     RC = GC_SUCCESS
+
+!     TODO: Uncomment or drop the following code
+!
+!     !CALL FLUSH(6)
+!
+!     !=======================================================================
+!     ! EMISSIONS. Pass HEMCO Phase 1 which only updates the HEMCO clock
+!     ! and the HEMCO data list. Should be called every time to make sure
+!     ! that the HEMCO clock and the HEMCO data list are up to date.
+!     !=======================================================================
+!     HCO_PHASE = 1
+!     CALL EMISSIONS_RUN( Input_Opt, State_Chm, State_Diag, &
+!          State_Grid, State_Met, DoEmis, HCO_PHASE, RC  )
+!     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "EMISSIONS_RUN - Phase 1", 255 )
+!
+!     !=======================================================================
+!     ! 1. Convection
+!     !
+!     ! Call GEOS-Chem internal convection routines if convection is enabled
+!     ! in input.geos. This should only be done if convection is not covered
+!     ! by another gridded component and/or the GC species are not made
+!     ! friendly to this component!!
+!     !=======================================================================
+!     IF ( DoConv ) THEN
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do convection now'
+!
+!        CALL DO_CONVECTION ( Input_Opt, State_Chm, State_Diag, &
+!             State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "DO_CONVECTION", 255 )
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Convection done!'
+!     ENDIF
+!
+!     !=======================================================================
+!     ! 2. Dry deposition
+!     !
+!     ! Calculates the deposition rates in [s-1].
+!     !=======================================================================
+!     IF ( DoDryDep ) THEN
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) THEN
+!           write(*,*) ' --- Do drydep now'
+!           write(*,*) '     Use FULL PBL: ', Input_Opt%PBL_DRYDEP
+!        endif
+!
+!        ! Do dry deposition
+!        CALL Do_DryDep ( Input_Opt, State_Chm, State_Diag, &
+!             State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "DO_DryDep", 255 )
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Drydep done!'
+!
+!     ENDIF
+!
+!     !=======================================================================
+!     ! 3. Emissions (HEMCO)
+!     !
+!     ! HEMCO must be called on first time step to make sure that the HEMCO
+!     ! data lists are all properly set up.
+!     !=======================================================================
+!     IF ( DoEmis ) THEN
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do emissions now'
+!
+!        ! Do emissions. Pass HEMCO Phase 2 which performs the emissions
+!        ! calculations. Note that this does not apply the emissions.
+!        HCO_PHASE = 2
+!        CALL EMISSIONS_RUN( Input_Opt, State_Chm, State_Diag, &
+!             State_Grid, State_Met, DoEmis, HCO_PHASE, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "EMISSIONS_RUN - Phase 2", 255 )
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Emissions done!'
+!
+!     ENDIF
+!
+!     !=======================================================================
+!     ! If physics covers turbulence, simply add the emission and dry
+!     ! deposition fluxes calculated above to the tracer array, without caring
+!     ! about the vertical distribution. The tracer tendencies are only added
+!     ! to the tracers array after emissions, drydep. So we need to use the
+!     ! emissions time step here.
+!     !=======================================================================
+!     ! Not implemented   
+!
+!     !=======================================================================
+!     ! 4. Turbulence
+!     !
+!     ! Call GEOS-Chem internal turbulence routines if turbulence is enabled
+!     ! in input.geos. This should only be done if turbulence is not covered
+!     ! by another gridded component and/or the GC species are not made
+!     ! friendly to this component!!
+!     !=======================================================================
+!     IF ( DoTurb ) THEN
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do turbulence now'
+!
+!        ! Do mixing and apply tendencies. This will use the dynamic time step,
+!        ! which is fine since this call will be executed on every time step.
+!        !CALL DO_MIXING ( Input_Opt, State_Chm, State_Diag, &
+!        !     State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "DO_MIXING", 255 )
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Turbulence done!'
+!     ENDIF
+!
+!     ! Set tropospheric CH4 concentrations and fill species array with
+!     ! current values.
+!     IF ( Input_Opt%ITS_A_FULLCHEM_SIM  &
+!          .AND. IND_('CH4','A') > 0 ) THEN
+!        CALL SET_CH4 ( Input_Opt, State_Chm, State_Diag, &
+!             State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SET_CH4", 255 )
+!     ENDIF
+!
+!     !=======================================================================
+!     ! 5. Chemistry
+!     !=======================================================================
+!     IF ( DoChem ) THEN
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do chemistry now'
+!
+!        ! Calculate TOMS O3 overhead. For now, always use it from the
+!        ! Met field. State_Met%TO3 is imported from PCHEM (ckeller, 10/21/2014).
+!        CALL COMPUTE_OVERHEAD_O3( Input_Opt, State_Grid, State_Chm, DAY, .TRUE., &
+!             State_Met%TO3 )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "COMPUTE_OVERHEAD_O3", 255 )
+!
+!        ! LTM: Check this
+!        ! ! Set H2O to species value if H2O is advected
+!        !IF ( IND_('H2O','A') > 0 ) THEN
+!        !   CALL SET_H2O_TRAC( (.not. Input_Opt%LUCX), Input_Opt, &
+!        !        State_Chm, State_Grid, State_Met, RC )
+!        !   IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "SET_H2O_TRAC", 255 )
+!        !ENDIF
+!
+!        ! Do chemistry
+!        CALL Do_Chemistry( Input_Opt, State_Chm, State_Diag, &
+!             State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Do_Chemistry", 255 )
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Chemistry done!'
+!
+!     ENDIF
+!
+!     !=======================================================================
+!     ! 6. Wet deposition
+!     !=======================================================================
+!     IF ( DoWetDep ) THEN
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do wetdep now'
+!
+!        ! Do wet deposition
+!        CALL DO_WETDEP( Input_Opt, State_Chm, State_Diag, &
+!             State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Do_WetDep", 255 )
+!
+!        if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Wetdep done!'
+!
+!     ENDIF
+!
+!     !=======================================================================
+!     ! Diagnostics
+!     !=======================================================================
+!
+!     !==============================================================
+!     !      ***** U P D A T E  O P T I C A L  D E P T H *****
+!     !==============================================================
+!     ! Recalculate the optical depth at the wavelength(s) specified
+!     ! in the Radiation Menu. This must be done before the call to any
+!     ! diagnostic and only on a chemistry timestep.
+!     ! (skim, 02/05/11)
+!     IF ( DoChem ) THEN
+!        CALL RECOMPUTE_OD ( Input_Opt, State_Chm, State_Diag, &
+!             State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "RECOMPUTE_OD", 255 )
+!     ENDIF
+!
+!     if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Do diagnostics now'
+!
+!     ! Set certain diagnostics dependent on state at end of step. This
+!     ! includes species concentration and dry deposition flux.
+!     CALL Set_Diagnostics_EndofTimestep( Input_Opt,  State_Chm, State_Diag, &
+!          State_Grid, State_Met, RC )
+!     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Set_Diagnostics_EndofTimestep", 255 )
+!
+!     ! Archive aerosol mass and PM2.5 diagnostics
+!     IF ( State_Diag%Archive_AerMass ) THEN
+!        CALL Set_AerMass_Diagnostic( Input_Opt,  State_Chm, State_Diag, &
+!             State_Grid, State_Met, RC )
+!        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Set_AerMass_Diagnostic", 255 )
+!     ENDIF
+!
+!     if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Diagnostics done!'
+!
+!     !=======================================================================
+!     ! Convert State_Chm%Species units
+!     !=======================================================================
+!     CALL Convert_Spc_Units ( Input_Opt, State_Chm, State_Grid, State_Met, &
+!          OrigUnit, RC )
+!     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units @ end of CHEM_CHUNK_RUN", 255 )    
+!
+!     if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Unit conversion done!'
+!
+!     !=======================================================================
+!     ! Accumulate diagnostics
+!     !=======================================================================
+!
+!     !IF ( .not. FIRST ) THEN
+!     call getDomainBounds( grid, I_STRT = I_0, I_STOP = I_1, J_STRT = J_0, J_STOP = J_1 )
+!     DO N=1,NTM
+!     !IF ( ijlt_vmr(N) == 0 ) CALL STOP_MODEL( "Error with ijlt_vmr(N)", 255 )
+!     DO L=1,LM
+!     DO J=J_0,J_1
+!     DO I=I_0,I_1
+!        II = I - I_0 + 1
+!        JJ = J - J_0 + 1
+!        ! Archive volumetric mixing ratio in ppbv
+!        gcaijl_out( I, J, L, N ) = gcaijl_out( I, J, L, N ) + &
+!                                   State_Chm%Species(II,JJ,L,N) * 1d9 
+!        !IF ( N .eq. 1 .and. I .eq. 1 .and. L .eq. 1 ) WRITE(6,*) 'LTM:', n, i, j, l, gcaijl_out(i,j,l,n)
+!     ENDDO
+!     ENDDO
+!     ENDDO
+!     ENDDO
+!     !ENDIF
+!
+!     if(Input_Opt%AmIRoot.and.NCALLS<10) write(*,*) ' --- Diagnostic accumulation done!'
+!
+!     !=======================================================================
+!     ! Clean up
+!     !=======================================================================
+!
+!     ! testing only
+!     IF ( NCALLS < 10 ) NCALLS = NCALLS + 1
+!
+!     ! First call is done
+!     FIRST = .FALSE.
+!
+!     ! Return success
+!     RC = GC_SUCCESS
 
   END SUBROUTINE CHEM_CHUNK_RUN
 
@@ -1178,11 +1475,12 @@ CONTAINS
     USE Input_Mod,               ONLY : Read_Input_File
     USE Time_Mod,                ONLY : Set_Timesteps
 
-    USE Chemistry_Mod,           ONLY : Init_Chemistry
+    ! TODO-LTM: Check
+    ! USE Chemistry_Mod,           ONLY : Init_Chemistry
     USE Emissions_Mod,           ONLY : Emissions_Init
     USE GC_Environment_Mod
     USE GC_Grid_Mod,             ONLY : SetGridFromCtr
-    USE PBL_Mix_Mod,             ONLY : Init_PBL_Mix
+    ! USE PBL_Mix_Mod,             ONLY : Init_PBL_Mix
     USE Pressure_Mod,            ONLY : Init_Pressure, Accept_External_ApBp
     USE UCX_MOD,                 ONLY : Init_UCX
     USE UnitConv_Mod,            ONLY : Convert_Spc_Units
@@ -1201,7 +1499,8 @@ CONTAINS
     REAL*8    :: DT
 
     INTEGER   :: I, J, L, N, NN, II, JJ, I_0H, I_1H
-    INTEGER   :: NYMDb, NHMSb, NYMDe, NHMSe, NSP, PLC
+    INTEGER   :: NYMDb, NHMSb, NYMDe, NHMSe
+    INTEGER   :: NSP
 
     ! Fill Input_Opt with input.geos
     WRITE(6,*) "Calling Set_Input_Opt"
@@ -1230,7 +1529,7 @@ CONTAINS
     CALL sync_param( "DoGCDryDep", DoGCDryDep )
     CALL sync_param( "DoGCWetDep", DoGCWetDep )
     
-    ! LTM: Debug Overrides
+    ! TODO-LTM: Debug Overrides
     !DoGCConv   = .true.  ! Works
     !DoGCEmis   = .true.  ! Works (make sure 3-D emissions on correct vert grid)
     !DoGCTend   = .false. 
@@ -1251,17 +1550,12 @@ CONTAINS
     NI = I_1 - I_0 + 1
     NJ = J_1 - J_0 + 1
 
-    !WRITE(6,*) i_0, i_1, NI
-    !WRITE(6,*) j_0, j_1, NJ
-    !WRITE(6,*) SHAPE(lon2d_dg)
-    !CALL FLUSH(6)
-    
     State_Grid%DX           = 2.5e+0_fp
     State_Grid%DY           = 2.0e+0_fp
-    State_Grid%XMin         = lon2d_dg(i_0,j_0)
-    State_Grid%XMax         = lon2d_dg(i_1,j_0)
-    State_Grid%YMin         = max( lat2d_dg(i_0,j_0), -89.0_fp )
-    State_Grid%YMax         = min( lat2d_dg(i_0,j_1),  89.0_fp )
+    State_Grid%XMin         = lon2d_dg(i_0,1)
+    State_Grid%XMax         = lon2d_dg(i_1,1)
+    State_Grid%YMin         = max( lat2d_dg(1,j_0), -89.0_fp )
+    State_Grid%YMax         = min( lat2d_dg(1,j_1),  89.0_fp )
     
     State_Grid%NX           = NI
     State_Grid%NY           = NJ
@@ -1479,8 +1773,8 @@ CONTAINS
 
     ! Initialize State_Met, State_Chm, and State_Diag objects
     WRITE(6,*) "Calling GC_Init_StateObj"
-    CALL GC_Init_StateObj( Diag_List,  Input_Opt,  State_Chm, &
-         State_Diag, State_Grid, State_Met, RC )
+    CALL GC_Init_StateObj( Diag_List,  TaggedDiag_List, Input_Opt,          &
+                           State_Chm, State_Diag, State_Grid, State_Met, RC )
     
     CALL sync_param( "DTsrc", DTsrc )
     CALL sync_param( "DT",    DT    )         
@@ -1492,9 +1786,9 @@ CONTAINS
     Input_Opt%TS_DIAG = INT( DTsrc  )
 
     ! Set start and finish time from rundeck
-    Input_Opt%NYMDb   = 20160701 ! nymdB
+    Input_Opt%NYMDb   = 20141201 ! nymdB
     Input_Opt%NHMSb   = 000000   ! nhmsB
-    Input_Opt%NYMDe   = 20160801 ! nymdE
+    Input_Opt%NYMDe   = 20141202 ! nymdE
     Input_Opt%NHMSe   = 000000   ! nhmsE
 
     ! Set GEOS-Chem timesteps on all CPUs
@@ -1523,29 +1817,32 @@ CONTAINS
     CALL Accept_External_ApBp( State_Grid, Ap, Bp, RC )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Accept_External_ApBp", 255 )
 
-    ! Initialize the PBL mixing module
-    CALL INIT_PBL_MIX( Input_Opt, State_Grid, RC )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Init_PBL_Mix", 255 )
+    ! TODO-LTM: Check
+    ! ! Initialize the PBL mixing module
+    ! CALL INIT_PBL_MIX( Input_Opt, State_Grid, RC )
+    ! IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Init_PBL_Mix", 255 )
 
-    ! Initialize chemistry mechanism
-    IF ( Input_Opt%ITS_A_FULLCHEM_SIM .OR. Input_Opt%ITS_AN_AEROSOL_SIM ) THEN
-       CALL INIT_CHEMISTRY ( Input_Opt,  State_Chm, State_Diag, &
-            State_Grid, RC )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Init_Chemistry", 255 )
-    ENDIF
+    ! LTM: Check
+    ! ! Initialize chemistry mechanism
+    ! IF ( Input_Opt%ITS_A_FULLCHEM_SIM .OR. Input_Opt%ITS_AN_AEROSOL_SIM ) THEN
+    !    CALL INIT_CHEMISTRY ( Input_Opt,  State_Chm, State_Diag, &
+    !         State_Grid, RC )
+    !    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Init_Chemistry", 255 )
+    ! ENDIF
 
     ! Initialize HEMCO
     CALL EMISSIONS_INIT( Input_Opt, State_Chm, State_Grid, State_Met, RC, &
          HcoConfig=HcoConfig )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Emissions_Init", 255 )
 
-    ! Stratosphere - can't be initialized without HEMCO because of STATE_PSC
-    IF ( Input_Opt%LUCX ) THEN
+    ! TODO-LTM: Check
+    ! ! Stratosphere - can't be initialized without HEMCO because of STATE_PSC
+    ! IF ( Input_Opt%LUCX ) THEN
        
        ! Initialize stratospheric routines
        CALL INIT_UCX( Input_Opt, State_Chm, State_Diag, State_Grid )
        
-    ENDIF
+    ! ENDIF
 
     NSP = State_Chm%nSpecies
     NTM = State_Chm%nAdvect + 1
@@ -1562,46 +1859,13 @@ CONTAINS
        IF ( State_Chm%SpcData(N)%Info%Is_Advected .or. &
             TRIM( State_Chm%SpcData(N)%Info%Name ) .eq. "OH" ) THEN
  
-       TrName(NN) = TRIM( State_Chm%SpcData(N)%Info%Name ) 
-       TrFullName(NN) = TRIM( State_Chm%SpcData(N)%Info%FullName ) // " (" // &
-                        TRIM( State_Chm%SpcData(N)%Info%Formula  ) // ")"
-       IsAdvected(NN) = State_Chm%SpcData(N)%Info%Is_Advected
-       SELECT CASE ( TrName(NN) )
-         CASE('H2O')
-           i_H2O   = N
-         CASE('CO2')
-           i_CO2   = N
-         CASE('O3')
-           i_O3    = N
-         CASE('O2')
-           i_O2    = N
-         CASE('NO2')
-           i_NO2   = N
-         CASE('N2O')
-           i_N2O   = N
-         CASE('CH4')
-           i_CH4   = N
-         CASE('CFC11')
-           i_CFC11 = N
-         CASE('CFC12')
-           i_CFC12 = N
-         CASE('N2')
-           i_N2    = N
-         CASE('CFCY')
-           i_CFCY  = N
-         CASE('CFCZ')
-           i_CFCZ  = N
-         CASE('SO2')
-           i_SO2   = N
-         CASE DEFAULT
-           plc = 0
-       END SELECT
-
+          TrName(NN) =     TRIM( State_Chm%SpcData(N)%Info%Name )
+          TrFullName(NN) = TRIM( State_Chm%SpcData(N)%Info%FullName ) // " (" // &
+                           TRIM( State_Chm%SpcData(N)%Info%Formula  ) // ")"
+          IsAdvected(NN) = State_Chm%SpcData(N)%Info%Is_Advected
        IF ( Am_I_Root() ) WRITE(6,*) NN, N, TrName(NN)
-
        NN = NN + 1
-
-       ENDIF    
+    ENDIF
     ENDDO
     t_qlimit(:) = .true.
     TrM    = 0d0

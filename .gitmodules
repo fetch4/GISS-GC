@@ -1,4 +1,12 @@
-[submodule "model/geos-chem/src"]
-	path = model/geos-chem/src
-	url = git@github.com:fetch4/geos-chem.git
-	branch = dev/giss-gc
+[submodule "model/geos-chem/src/GEOS-Chem"]
+	path = model/geos-chem/src/GEOS-Chem
+	url = https://github.com/fetch4/geos-chem.git
+	branch = dev/giss-gc-14
+[submodule "model/geos-chem/src/HEMCO"]
+	path = model/geos-chem/src/HEMCO
+	url = https://github.com/fetch4/HEMCO.git
+	branch = dev/giss-gc-14
+[submodule "model/geos-chem/src/Cloud-J"]
+	path = model/geos-chem/src/Cloud-J
+	url = https://github.com/fetch4/Cloud-J.git
+	branch = dev/giss-gc-14
