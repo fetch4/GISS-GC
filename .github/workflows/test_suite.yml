@@ -43,6 +43,12 @@ jobs:
         git submodule init
         git submodule update
 
+    - name: Build tools
+      run: |
+        . /opt/spack-environment/activate.sh
+        cd ${GISS_HOME}/model/mk_diags
+        /bin/bash /compscr
+
     - name: Create fake inputs
       run: |
         # Make run directories
