@@ -47,7 +47,7 @@ jobs:
       run: |
         . /opt/spack-environment/activate.sh
         cd ${GISS_HOME}/model/mk_diags
-        /bin/bash /compscr
+        /bin/bash compscr
 
     - name: Create fake inputs
       run: |
