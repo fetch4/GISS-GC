@@ -1,6 +1,6 @@
 all: build
 
-DOCKERFILE 	= Dockerfile.devenv
+DOCKERFILE 	= ${GISS_HOME}/docker/Dockerfile.devenv
 NAMESPACE 	= ghcr.io/fetch4
 IMAGE_NAME	= giss-gc-dev-env
 TAG 				= latest
@@ -11,7 +11,7 @@ pull:
 	docker pull $(IMAGE)
 
 build:
-	docker build -f $(DOCKERFILE) -t $(IMAGE) --no-cache .
+	docker build -f $(DOCKERFILE) -t $(IMAGE) .
 
 run:
 	docker run --rm -it -v ${HOME}:${HOME} $(IMAGE)
