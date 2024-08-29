@@ -44,7 +44,7 @@ RUN { \
     && chmod a+x /entrypoint.sh \
     && ln -s /opt/views/view /opt/view \
     && apt update \
-    && apt install -y --no-install-recommends ca-certificates cpp m4
+    && apt install -y --no-install-recommends ca-certificates cpp m4 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set entrypoint and default command
