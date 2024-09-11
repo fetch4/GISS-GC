@@ -6,17 +6,36 @@ c-----------------------------------------------------------------------
       use DIAG_COM
       implicit none
       integer :: k
+      write(6,'(A)') "DEBUG_defacc: calling uvgrid_defs"
+      call flush(6)
       call uvgrid_defs
+      write(6,'(A)') "DEBUG_defacc: calling uvgrid_defs...done"
+      write(6,'(A)') "DEBUG_defacc: calling tsf_defs"
+      call flush(6)
       call tsf_defs
+      write(6,'(A)') "DEBUG_defacc: calling tsf_defs...done"
+      write(6,'(A)') "DEBUG_defacc: calling j_defs"
+      call flush(6)
       call j_defs
       name_reg=name_j
       do k=1,kaj ! to avoid naming conflicts, put a prefix
          name_j(k) = 'J_'//trim(name_j(k))
          name_reg(k) = 'reg_'//trim(name_reg(k))
       enddo
+      write(6,'(A)') "DEBUG_defacc: calling j_defs...done"
+      write(6,'(A)') "DEBUG_defacc: calling jl_defs"
+      call flush(6)
       call jl_defs
+      write(6,'(A)') "DEBUG_defacc: calling jl_defs...done"
+      write(6,'(A)') "DEBUG_defacc: calling sjl_defs"
+      call flush(6)
       call sjl_defs
+      write(6,'(A)') "DEBUG_defacc: calling sjl_defs...done"
+      write(6,'(A)') "DEBUG_defacc: calling ij_defs"
+      call flush(6)
       call ij_defs
+      write(6,'(A)') "DEBUG_defacc: calling ij_defs...done"
+      call flush(6)
 c      call il_defs
 #ifndef SCM
       call wave_defs
