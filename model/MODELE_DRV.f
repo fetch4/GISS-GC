@@ -66,6 +66,10 @@ C**** Command line options
         end select
       enddo
 
+      ! FIXME: HACK - why aren't the arguments getting read properly?
+      coldRestart = .true.
+      iFile = "I"
+
       if (iFile == "") then
         print*, 'No configuration file specified on command line: '
         print*, 'Aborting ...'
