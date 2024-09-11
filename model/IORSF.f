@@ -30,14 +30,20 @@
       INTEGER IT1,itm,iact,kunit
       logical skip_diag
 
+      write(6,'(A)') "DEBUG_io_rsf: handling params"
+      call flush(6)
       iact=iaction   ; skip_diag=.false.
       if(iaction==ioread_nodiag) then
          iact=ioread ; skip_diag=.true.
       end if
 
       ioerr=-1
+      write(6,'(A)') "DEBUG_io_rsf: handling params...done"
+      call flush(6)
 
       if(iaction.le.iowrite) then
+        write(6,'(A)') "DEBUG_io_rsf: action<=write"
+        call flush(6)
 c open output files with status = 'UNKNOWN'
         if(am_i_root()) ! only root PE can write
      &       call openunit(trim(filenm),kunit,.true.,.false.)
@@ -45,6 +51,8 @@ c open output files with status = 'UNKNOWN'
 c open input files with status = 'OLD'
 c all PEs need to read the label records, so no am_i_root check
         call openunit(trim(filenm),kunit,.true.,.true.)
+        write(6,'(A)') "DEBUG_io_rsf: action<=write...done"
+        call flush(6)
       endif
 c      if (kunit.gt.0) CALL REWIND_PARALLEL( kunit )
 
@@ -52,18 +60,28 @@ C**** For all iaction < 0  ==> WRITE, For all iaction > 0  ==> READ
 C**** Particular values may produce variations in indiv. i/o routines
 
 C**** Calls to individual i/o routines
+      write(6,'(A)') "DEBUG_io_rsf: calling io_label"
+      call flush(6)
       call io_label  (kunit,it,itm,iact,ioerr)
+      write(6,'(A)') "DEBUG_io_rsf: calling io_label...done"
+      call flush(6)
       it1=it
       if (Kradia>9) go to 10 ! used for testing daily stuff
       if (Kradia.gt.0) then
         if (iaction.ne.ioread_single .and.
      *   iaction.ne.iowrite_single) call io_rad (kunit,iact,ioerr)
+        write(6,'(A)') "DEBUG_io_rsf: calling io_diags"
+        call flush(6)
         call io_diags  (kunit,it,iact,ioerr)
+        write(6,'(A)') "DEBUG_io_rsf: calling io_diags...done"
+        call flush(6)
         if(it1.ne.it .or. ioerr.eq.1)
      &       call stop_model('restart problem',255)
         go to 10
       end if
       if(iaction.ne.ioread_single.and.iaction.ne.iowrite_single) then
+        write(6,'(A)') "DEBUG_io_rsf: action!=read/write_single"
+        call flush(6)
         call io_model  (kunit,iact,ioerr)
         call io_strat  (kunit,iact,ioerr)
         call io_ocean  (kunit,iact,ioerr)
@@ -96,25 +114,51 @@ C**** Calls to individual i/o routines
 #ifdef TRACERS_ON
         call io_tracer (kunit,iact,ioerr)
 #endif
+        write(6,'(A)') "DEBUG_io_rsf: action!=read/write_single...done"
+        call flush(6)
       end if
       if(skip_diag) go to 10
+      write(6,'(A)') "DEBUG_io_rsf: calling io_diags"
+      call flush(6)
       call io_diags  (kunit,it,iaction,ioerr)
+      write(6,'(A)') "DEBUG_io_rsf: calling io_diags...done"
+      call flush(6)
+      write(6,'(A)') "DEBUG_io_rsf: calling io_ocdiag"
+      call flush(6)
       call io_ocdiag (kunit,it,iaction,ioerr)
+      write(6,'(A)') "DEBUG_io_rsf: calling io_ocdiag...done"
+      call flush(6)
+      write(6,'(A)') "DEBUG_io_rsf: calling io_icdiag"
+      call flush(6)
       call io_icdiag (kunit,it,iaction,ioerr)
+      write(6,'(A)') "DEBUG_io_rsf: calling io_icdiag...done"
+      call flush(6)
 #ifdef TRACERS_ON
+      write(6,'(A)') "DEBUG_io_rsf: calling io_trdiag"
+      call flush(6)
       call io_trdiag (kunit,it,iaction,ioerr)
+      write(6,'(A)') "DEBUG_io_rsf: calling io_trdiag...done"
+      call flush(6)
 #endif
+      write(6,'(A)') "DEBUG_io_rsf: error handling"
+      call flush(6)
       if (it1.ne.it) THEN
         WRITE(6,*) "TIMES DO NOT MATCH READING IN RSF FILE",it,it1
         ioerr=1
       END IF
       if (ioerr.eq.1) WRITE(6,*) "I/O ERROR IN RESTART FILE: KUNIT="
      *     ,kunit
+      write(6,'(A)') "DEBUG_io_rsf: error handling...done"
+      call flush(6)
 
 C**** return maximum time
    10 it=itm
 
+      write(6,'(A)') "DEBUG_io_rsf: AM_I_ROOT"
+      call flush(6)
       if(am_i_root() .or. iaction.ge.ioread) call closeunit(kunit)
+      write(6,'(A)') "DEBUG_io_rsf: AM_I_ROOT...done"
+      call flush(6)
 
       RETURN
       END SUBROUTINE io_rsf

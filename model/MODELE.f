@@ -271,42 +271,75 @@ C**** Set run_status to "run in progress"
 
       call modelEclock%get(hour=hour, date=date, year=year,amn=amon)
 
-      if (AM_I_ROOT())
-     *   WRITE (6,'(A,11X,A4,I5,A5,I3,A4,I3,6X,A,I4,I10)')
-     *   '0NASA/GISS Climate Model (re)started',
-     *   'Year', year, aMon, date, ', Hr', hour,
-     *   'Internal clock: DTsrc-steps since 1/1/',Iyear1,ITIME
+      write(6,'(A)') "DEBUG: AM_I_ROOT"
+      call flush(6)
+      if (AM_I_ROOT()) then
+         write(6,'(A)') "DEBUG: I AM ROOT"
+         call flush(6)
+         WRITE (6,'(A,11X,A4,I5,A5,I3,A4,I3,6X,A,I4,I10)')
+     *     '0NASA/GISS Climate Model (re)started',
+     *     'Year', year, aMon, date, ', Hr', hour,
+     *     'Internal clock: DTsrc-steps since 1/1/',Iyear1,ITIME
+         call flush(6)
+      end if
+      write(6,'(A)') "DEBUG: AM_I_ROOT...done"
+      call flush(6)
 
+         write(6,'(A)') "DEBUG: calling timer"
+         call flush(6)
          CALL TIMER (NOW,MELSE)
-
+         write(6,'(A)') "DEBUG: calling timer...done"
+         call flush(6)
       call sys_flush(6)
 
 C****
 C**** MAIN LOOP
 C****
+      write(6,'(A)') "DEBUG: entering main loop"
+      call flush(6)
       call gettime(tloopbegin)
       start9 = (istart == 9)
 
       main_loop: DO WHILE (Itime.lt.ItimeE)
         call startTimer('Main Loop')
 
+      write(6,'(A)') "DEBUG: Checking Ndisk > 0"
+      call flush(6)
       if (Ndisk > 0) then
         if (mod(Itime-ItimeI,Ndisk).eq.0 .or. start9) then
          start9 = .false.
+         write(6,'(A)') "DEBUG: Checkpointing"
+         call flush(6)
          call checkpointModelE()
+         write(6,'(A)') "DEBUG: Checkpointing...done"
+         call flush(6)
          call timer(NOW,MELSE)
         END IF
       end if
+      write(6,'(A)') "DEBUG: Checking Ndisk > 0...done"
+      call flush(6)
 
+      write(6,'(A)') "DEBUG: Checking for new day"
+      call flush(6)
       if (modelEclock%isBeginningOfDay()) then
         call startNewDay()
       end if
+      write(6,'(A)') "DEBUG: Checking for new day...done"
+      call flush(6)
 
 #ifdef CACHED_SUBDD
+      write(6,'(A)') "DEBUG: Setting SUBDD period"
+      call flush(6)
       call set_subdd_period()
+      write(6,'(A)') "DEBUG: Setting SUBDD period...done"
+      call flush(6)
 #endif
 
+      write(6,'(A)') "DEBUG: Calling atm_phase1"
+      call flush(6)
       call atm_phase1
+      write(6,'(A)') "DEBUG: Calling atm_phase1...done"
+      call flush(6)
       atmocn%updated=.true.
 
 C****
@@ -316,22 +349,36 @@ C**** NOTE THAT FLUXES ARE APPLIED IN TOP-DOWN ORDER SO THAT THE
 C**** FLUXES FROM ONE MODULE CAN BE SUBSEQUENTLY APPLIED TO THAT BELOW
 C****
 C**** APPLY PRECIPITATION TO SEA/LAKE/LAND ICE
+      write(6,'(A)') "DEBUG: Applying precip"
+      call flush(6)
       call startTimer('Surface')
       CALL PRECIP_SI(si_ocn,iceocn,atmice)  ! move to ocean_driver
       CALL PRECIP_OC(atmocn,iceocn)         ! move to ocean_driver
+      write(6,'(A)') "DEBUG: Applying precip...done"
+      call flush(6)
 
 C**** CALCULATE SURFACE FLUXES (and, for now, this procedure
 C**** also drives "surface" components that are on the atm grid)
+      write(6,'(A)') "DEBUG: Calculating surf fluxes"
+      call flush(6)
       CALL SURFACE
       call stopTimer('Surface')
          CALL TIMER (NOW,MSURF)
 
       call ocean_driver
+      write(6,'(A)') "DEBUG: Calculating surf fluxes...done"
+      call flush(6)
 
 ! phase 2 changes surf pressure which affects the ocean
+      write(6,'(A)') "DEBUG: Calling atm_phase2"
+      call flush(6)
       call atm_phase2
+      write(6,'(A)') "DEBUG: Calling atm_phase2...done"
+      call flush(6)
 
 #ifdef CACHED_SUBDD
+      write(6,'(A)') "DEBUG: Writing allsteps.subdd"
+      call flush(6)
       if(write_one_file .and. itime+1.eq.itimee) then ! run finished
         filenm = 'allsteps.subdd'//XLABEL(1:LRUNID)
       elseif(write_daily_files .and.
@@ -342,11 +389,15 @@ C**** also drives "surface" components that are on the atm grid)
         filenm = ''
       endif
       if(filenm.ne.'') call write_subdd_accfile (filenm)
+      write(6,'(A)') "DEBUG: Writing allsteps.subdd...done"
+      call flush(6)
 #endif
 
 C****
 C**** UPDATE Internal MODEL TIME AND CALL DAILY IF REQUIRED
 C****
+      write(6,'(A)') "DEBUG: Updating internal clock"
+      call flush(6)
       call modelEclock%nextTick()
       call modelEclock%get(year=year, month=month, dayOfYear=day,
      &     date=date, hour=hour, amn=amon)
@@ -359,6 +410,8 @@ C****
         call TIMER (NOW,MELSE)
         call stopTimer('Daily')
       end if                                  !  NEW DAY
+      write(6,'(A)') "DEBUG: Updating internal clock...done"
+      call flush(6)
 
 #ifdef USE_FVCORE
 ! Since dailyUpdates currently adjusts surf pressure,
@@ -370,6 +423,8 @@ C****
 C****
 C**** CALL DIAGNOSTIC ROUTINES
 C****
+        write(6,'(A)') "DEBUG: Calling diagnostic routines..."
+      call flush(6)
         call startTimer('Diagnostics')
 
 C**** PRINT CURRENT DIAGNOSTICS (INCLUDING THE INITIAL CONDITIONS)
@@ -493,6 +548,8 @@ C**** TEST FOR TERMINATION OF RUN
 
       call stopTimer('Main Loop')
       END DO main_loop
+      write(6,'(A)') "DEBUG: entering main loop...done"
+      call flush(6)
 C****
 C**** END OF MAIN LOOP
 C****
@@ -630,18 +687,38 @@ C**** THINGS THAT GET DONE AT THE BEGINNING OF EVERY ACC.PERIOD
       integer :: hour, date
       character(len=LEN_MONTH_ABBREVIATION) :: amon
 
+      write(6,'(A)') "DEBUG_checkpointModelE: getting time"
+      call flush(6)
       call modelEclock%get(hour=hour, date=date, amn=amon)
+      write(6,'(A)') "DEBUG_checkpointModelE: getting time...done"
+      call flush(6)
 
+      write(6,'(A)') "DEBUG_checkpointModelE: calling rfinal"
+      call flush(6)
       CALL rfinal(IRAND)
+      write(6,'(A)') "DEBUG_checkpointModelE: calling rfinal...done"
+      call flush(6)
+      write(6,'(A)') "DEBUG_checkpointModelE: setting irand"
+      call flush(6)
       call set_param( "IRAND", IRAND, 'o' )
+      write(6,'(A)') "DEBUG_checkpointModelE: setting irand...done"
+      call flush(6)
+      write(6,'(A)') "DEBUG_checkpointModelE: calling io_rsf"
+      call flush(6)
       call io_rsf(rsf_file_name(KDISK),Itime,iowrite,ioerr)
+      write(6,'(A)') "DEBUG_checkpointModelE: calling io_rsf...done"
+      call flush(6)
 #if defined( USE_FVCORE )
       call checkpoint(fvstate, rsf_file_name(KDISK))
 #endif
+      write(6,'(A)') "DEBUG_checkpointModelE: AM_I_ROOT"
+      call flush(6)
       if (AM_I_ROOT())
      *     WRITE (6,'(A,I1,45X,A4,I5,A5,I3,A4,I3,A,I8)')
      *     '0Restart file written on fort.',KDISK,'Year',
      *     year,aMon,date,', Hr',hour,'  Internal clock time:',ITIME
+      write(6,'(A)') "DEBUG_checkpointModelE: AM_I_ROOT...done"
+      call flush(6)
       kdisk=3-kdisk  ! Swap next fort.X.nc file
 
       end subroutine checkpointModelE
