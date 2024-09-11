@@ -866,12 +866,7 @@
       INTEGER  ::  j_vtau = 1, j_ghg = 1
 #endif
  
-#ifdef ACCMIP_LIKE_DIAGS
-!@var IJ_fcghg GHG forcing diagnostics (2=LW,SW, 4=CH4,N2O,CFC11,CFC12)
-      INTEGER, DIMENSION(2,4)  ::  ij_fcghg
-#endif
- 
-#ifdef TRACERS_GC
+#if ( defined TRACERS_GC )
 !@var GEOS-Chem radiative forcing diagnostics
 ! First index is: 
 !  1=SW, 2=LW 
@@ -879,7 +874,9 @@
 !  1 = CH4; 2 = N2O; 3 = CFC11; 4 = CFC12
 !  5 = O3; 6 = SO4; 7 = NIT; 8 = BCO; 9 = BCI
 !  10 = OCO; 11 = OCI; 12 = SOA
+      INTEGER, DIMENSION(2,5)  ::  ij_fcghg
+#elif ( defined ACCMIP_LIKE_DIAGS )
+!@var IJ_fcghg GHG forcing diagnostics (2=LW,SW, 4=CH4,N2O,CFC11,CFC12)
       INTEGER, DIMENSION(2,4)  ::  ij_fcghg
 #endif
-	
       END MODULE DIAG_COM_RAD
