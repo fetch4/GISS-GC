@@ -308,7 +308,7 @@ update_decks_repo:
 	@echo done
 
 setup-run: setup
-	$(RUN_COMMAND) $(RUN) -cold-restart -np $(NPES) &
+	$(RUN_COMMAND) $(RUN) -cold-restart -np $(NPES)
 
 newstart:
 	@if [ "$(RUN)" = "" ]; then \
