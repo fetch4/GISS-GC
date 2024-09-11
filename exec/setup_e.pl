@@ -20,7 +20,7 @@
 ## default settings
 $CMRUNDIR="/u/cmrun";
 $SAVEDISK="/raid1";
-$GCMSEARCHPATH="/u/cmrun";
+$GCMSEARCHPATH="/home/jw2423/rds/hpc-work/run/prod_input_files";
 $NETCDFHOME="/usr/bin";
 $MAILTO="";
 $UMASK=002;
