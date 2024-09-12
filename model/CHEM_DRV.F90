@@ -500,8 +500,10 @@ CONTAINS
              ! E/W component of wind [m s-1]
              State_Met%U           (II,JJ,K) = ualij(k,i,j)                                             
 
+#ifdef MODEL_GEOS
              ! Updraft vertical velocity [hPa/s] (only used by GEOS)
-             State_Met%UPDVVEL     (II,JJ,K) = 0d0                                                      
+             State_Met%UPDVVEL     (II,JJ,K) = 0d0
+#endif
 
              ! N/S component of wind [m s-1]
              State_Met%V           (II,JJ,K) = valij(k,i,j)                                             
