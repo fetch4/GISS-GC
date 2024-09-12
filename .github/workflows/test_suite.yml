@@ -123,7 +123,7 @@ jobs:
         export GC_F_LIB=${NETCDF_F_HOME}/lib
         # Environment variable for OpenMPI build
         MPIF90=$(find /opt/software -name mpif90 | head -n 1)
-        export MPI_ROOT=${MPIF90::-10}
+        export MPI_ROOT=${MPIF90%/bin/mpif90}
         # Copy over rundeck and modelErc
         cp .github/rundecks/${RUNID}.R decks
         cp .github/modelErc ~/.modelErc
