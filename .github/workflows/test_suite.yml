@@ -122,7 +122,8 @@ jobs:
         export GC_F_INCLUDE=${NETCDF_F_HOME}/include
         export GC_F_LIB=${NETCDF_F_HOME}/lib
         # Environment variable for OpenMPI build
-        export MPI_ROOT=/opt/software/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx
+        MPIF90=$(find /opt/software -name mpif90)
+        export MPI_ROOT=${MPIF90::-10}
         # Copy over rundeck and modelErc
         cp .github/rundecks/${RUNID}.R decks
         cp .github/modelErc ~/.modelErc
