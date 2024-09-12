@@ -392,8 +392,10 @@ CONTAINS
           ! Surface roughness height [m]
           State_Met%Z0          (II,JJ) = z0m_save(i,j)                                             
 
+#ifdef MODEL_GEOS
           ! Convective fraction [1] (only used by GEOS)
-          State_Met%CNV_FRC     (II,JJ) = 0.0                                                       
+          State_Met%CNV_FRC     (II,JJ) = 0.0
+#endif
 
        ENDDO
     ENDDO
