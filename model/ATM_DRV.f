@@ -457,23 +457,47 @@ c
 
       REAL*8 start,now
 
+      write(6,'(A)') "DEBUG_atm_phase2: calling seaice_to_atmgrid"
+      call flush(6)
       call seaice_to_atmgrid(atmice)
+      write(6,'(A)') "DEBUG_atm_phase2: calling seaice_to_atmgrid..done"
+      write(6,'(A)') "DEBUG_atm_phase2: calling ADVSI_DIAG"
+      call flush(6)
       CALL ADVSI_DIAG(atmocn,atmice) ! needed to update qflux model, dummy otherwise
+      write(6,'(A)') "DEBUG_atm_phase2: calling ADVSI_DIAG...done"
+      call flush(6)
 C**** SAVE some noon GMT ice quantities
-      IF (MOD(Itime+1,NDAY).ne.0 .and. MOD(Itime+1,NDAY/2).eq.0)
-     &        call vflx_OCEAN
+      IF (MOD(Itime+1,NDAY).ne.0 .and. MOD(Itime+1,NDAY/2).eq.0) THEN
+              write(6,'(A)') "DEBUG_atm_phase2: calling vflx_OCEAN"
+              call flush(6)
+              call vflx_OCEAN
+              write(6,'(A)') "DEBUG_atm_phase2: calling vflx_OCEAN.done"
+              call flush(6)
+      END IF
 
 C**** IF ATURB is used in rundeck then this is a dummy call
 C**** CALCULATE DRY CONVECTION ABOVE PBL
+      write(6,'(A)') "DEBUG_atm_phase2: calling ATOM_DIFFUS"
+      call flush(6)
       CALL ATM_DIFFUS (2,LM-1,dtsrc)
+      write(6,'(A)') "DEBUG_atm_phase2: calling ATOM_DIFFUS...done"
+      call flush(6)
          CALL CHECKT ('DRYCNV')
          CALL TIMER (NOW,MSURF)
          IF (MODD5S.EQ.0) CALL DIAGCA (9)
 
 C**** UPDATE DIAGNOSTIC TYPES
+      write(6,'(A)') "DEBUG_atm_phase2: calling UPDTYPE"
+      call flush(6)
          CALL UPDTYPE
+      write(6,'(A)') "DEBUG_atm_phase2: calling UPDTYPE...done"
+      call flush(6)
 C**** ADD DISSIPATED KE FROM COLUMN PHYSICS CALCULATION BACK AS LOCAL HEAT
+      write(6,'(A)') "DEBUG_atm_phase2: calling DISSIP"
+      call flush(6)
       CALL DISSIP ! uses kea calculated before column physics
+      write(6,'(A)') "DEBUG_atm_phase2: calling DISSIP...done"
+      call flush(6)
          CALL CHECKT ('DISSIP')
          CALL TIMER (NOW,MSURF)
          IF (MODD5S.EQ.0) CALL DIAGCA (7)
@@ -485,6 +509,8 @@ C**** ADD DISSIPATED KE FROM COLUMN PHYSICS CALCULATION BACK AS LOCAL HEAT
       IDACC(ia_filt)=IDACC(ia_filt)+1 ! prevent /0
 #else
 C**** SEA LEVEL PRESSURE FILTER
+      write(6,'(A)') "DEBUG_atm_phase2: sea level pressure filter"
+      call flush(6)
       IF (MFILTR.GT.0.AND.MOD(Itime-ItimeI,NFILTR).EQ.0) THEN
            IDACC(ia_filt)=IDACC(ia_filt)+1
            IF (MODD5S.NE.0) CALL DIAG5A (1,0)
@@ -495,38 +521,72 @@ C**** SEA LEVEL PRESSURE FILTER
            CALL DIAG5A (14,NFILTR*NIdyn)
            CALL DIAGCA (8)
       END IF
+      write(6,'(A)') "DEBUG_atm_phase2: sea level pressure filter..done"
+      call flush(6)
 #endif
 #ifdef TRACERS_GC
+      write(6,'(A)') "DEBUG_atm_phase2: calling DO_CHEM"
+      call flush(6)
       CALL DO_CHEM
+      write(6,'(A)') "DEBUG_atm_phase2: calling DO_CHEM...done"
+      call flush(6)
 #endif      
 #ifdef TRACERS_ON
 #ifdef CUBED_SPHERE
 ! Reinitialize instantaneous consrv qtys (every timestep since
 ! DIAGTCA is called every timestep for 3D sources)
+      write(6,'(A)') "DEBUG_atm_phase2: calling DIAGCA"
+      call flush(6)
       CALL DIAGCA (1) ! was not called w/ SLP filter
+      write(6,'(A)') "DEBUG_atm_phase2: calling DIAGCA...done"
 #endif
 C**** 3D Tracer sources and sinks
 C**** Tracer gravitational settling for aerosols
+      write(6,'(A)') "DEBUG_atm_phase2: calling TRGRAV"
+      call flush(6)
       CALL TRGRAV
+      write(6,'(A)') "DEBUG_atm_phase2: calling TRGRAV...done"
 C**** Tracer radioactive decay (and possible source)
+      write(6,'(A)') "DEBUG_atm_phase2: calling TDECAY"
+      call flush(6)
       CALL TDECAY
+      write(6,'(A)') "DEBUG_atm_phase2: calling TDECAY...done"
 C**** Calculate 3D tracers sources and sinks
 
+      write(6,'(A)') "DEBUG_atm_phase2: calling tracer_3Dsource"
+      call flush(6)
       call tracer_3Dsource
+      write(6,'(A)') "DEBUG_atm_phase2: calling tracer_3Dsource..done"
 C**** Accumulate tracer distribution diagnostics
+      write(6,'(A)') "DEBUG_atm_phase2: calling TRACEA"
+      call flush(6)
       CALL TRACEA
+      write(6,'(A)') "DEBUG_atm_phase2: calling TRACEA...done"
+      call flush(6)
          CALL TIMER (NOW,MTRACE)
          CALL CHECKT ('T3DSRC')
 #endif
+      write(6,'(A)') "DEBUG_atm_phase2: calling accum_ma_ia_src"
+      call flush(6)
       call accum_ma_ia_src
+      write(6,'(A)') "DEBUG_atm_phase2: calling accum_ma_ia_src...done"
+      call flush(6)
 C****
 C**** WRITE SUB-DAILY DIAGNOSTICS EVERY NSUBDD hours
 C****
 #ifdef CACHED_SUBDD
+      write(6,'(A)') "DEBUG_atm_phase2: calling accum_subdd_atm"
+      call flush(6)
       call accum_subdd_atm
+      write(6,'(A)') "DEBUG_atm_phase2: calling accum_subdd_atm...done"
+      call flush(6)
 #else
       if (Nsubdd.ne.0) then
+        write(6,'(A)') "DEBUG_atm_phase2: calling accSubdd"
+        call flush(6)
         call accSubdd
+        write(6,'(A)') "DEBUG_atm_phase2: calling accSubdd...done"
+        call flush(6)
         if (mod(Itime+1,Nsubdd).eq.0) call get_subdd
       end if
 #endif
@@ -534,12 +594,20 @@ C****
 #ifdef TRACERS_GC
 #ifdef CACHED_SUBDD
          ! Accumulate diagnostics
+         write(6,'(A)') "DEBUG_atm_phase2: calling accumGCsubdd"
+         call flush(6)
          CALL accumGCsubdd
+         write(6,'(A)') "DEBUG_atm_phase2: calling accumGCsubdd...done"
+         call flush(6)
 #endif
 #endif
       
 #ifdef TRACERS_DUST
+      write(6,'(A)') "DEBUG_atm_phase2: calling ahourly"
+      call flush(6)
       call ahourly
+      write(6,'(A)') "DEBUG_atm_phase2: calling ahourly...done"
+      call flush(6)
 #endif
 
 #ifndef SCM
@@ -548,6 +616,8 @@ C****
 
       IF (Kvflxo.EQ.0.) OA(:,:,4:KOA)=0. ! to prepare for future saves
 
+      write(6,'(A)') "DEBUG_atm_phase2: calling seaice_to_atmgrid..done"
+      call flush(6)
       return
       end subroutine atm_phase2
 
