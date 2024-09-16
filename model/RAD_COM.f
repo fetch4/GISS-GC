@@ -906,7 +906,10 @@ C**** Local variables initialised in init_RAD
      &     ,ij_sw_as_noa=1
      &     ,ij_lw_as_noa=1
 
-#if ( defined ACCMIP_LIKE_DIAGS ) || ( defined TRACERS_GC )
+#if ( defined TRACERS_GC )
+!@var IJ_fcghg GHG forcing diagnostics (2=LW,SW, 4=CH4,N2O,CFC11,CFC12, 5=O3)
+      integer, dimension(2,5) :: ij_fcghg
+#elif ( defined ACCMIP_LIKE_DIAGS )
 !@var IJ_fcghg GHG forcing diagnostics (2=LW,SW, 4=CH4,N2O,CFC11,CFC12)
       integer, dimension(2,4) :: ij_fcghg
 #endif

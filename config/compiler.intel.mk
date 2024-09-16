@@ -11,7 +11,7 @@ ifeq ($(GC),YES)
 LFLAGS += -nostartfiles -nofor-main
 endif
 CPPFLAGS += -DCOMPILER_Intel8 -DCONVERT_BIGENDIAN
-F90_VERSION = $(shell $(F90) -v 2>&1)
+F90_VERSION = $(shell $(F90) --version 2>&1)
 ifeq ($(MP),YES)
 FFLAGS += -qopenmp
 F90FLAGS += -qopenmp

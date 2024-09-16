@@ -3180,7 +3180,8 @@ C**** vertically integrated atmospheric fluxes
       !@var N_C: number of C samples in source spectrum
             integer, parameter :: N_C = 100
       !@var dc: spectral resolution (m/s)
-            real(r8), parameter :: dc(N_Kh) = (C_sup - C_inf)/(N_C - 1)
+            real(r8), parameter :: Cdiff = C_sup(1) - C_inf(1)
+            real(r8), parameter :: dc(N_Kh) = (/Cdiff/(N_C - 1)/)
       !@var C: horizontal phase speed grid
             real(r8) :: C(N_C, N_Kh)
       !@var IZ0: vertical grid index of GW source (function of latitude)

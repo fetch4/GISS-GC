@@ -43,7 +43,13 @@ CPPFLAGS += -DMPITYPE_LOOKUP_HACK
 VER := $(subst ., ,$(word 4,$(shell $(MPIRUN) --version 2>&1)))
 VER_MAJOR := $(word 1,$(VER))
 VER_MINOR := $(word 2,$(VER))
-ifneq (,$(filter 7 8 9 10,$(VER_MINOR))$(filter 2 3 4,$(VER_MAJOR)))
+
+# Check for later versions of the Intel compiler which have a different pattern
+# for --version
+ifeq ($(VER_MAJOR),for)
+LIBS += -lmpifort -lmpi
+# Check for some other versions
+else ifneq (,$(filter 7 8 9 10,$(VER_MINOR))$(filter 2 3 4,$(VER_MAJOR)))
 LIBS += -lmpi_mpifh -lmpi
 else
 LIBS += -lmpi_f77 -lmpi
