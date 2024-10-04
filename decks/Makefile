@@ -131,10 +131,18 @@ ifeq ($(GC),YES)
 	@echo "***************************************************************"
 	mkdir -p $(GC_BUILD_DIR)
 	mkdir -p $(GC_LIB_DIR)
-	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. \
-		-DOMP=$(MP) \
-		-DCMAKE_Fortran_FLAGS="$(F90FLAGS)" \
-		-DCMAKE_EXE_LINKER_FLAGS="$(LFLAGS)"
+ifeq ($(F90),mpif90)
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
+endif
+ifeq ($(F90),gfortran)
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
+endif
+ifeq ($(F90),mpiifort)
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
+endif
+ifeq ($(F90),ifort)
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
+endif
 	cd $(GC_BUILD_DIR) && make -j install
 	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
 	cp $(GC_BUILD_DIR)/src/HEMCO/mod/*.mod $(MODEL_DIR)/mod/
@@ -158,7 +166,7 @@ ifeq ($(GC),YES)
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/NcdfUtil/libNcdfUtil.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/Cloud-J/src/Core/libCloudJ_Core.a $(GC_LIB_DIR)/
 endif
-	$(MAKE) -C $(MODEL_DIR) gcm RUN=$(RUN) DECKS_DIR=$(DECKS_DIR) $(OPTS_MAIN)
+	$(MAKE) -C $(MODEL_DIR) gcm RUN=$(RUN) DECKS_DIR=$(DECKS_DIR) -I$(MODEL_DIR)/mod $(OPTS_MAIN)
 	-mv $(MODEL_DIR)/$(RUN).bin $(BIN_DIR)/$(RUN).exe
 	@echo '----    Looks like compilation finished successfully     ----'
 

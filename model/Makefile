@@ -97,11 +97,12 @@ do_main $(RUN).bin: main.o  $(OBJS) #  $(COMPONENTS:=_dir)
 	ar rcs libmodel.a $(OBJS)
 	@echo "===> linking"
 ifeq ($(GC),YES)
-	$(F90) -I./mod main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
+	$(F90) -I./mod main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) \
+	  $(ESMF_OBJS) -L./geos-chem/lib -lGeosCore -lObsPack -lHistory \
+	    -lIsorropia -lKPP -lGeosUtil -lJulDay -lHeaders -lKPP_FirstPass \
+		-lCloudJ_Core -lHCOI_Shared -lHCOX -lHCO -lGeosUtilHco -lJulDayHco \
+		-lNcdfUtil -lNcdfUtilHco -lHeadersHco \
 	  $(COMPLIBS) $(LIBS) \
-	  -L./geos-chem/lib -lGeosCore -lObsPack -lHistory -lIsorropia -lKPP -lGeosUtil \
-		-lNcdfUtil -lJulDay -lHeaders -lKPP_FirstPass -lCloudJ_Core -lHCOI_Shared \
-		-lHCOX -lHCO -lGeosUtilHco -lNcdfUtilHco -lJulDayHco -lHeadersHco \
 	  -o $(RUN).bin $(LINK_OUTPUT)
 else
 	$(F90) main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
