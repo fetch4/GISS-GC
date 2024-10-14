@@ -23,6 +23,9 @@ module CHEM_COM
   LOGICAL, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: IsAdvected ! Advect this tracer?
   LOGICAL, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: t_qlimit   ! Limit fluxes in QUS?    
 
+  INTEGER, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: TrID_to_SpcChmID
+  INTEGER, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: SpcChmID_to_TrID
+  
   !====================
   ! Diagnostics
   !====================
