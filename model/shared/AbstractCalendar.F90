@@ -363,14 +363,15 @@ contains
     class (AbstractTimeStamp), pointer :: p
     character(len=24) :: fmt
 
-    iter = this%transitionDates%begin()
-    do while(iter /= this%transitionDates%last())
-       p => iter%value()
-       write(fmt, '("(a,",i0,"("".""))")') 30-len_trim(iter%key())
-       write(unit,fmt,advance='no') trim(iter%key())
-       call p%print(unit)
-       call iter%next()
-    end do
+! FIXME: The following code causes a segfault with recent gfortran
+!    iter = this%transitionDates%begin()
+!    do while(iter /= this%transitionDates%last())
+!       p => iter%value()
+!       write(fmt, '("(a,",i0,"("".""))")') 30-len_trim(iter%key())
+!       write(unit,fmt,advance='no') trim(iter%key())
+!       call p%print(unit)
+!       call iter%next()
+!    end do
        
     
   end subroutine printTransitionDates
