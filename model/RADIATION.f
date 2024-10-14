@@ -1774,7 +1774,7 @@ C----------------------------------------------
       SUBROUTINE RCOMPX
       use SURF_ALBEDO, only : getsur
       use O3mod, only : plbo3,nlo3,plbo3_traditional,nlo3_traditional
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use O3mod, only : save_to3
 #endif
 #ifdef SCM
@@ -1861,7 +1861,7 @@ C--------------------------------
       endif
 C--------------------------------
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       ! Save DU of ozone used in calculation
       save_to3(igcm,jgcm) = SUM(u0gas(:,3))*1000.0
 #endif

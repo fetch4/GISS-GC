@@ -190,7 +190,7 @@ C****
       use lakes_com, only : flake
       use seaice_com, only : si_atm
       use clouds_com, only : svlhx,svlat,rhsav
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use rad_com, only : save_cosz2
 #endif
       !use clouds_com, only : lmid,lhi
@@ -1644,7 +1644,7 @@ C     OUTPUT DATA
 #ifdef GCC_COUPLE_RAD
      *     ,GCCco2_tracer_save,GCCco2rad_to_chem
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
      *     ,TAUW3D,TAUI3D
 #endif
 #ifdef mjo_subdd
@@ -1673,7 +1673,7 @@ C     OUTPUT DATA
      *     cldmc,cldss,csizmc,csizss,llow,lmid,lhi,fss,taussip,csizssip
      *    ,QLss,QIss,QLmc,QImc
      *    ,get_cld_overlap  !  subroutine
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use clouds_com, only : cldss3d
       use constant, only   : teeny
 #endif
@@ -1771,7 +1771,7 @@ C     OUTPUT DATA
 #endif
       use DIAG_COM, only: ij_nintaerext,ij_nintaersca,ij_nintaerasy
       use RADPAR, only: nintaerext,nintaersca,nintaerasy
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use RAD_COM, only : save_alb, save_cosz2
       use O3mod,   only : save_to3
 #endif
@@ -2077,7 +2077,7 @@ C****
 C**** Calculate mean cosine of zenith angle for the full radiation step
       ROT2=ROT1+TWOPI*NRAD*DTsrc/SECONDS_PER_DAY
       CALL COSZS (ROT1,ROT2,COSZ2,COSZA)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       save_COSZ2 = COSZ2
 #endif      
       JDAYR=dayOfYear
@@ -2256,7 +2256,7 @@ c      write(6,*) 'RJH: GHG: FORC=',ghg_totforc
       cfmip_qci = 0.
       cfmip_qcl = 0.
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       tauw3d = 0.
       taui3d = 0.
 #endif
@@ -2421,7 +2421,7 @@ C**** save 3D cloud fraction as seen by radiation
             IF(SVLAT(L,I,J).EQ.LHE) THEN
               TAUWC(L)=cldx*TAUMCL
               OPTDW=OPTDW+TAUWC(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
               TAUW3D(I,J,L) = TAUW3D(I,J,L) + TAUMCL ! in-cloud vs. in-cell TAUWC(L)
 #endif
               call inc_ajl(i,j,l,jl_wcld,1d0)
@@ -2440,7 +2440,7 @@ C**** save 3D cloud fraction as seen by radiation
             ELSE
               TAUIC(L)=cldx*TAUMCL
               OPTDI=OPTDI+TAUIC(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
               TAUI3D(I,J,L) = TAUI3D(I,J,L) + TAUMCL ! in-cloud vs. in-cell TAUIC(L)
 #endif              
               call inc_ajl(i,j,l,jl_icld,1d0)
@@ -2464,7 +2464,7 @@ C**** save 3D cloud fraction as seen by radiation
             IF(SVLHX(L,I,J).EQ.LHE) THEN
               TAUWC(L)=cldx*TAUSSL
               OPTDW=OPTDW+TAUWC(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
               TAUW3D(I,J,L) = TAUW3D(I,J,L) + TAUSSL ! in-cloud vs. in-cell TAUWC(L)
 #endif
               call inc_ajl(i,j,l,jl_wcld,1d0)
@@ -2484,7 +2484,7 @@ C**** save 3D cloud fraction as seen by radiation
                 SIZEIC(L)=CSIZSSIP(L,I,J)
                 TAUIC(L)=cldx*TAUSSLIP
                 OPTDI=OPTDI+TAUIC(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
               TAUI3D(I,J,L) = TAUI3D(I,J,L) + TAUSSLIP ! in-cloud vs. in-cell TAUIC(L)
 #endif              
                 call inc_ajl(i,j,l,jl_icld,1d0)
@@ -2503,7 +2503,7 @@ C**** save 3D cloud fraction as seen by radiation
             ELSE
               TAUIC(L)=cldx*TAUSSL
               OPTDI=OPTDI+TAUIC(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
               TAUI3D(I,J,L) = TAUI3D(I,J,L) + TAUSSL ! in-cloud vs. in-cell TAUIC(L)              
 #endif              
               call inc_ajl(i,j,l,jl_icld,1d0)
@@ -4295,7 +4295,7 @@ C****
       enddo
       enddo
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       call find_groups('aijlh',grpids,ngroups)
       do igrp=1,ngroups
       subdd => subdd_groups(grpids(igrp))

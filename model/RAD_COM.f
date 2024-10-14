@@ -93,7 +93,7 @@ C**** does not produce exactly the same as the default values.
 !@var srnflb_save  Net solar radiation (W/m^2)
 !@var trnflb_save  Net thermal radiation (W/m^2)
       REAL*8,ALLOCATABLE,DIMENSION(:,:,:) :: srnflb_save,trnflb_save
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
 !@var save_alb Surface albedo (unitless)
       REAL*8,ALLOCATABLE,DIMENSION(:,:) :: save_alb
 !@var TAUW3D,TAUI3D water,ice cloud opt. depths (for diags)
@@ -399,7 +399,7 @@ C**** Local variables initialised in init_RAD
 #ifdef GCC_COUPLE_RAD
      *     ,GCCco2_tracer_save,GCCco2rad_to_chem,GCCco2rad_to_file
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
      *     ,save_alb,tauw3d,taui3d,save_cosz2
 #endif
 #ifdef mjo_subdd
@@ -436,7 +436,7 @@ C**** Local variables initialised in init_RAD
      *     DIFNIR(I_0H:I_1H, J_0H:J_1H),
      *     TAUSUMW(I_0H:I_1H, J_0H:J_1H),
      *     TAUSUMI(I_0H:I_1H, J_0H:J_1H),
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
      *     TAUW3D(I_0H:I_1H, J_0H:J_1H, LM),
      *     TAUI3D(I_0H:I_1H, J_0H:J_1H, LM),
 #endif      
@@ -480,7 +480,7 @@ C**** Local variables initialised in init_RAD
 #endif
      *     STAT=IER)
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
 !     Allocate and initialize array for holding surface albedo, which is only
 !     updated during daytime.
       ALLOCATE( save_alb(I_0H:I_1H,J_0H:J_1H) )
