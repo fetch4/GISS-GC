@@ -1326,7 +1326,7 @@ C
         enddo;        enddo
         call inc_subdd(subdd,k,sddarr2d)
 C
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       case ('FRSEAICE')
         ! Based on FOICE
         sddarr2d(:,:)=RSI(:,:)*FOCEAN(:,:)

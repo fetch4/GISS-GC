@@ -195,7 +195,7 @@ subroutine CONDSE
        ,wmclwp,wmctwp,CDNC_TOMAS
 
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
        use CLOUDS_COM, only : cldss3d
        use CLOUDS,     only : taussl3d, cldssl3d
        use CLOUDS_COM, only : pficu, pflcu, pfilsan, pfllsan
@@ -211,7 +211,7 @@ subroutine CONDSE
   use CLOUDS, only : CUMFLX,DWNFLX,WCUALL,ENTALL,DETALL, &
        MPLUMEALL,PLUME_MAX,PLUME_MIN
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   use CLOUDS, only : mc_up_mf, mc_dd_mf, mc_up_ent, mc_dd_ent, mc_up_det, mc_dd_det
   use CLOUDS, only : mc_dqcond, mc_dqevap, ls_dqcond, ls_dqevap
   use CLOUDS, only : mc_pflx_l, mc_pflx_i, ls_pflx_l, ls_pflx_i
@@ -555,7 +555,7 @@ subroutine CONDSE
       ! isccp frequency diags
       save_fq_isccp=0.d0
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       ! plume diagnostics
       dtrain = 0.d0
       dqrcu  = 0.d0
@@ -1036,7 +1036,7 @@ subroutine CONDSE
             call inc_ajl(i,j,l,jl_mcdflx,DDMFLX(L))
             call inc_ajl(i,j,l,jl_csizmc,CSIZEL(L)*CLDMCL(L)*AIRM(L))
             aijl(i,j,l,ijl_MCamFX) = aijl(i,j,l,ijl_MCamFX) + MCFLX(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             CMFMC(i,j,l+1) = MCFLX(l) * 100 * bygrav * bydtsrc ! mb -> kg m-2 s-1
 #endif
           end do
@@ -1207,7 +1207,7 @@ subroutine CONDSE
           mc_pl_min_p2(I,J,:) = PLUME_MIN(2,:)
         endif
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         ! plume diagnostics (kg/m2/s)
 
         !---------------------
@@ -1374,7 +1374,7 @@ subroutine CONDSE
              Itime,I,J,LERR,' CONDSE:H2O<0',WMERR,' ->0'
 
         !**** Accumulate diagnostics of LSCOND
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         !---------------------
         ! Mimic MERRA2
         !---------------------
@@ -1453,7 +1453,7 @@ subroutine CONDSE
         end do
 #endif
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         pflcu(i,j,:)   = mc_pflx_l(:) ! kg m-2 s-1
         pfllsan(i,j,:) = ls_pflx_l(:) ! kg m-2 s-1
         pficu(i,j,:)   = mc_pflx_i(:) ! kg m-2 s-1
@@ -1944,7 +1944,7 @@ subroutine CONDSE
 
         TAUSS(:,I,J)=TAUSSL(:)
         CLDSS(:,I,J)=CLDSSL(:)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         CLDSS3D(:,I,J)=CLDSSL3D(:)
 #endif
         CLDSAV(:,I,J)=CLDSAVL(:)
@@ -2518,7 +2518,7 @@ subroutine CONDSE
     enddo;        enddo
     call inc_subdd(subdd,k,sddarr)
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
     case('PRECANV')
        sddarr(:,:) = 0
        call inc_subdd(subdd,k,sddarr)
@@ -2567,7 +2567,7 @@ subroutine CONDSE
   case ('mcamfx')
     call inc_subdd(subdd,k,cfmip_mcamfx)
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   case ('QL')
     call inc_subdd(subdd,k,qcl)
   case ('QI')
@@ -2718,7 +2718,7 @@ subroutine CONDSE
   endif
 #endif
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   ! Plume diagnostics in aijl file
   call find_groups('aijlh',grpids,ngroups)
   do igrp=1,ngroups

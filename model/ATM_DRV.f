@@ -293,7 +293,7 @@ C**** Add up the non-interactive tracer surface sources.
 #endif
 
       call atm_phase1_exports
-
+      
       return
       end subroutine atm_phase1
 
@@ -496,9 +496,11 @@ C**** SEA LEVEL PRESSURE FILTER
            CALL DIAGCA (8)
       END IF
 #endif
+
 #ifdef TRACERS_GC
       CALL DO_CHEM
-#endif      
+#endif
+
 #ifdef TRACERS_ON
 #ifdef CUBED_SPHERE
 ! Reinitialize instantaneous consrv qtys (every timestep since
@@ -818,7 +820,7 @@ c set-up for MPI implementation
 #endif
 #if defined( TRACERS_GC )
       use CHEM_DRV, only : init_chem
-#endif      
+#endif
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
       use TRACER_COM, only: initTracerCom, alloc_tracer_com
 #ifndef TRACERS_ATM_ONLY
@@ -840,7 +842,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 
       call geom_atm
 
-#if defined( TRACERS_GC ) 
+#if defined( TRACERS_GC )
       call init_chem( grid )
 #endif
       
@@ -946,9 +948,9 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 !@sum  def_rsf_atmvars defines atm prognostic array structure in rsf
 !@auth M. Kelley
 !@ver  beta
-#if defined( TRACERS_GC )
+#ifdef TRACERS_GC
       use CHEM_DRV, only : io_chem
-#endif      
+#endif
       implicit none
       integer :: fid
       call def_rsf_atm    (fid)
@@ -976,8 +978,8 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       call tracerIO(fid, 'define')
 #endif
 #ifdef TRACERS_GC
-      call IO_CHEM( fid, 'define' )
-#endif      
+      call IO_CHEM(fid, 'define')
+#endif
       call def_rsf_subdd  (fid)
       call def_rsf_fluxes (fid)
       return
@@ -985,9 +987,9 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 
       subroutine new_io_atmvars(fid,iorw)
       use model_com, only: ioread, iowrite
-#if defined( TRACERS_GC )
+#ifdef TRACERS_GC
       use CHEM_DRV, only : init_chem, io_chem
-#endif      
+#endif
       implicit none
       integer, intent(in) :: fid,iorw
       call new_io_atm    (fid,iorw)
@@ -1021,7 +1023,14 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       case (iowrite)
          call tracerIO(fid, 'write_dist')
       end select
-
+#endif
+#ifdef TRACERS_GC
+      select case (iorw)
+      case (ioread)
+         call IO_CHEM(fid, 'read_dist')
+      case (iowrite)
+         call IO_CHEM(fid, 'write_dist')
+      end select
 #endif
 #ifdef TRACERS_GC
       select case (iorw)
@@ -1770,7 +1779,7 @@ C**** interpolate to pressure levels and accumulate the subdd diagnostics
       use atm_com,    only: u,v,t,q,qcl,qci, pdsig,pmid,pedn,pk,
      &                      ualij,valij, zatmo,gz, wsave, ma,masum
      &                     ,ptropo,ltropo
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use atm_com,    only : MWs
       use geom,       only : byaxyp 
 #endif
@@ -1893,7 +1902,7 @@ C
         enddo;        enddo
         call inc_subdd(subdd,k,sddarr2d)
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       case ('HFLUX') ! Based on shflux
         sddarr2d = -atmsrf%sensht(:,:)/dtsrc ! Note: sign change for consistency with MERRA-2
         call inc_subdd(subdd,k,sddarr2d)
@@ -2021,7 +2030,7 @@ C**** cached_subdd on model levels
         sddarr(:,:,1:lm-1) = wsave
         sddarr(:,:,lm) = 0.
         call inc_subdd(subdd,k,sddarr)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       case ('T')
         do l=1,lmaxsubdd; do j=j_0,j_1; do i=i_0,imaxj(j)
           sddarr(i,j,l) = t(i,j,l)*pk(l,i,j)

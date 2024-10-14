@@ -214,12 +214,6 @@
 !@dbparam LmaxSUBDD: the max L when writing "ALL" levels
       INTEGER :: LmaxSUBDD = LM
 
-      integer, parameter ::
-     &     num_subdd_str = 18, subdd_strlen = 64,
-     &     subddt_len = num_subdd_str*subdd_strlen
-
-      character(len=subddt_len) :: subddt
-
 !@type subdd_type a derived type holding control parameters,
 !@+    output metadata, and the timeseries for a given group
       type subdd_type
@@ -300,11 +294,7 @@
 
 !@param subdd_ngroups_max maximum number of output groups per run
 !@+     (increase as necessary)
-#ifdef COSP_SIM
-      integer, parameter :: subdd_ngroups_max=40
-#else
       integer, parameter :: subdd_ngroups_max=30
-#endif
 c SUSA only for MEEEEE
 c       integer, parameter :: subdd_ngroups_max=50
 c SUSA
@@ -1251,7 +1241,7 @@ c
      &         'dist_im,dist_jm,lm_'//trim(grpname)//
      &         ',nperiod_'//trim(grpname)
         endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
 #ifdef CUBED_SPHERE
         subdd%tile_dim_out = 4
         dimstr='(time,tile,lev,y,x) ;'
@@ -1270,7 +1260,7 @@ c
         do l=1,dsize3
           lvlarr(l) = l
         enddo
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         call add_coord(subdd%cdl0,'lev',size(lvlarr),
      &       long_name="levels",
      &       units = "1",
@@ -1292,7 +1282,7 @@ c
      &         'dist_im,dist_jm,lm_'//trim(grpname)//
      &         ',nperiod_'//trim(grpname)
         endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
 #ifdef CUBED_SPHERE
         subdd%tile_dim_out = 4
         dimstr='(time,tile,lev,y,x) ;'
@@ -1311,7 +1301,7 @@ c
         do l=1,dsize3
           lvlarr(l) = l
         enddo
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         call add_coord(subdd%cdl0,'lev',size(lvlarr),
      &       long_name="levels",
      &       units = "1",
@@ -1528,8 +1518,7 @@ c
      &     vinterp_using_timeavgs,write_monthly_files,write_one_file,
      &     create_group,subdd_ngroups,subdd_ngroups_max,subdd_groups,
      &     cdl_ijt,info_type,namedd_strlen,sname_strlen,itimei_subdd,
-     &     lmaxsubdd,subdd_npres,subdd_pres,subdd_pk,aijph_l1,aijph_l2,
-     &     subddt
+     &     lmaxsubdd,subdd_npres,subdd_pres,subdd_pk,aijph_l1,aijph_l2
       use ghy_com, only: ngm
       implicit none
       integer :: i,j,k,l,kk,listlen,idcat
@@ -1543,6 +1532,34 @@ c
       INTEGER :: Nsubdd = 0
 !@var kddmax maximum number of sub-daily diags outputs
       INTEGER, PARAMETER :: kddmax = 110
+!@dbparam subdd string contains variables to save for sub-daily diags
+!@dbparam subdd1 additional string of variables for sub-daily diags
+!@dbparam subdd2 additional string of variables for sub-daily diags
+!@dbparam subdd3 additional string of variables for sub-daily diags
+!@dbparam subdd4 additional string of variables for sub-daily diags
+!@dbparam subdd5 additional string of variables for sub-daily diags
+!@dbparam subdd6 additional string of variables for sub-daily diags
+!@dbparam subdd7 additional string of variables for sub-daily diags
+!@dbparam subdd8 additional string of variables for sub-daily diags
+!@dbparam subdd9 additional string of variables for sub-daily diags
+!@dbparam subd10 additional string of variables for sub-daily diags
+!@dbparam subd11 additional string of variables for sub-daily diags
+!@dbparam subd12 additional string of variables for sub-daily diags
+!@dbparam subd13 additional string of variables for sub-daily diags
+!@dbparam subd14 additional string of variables for sub-daily diags
+!@dbparam subd15 additional string of variables for sub-daily diags
+!@dbparam subd16 additional string of variables for sub-daily diags
+!@dbparam subd17 additional string of variables for sub-daily diags
+C**** Note: for longer string increase MAX_CHAR_LENGTH in PARAM
+      CHARACTER*64 :: subdd="SLP", 
+     & subdd1=" ", subdd2=" ", subdd3=" ", subdd4=" ",
+     & subdd5=" ", subdd6=" ", subdd7=" ", subdd8=" ",
+     & subdd9=" ", subd10=" ", subd11=" ", subd12=" ",
+     & subd13=" ", subd14=" ", subd15=" ", subd16=" ",
+     & subd17=" "
+!@var subddt = subdd + subdd1,2,3 = all variables for sub-daily diags
+      CHARACTER*1169 :: subddt = " "
+      ! e.g. here, 1169=18*64+17 (18 subdds of length 64, +17 space separators)
 !@var namedd array of names of sub-daily diags
       character(len=namedd_strlen), DIMENSION(kddmax) :: namedd
 !@var kdd total number of sub-daily diags
@@ -1606,10 +1623,39 @@ c
       allowed_freqs_timeavg(10) = days_per_file
       allowed_freqs_timeavg(11) = days_per_file*nday
 
+      call sync_param( "subdd" ,subdd)
+      call sync_param( "subdd1" ,subdd1)
+      call sync_param( "subdd2" ,subdd2)
+      call sync_param( "subdd3" ,subdd3)
+      call sync_param( "subdd4" ,subdd4)
+      call sync_param( "subdd5" ,subdd5)
+      call sync_param( "subdd6" ,subdd6)
+      call sync_param( "subdd7" ,subdd7)
+      call sync_param( "subdd8" ,subdd8)
+      call sync_param( "subdd9" ,subdd9)
+      call sync_param( "subd10" ,subd10)
+      call sync_param( "subd11" ,subd11)
+      call sync_param( "subd12" ,subd12)
+      call sync_param( "subd13" ,subd13)
+      call sync_param( "subd14" ,subd14)
+      call sync_param( "subd15" ,subd15)
+      call sync_param( "subd16" ,subd16)
+      call sync_param( "subd17" ,subd17)
       call sync_param( "LmaxSUBDD",LmaxSUBDD)
 
-      call get_subdd_strings('database',-9999,subddt)
-
+c
+c combine strings subdd, subdd1...4:
+c
+      subddt=trim(subdd)//' '//
+     &  trim(subdd1)//' '//trim(subdd2)
+     &  //' '//trim(subdd3)//' '//trim(subdd4)
+     &  //' '//trim(subdd5)//' '//trim(subdd6)     
+     &  //' '//trim(subdd7)//' '//trim(subdd8)
+     &  //' '//trim(subdd9)//' '//trim(subd10)
+     &  //' '//trim(subd11)//' '//trim(subd12)
+     &  //' '//trim(subd13)//' '//trim(subd14)
+     &  //' '//trim(subd15)//' '//trim(subd16)
+     &  //' '//trim(subd17)
 c
 c count/parse names
 c
@@ -1781,12 +1827,10 @@ c add (calls to) the analogs of ijh_defs et al.
 #endif
 
 #ifdef TRACERS_GC
-      
       k = k + 1
       catshapes(k) = 'aijlh'; categories(k) = 'taijlh'
       input_sizes3(k) = lm
       call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
-      
 #endif
 
 #ifdef TRACERS_GC
@@ -1795,9 +1839,15 @@ c add (calls to) the analogs of ijh_defs et al.
       catshapes(k) = 'aijlh'; categories(k) = 'taijlh'
       input_sizes3(k) = lm
       call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
+
+      k = k + 1
+      catshapes(k) = 'aijh'; categories(k) = 'taijh'
+      input_sizes3(k) = 0
+      call tijh_defs(diaglists(1,k),nmax_possible,diaglens(k))
       
 #endif
 
+      
 c
 c check whether each requested diagnostic is in the list
 c of declared possible outputs
@@ -1872,45 +1922,6 @@ c      call stop_model('got here',255)
       return
       end subroutine parse_subdd
 
-      subroutine get_subdd_strings(from,fid,subddt)
-      use subdd_mod, only : subddt_len,num_subdd_str,subdd_strlen
-      use dictionary_mod, only : sync_param
-      use domain_decomp_atm, only : grid
-      use pario, only : read_attr
-      implicit none
-      character(len=*) :: from
-      integer :: fid
-!@var subddt = subdd + subdd1,2,3 = all variables for sub-daily diags
-      character(len=subddt_len) :: subddt
-!
-!@dbparam subdd string contains variables to save for sub-daily diags
-!@+
-!@dbparam subdd1-subdd9, subd10-subd17 additional strings of requested output
-
-      character(len=6) :: strnames(num_subdd_str)
-      character(len=subdd_strlen) :: str
-      integer :: n,idum
-
-      strnames = (/
-     &     'subdd ','subdd1','subdd2','subdd3','subdd4','subdd5',
-     &     'subdd6','subdd7','subdd8','subdd9','subd10','subd11',
-     &     'subd12','subd13','subd14','subd15','subd16','subd17'
-     &     /)
-
-      subddt = ''
-      do n=1,num_subdd_str
-        str = ''
-        if(from.eq.'database') then
-          call sync_param( trim(strnames(n)), str)
-        elseif(from.eq.'rsf') then
-          call read_attr(grid,fid,'cparam',trim(strnames(n)),idum,str)
-        endif
-        subddt = trim(subddt)//' '//trim(str)
-      enddo
-      subddt = adjustl(subddt)
-
-      end subroutine get_subdd_strings
-
       subroutine ijh_defs(arr,nmax,decl_count)
 c
 c 2D outputs
@@ -1948,42 +1959,6 @@ c
      &  lname = 'Maximum Daily Surface Temperature',
      &  units = 'C',
      &  reduc = reduc_max
-     &     )
-c
-      arr(next()) = info_type_(
-     &  sname = 'fireCount',
-     &  lname = 'FIRE COUNT FOR DYN BIOBURN',
-     &  units = 'm-2 s-1'
-     &     )
-c
-      arr(next()) = info_type_(
-     &  sname = 'FLAMM',
-     &  lname = 'VEGETATION FLAMMABILITY',
-     &  units = 'none'
-     &     )
-c
-      arr(next()) = info_type_(
-     &  sname = 'FLAMM_prec',
-     &  lname = 'prec for FLAMMABILITY',
-     &  units = 'mm/day'
-     &     )
-c
-      arr(next()) = info_type_(
-     &  sname = 'FLAMM_rh',
-     &  lname = 'rh for FLAMMABILITY',
-     &  units = 'none'
-     &     )
-c
-      arr(next()) = info_type_(
-     &  sname = 'FVDEN',
-     &  lname = 'FIRE MODEL VEGETATION DENSITY',
-     &  units = 'none'
-     &     )
-c
-      arr(next()) = info_type_(
-     &  sname = 'f_ignCG',
-     &  lname = 'FRAC OF BB DUE TO CG LIGT IGN. ONLY',
-     &  units = 'm-2 s-1'
      &     )
 c
       arr(next()) = info_type_(
@@ -2356,22 +2331,6 @@ c
      &  units = 'Pa'
      &     )
 c
-#ifdef CFMIP3_SUBDD
-      arr(next()) = info_type_(
-     &  sname = 'tauus',
-     &  lname = 'U COMPON OF MOMENTUM SRF DRAG',
-     &  units = 'g/m*s^2',
-     &  scale = 1d3
-     &     )
-c
-      arr(next()) = info_type_(
-     &  sname = 'tauvs',
-     &  lname = 'V COMPON OF MOMENTUM SRF DRAG',
-     &  units = 'g/m*s^2',
-     &  scale = 1d3
-     &     )
-#endif
-c
       arr(next()) = info_type_(
      &  sname = 'r_w_mc',
      &  lname = 'Warm-Cloud effective Radius convective',
@@ -2432,7 +2391,7 @@ c
      &  units = 'm'
      &     )
 c
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       arr(next()) = info_type_(
      &  sname = 'PS',
      &  lname = 'surface_pressure',
@@ -2956,9 +2915,6 @@ c
       use subdd_mod, only : info_type,sched_rad
 ! info_type_ is a homemade structure constructor for older compilers
       use subdd_mod, only : info_type_
-#ifdef CFMIP3_SUBDD
-      use model_com, only : dtsrc
-#endif
       use constant, only : bygrav,kapa
       implicit none
       integer :: nmax,decl_count
@@ -3181,15 +3137,7 @@ c
      &  lname = 'APN on model levels',
      &  units = 'cm-3'
      &     )
-#ifdef CFMIP3_SUBDD
-      arr(next()) = info_type_(
-     &  sname = 'mcamfx',
-     &  lname = 'MC Air Mass Flux',
-     &  units = 'kg/s',
-     &  scale = 100.*bygrav/dtsrc
-     &     )
-#endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       arr(next()) = info_type_(
      &  sname = 'T',
      &  lname = 'air_temperature',
@@ -3280,6 +3228,7 @@ c
      &  units = 'kg kg-1 s-1' ! per grid-cell dry air
      &     )
 #endif
+      
       return
       contains
       integer function next()
@@ -3305,7 +3254,7 @@ c
 
       decl_count = 0
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       arr(next()) = info_type_(
      &  sname = 'CMFMC',
      &  lname = 'cumulative_mass_flux',
@@ -4019,30 +3968,17 @@ c
 
       subroutine read_subdd_rsf(fname)
       use subdd_mod, only : subdd_groups,subdd_ngroups,rsf_save
-      use subdd_mod, only : subddt,subddt_len
-      use domain_decomp_atm, only : grid,am_i_root
+      use domain_decomp_atm, only : grid
       use pario, only : par_open,par_close
-      use pario, only : read_dist_data,read_data,read_attr
-      use dictionary_mod, only : get_param,is_set_param
+      use pario, only : read_dist_data,read_data
       use mdiag_com, only : sname_strlen
       implicit none
       character(len=*) :: fname
       integer fid   !@var fid unit number of read/write
       integer :: n
       character(len=sname_strlen) :: grpname
-      character(len=subddt_len) :: subddt_rsf
-      logical :: do_read(4)
       if(subdd_ngroups.le.0) return
       fid = par_open(grid,trim(fname),'read')
-      ! todo: add additional difference checks
-      call get_subdd_strings('rsf',fid,subddt_rsf)
-      do_read = (/
-     &     trim(subddt) == trim(subddt_rsf),
-     &     rsf_equals_db_int('nsubdd'),
-     &     rsf_equals_db_int('subdd_npres'),
-     &     rsf_equals_db_int('lmaxsubdd')
-     &     /)
-      if(all(do_read)) then
       do n=1,subdd_ngroups
         grpname = subdd_groups(n)%grpname
         call read_data(grid,fid,'nacc_'//trim(grpname),
@@ -4055,29 +3991,9 @@ c
      &         subdd_groups(n)%v5d)
         endif
       enddo
-      else
-        if(am_i_root()) then
-          write(6,*) 'WARNING: skipping rsf read of subdd info '//
-     &         'because request list has changed'
-          write(6,*) do_read
-        endif
-      endif
       call par_close(grid,fid)
       rsf_save = fname
       return
-      contains
-      logical function rsf_equals_db_int(parname)
-      character(len=*) :: parname
-      !
-      integer :: val_rsf,val_db
-
-      val_rsf = 0; val_db = 0
-      call read_attr(grid,fid,'iparam',trim(parname),n,val_rsf)
-      if(is_set_param(trim(parname))) then
-        call get_param(trim(parname) ,val_db)
-      endif
-      rsf_equals_db_int = val_rsf == val_db
-      end function rsf_equals_db_int
       end subroutine read_subdd_rsf
 
       subroutine read_subdd_rsf1(subdd)
