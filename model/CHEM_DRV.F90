@@ -2251,7 +2251,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    = previous_units,                                      &
+         new_units  = previous_units,                                      &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
         
