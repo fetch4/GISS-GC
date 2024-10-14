@@ -59,7 +59,7 @@ module CLOUDS_COM
   real*8, allocatable, dimension(:,:,:) :: TAUMC
 !@var CLDSS super-saturated cloud cover area (percent)
   real*8, allocatable, dimension(:,:,:) :: CLDSS
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
 !@var CLDSS3D super-saturated cloud cover volume 3-D fraction
   real*8, allocatable, dimension(:,:,:) :: CLDSS3D
   real*8, allocatable, dimension(:,:,:) :: &
@@ -235,7 +235,7 @@ subroutine ALLOC_CLOUDS_COM(grid)
        ULS,VLS,UMC,VMC,TLS,QLS,TAUSSIP,CSIZSSIP, &
        QLss,QIss,QLmc,QImc, &
        TMC,QMC,DDM1,AIRX,LMC,DDMS,TDN1,QDN1,DDML
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   use CLOUDS_COM, only : CLDSS3D
   use CLOUDS_COM, only : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
   use CLOUDS_COM, only : pficu, pflcu, pfilsan, pfllsan
@@ -314,7 +314,7 @@ subroutine ALLOC_CLOUDS_COM(grid)
        QLmc(LM,I_0H:I_1H,J_0H:J_1H), &
        QImc(LM,I_0H:I_1H,J_0H:J_1H), &
        STAT=IER)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   allocate( CLDSS3D(LM,I_0H:I_1H,J_0H:J_1H) )
   CLDSS3D = 0d0
   allocate( dtrain(I_0H:I_1H,J_0H:J_1H,LM) )

@@ -239,7 +239,7 @@ module CLOUDS
 !@var CLDSSL large-scale cloud cover
 !@var SM,QM Vertical profiles of (T/p**kappa)*AIRM, q*AIRM
   real*8, dimension(LM) :: SSHR,DCTEI,TAUSSL,CLDSSL,TAUSSLIP
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   real*8, dimension(LM) :: TAUSSL3D,CLDSSL3D
 #endif
   real*8, dimension(LM) :: SM,QM
@@ -407,7 +407,7 @@ module CLOUDS
 !@var ccp_cosp Mixing ratio of convective precipitation [kg/kg]
       REAL*8 ccp_cosp(LM+1)
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   real*8 mc_up_mf(LM+1,2),  & ! Plume updraft mass flux along edge (kg/m2/s)
          mc_dd_mf(LM+1,2),  & ! Plume downdraft mass flux alonge edge (kg/m2/s)
          mc_up_ent(LM,2),   & ! Plume updraft entrainment flux (kg/m2/s)
@@ -632,7 +632,7 @@ contains
          TADJ,TEMWM,TEM,TIG,TNX1,TP,TVP,TOLD,TOLD1,TTURB,TRATIO, &
          UMTEMP,VMTEMP,VT, &
          WMDN,WMUP,WMEDG,WMIX,W2TEM,WTEM,WCONST,WCUFRZ,WORK,WMAX,WV
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
     real*8, dimension(LM)   :: bykg
     real*8                  :: ccm_ref, kg_plume
 #endif
@@ -918,7 +918,7 @@ contains
     ccp_cosp(:) = 0.
     ccl_cosp(:) = 0.
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
     ! Reset arrays that track the convective mass fluxes
     mc_up_mf(:,:)  = 0d0
     mc_dd_mf(:,:)  = 0d0
@@ -1126,7 +1126,7 @@ AREA_PARTITION: do NPPL=1,2
           If (NPPL==2 .and. (.not.MC1 .or. MCCONT.lt.2))  Cycle AREA_PARTITION
           !**** Convection rose 2 or more layers for first AREA PARTITION
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             ! Reset aggregators
             mc_dqevap(:,IC) = 0.
             mc_dqcond(:,IC) = 0.
@@ -1401,7 +1401,7 @@ CLOUD_TOP:  do L=LMIN+1,LM
 
             !**** CONDENSE VAPOR IN THE PLUME AND ADD LATENT HEAT
             call get_dq_cond(smp,qmp,plk(l),mplume,lhx,pl(l),dqsum,fqcond)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             ! Save rainwater production rate (kg/kg/s)
             ! Convert dqsum ( kg H2O / kg plume * hPa plume ) to ( kg H2O / kg air / s )
             ! This may be overwritten in NPPL=2
@@ -1428,7 +1428,7 @@ CLOUD_TOP:  do L=LMIN+1,LM
             CDHEAT(L)=SLH*COND(L)          ! calculate CDHEAT before add CONDV
             CDHSUM=CDHSUM+CDHEAT(L)
             COND(L)=COND(L)+CONDV(L-1)     ! add in the vertical transported COND
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             ! Convert (kg/kg)*mb to kg/m2/s; flip sign since in updraft
             IF ( TL(L-1) .gt. TF ) THEN
               mc_pflx_l(L) = mc_pflx_l(L) - ( ( CONDV(L-1) / CCM(L-1) ) * ( PL(L) * 1d2 / ( RGAS * TL(L) ) ) ) / dZm(L)
@@ -1798,7 +1798,7 @@ CLOUD_TOP:  do L=LMIN+1,LM
                   DVM(K,L)=DVM(K,L)-V_0(K,L)*EPLUME-VMTEMP
                 end do
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
                 !====================================================================
                 ! Archive mass that entrains into the upward plume (kg/m2/s)
                 !====================================================================
@@ -1829,7 +1829,7 @@ CLOUD_TOP:  do L=LMIN+1,LM
                 DETALL(L,IC,LM) = DET(L)*100.*1000.
               endif
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
               !=========================================================================
               ! Archive mass that detrains from upward plumes (occurs at cloud tops; kg/m2/s)
               !=========================================================================
@@ -2141,7 +2141,7 @@ DOWNDRAFT: do L=LDRAFT,1,-1
             if(DQEVP.gt.SMDN*PLK(L)/SLH) DQEVP=SMDN*PLK(L)/SLH
             if (L.lt.LMIN) DQEVP=0.
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             ! Save re-evaporation rate (kg/kg/s)
             ! Convert from ( kg H2O/kg plume * mb plume ) -> ( kg H2O / kg air / s ) 
             kg_plume = 1d2 * ddraft * FMC1 * DXYP(j_debug) * bygrav
@@ -2252,7 +2252,7 @@ DOWNDRAFT: do L=LDRAFT,1,-1
                 DTMOMR(:,L,1:NTX)=DTMOMR(:,L,1:NTX)-TMOM(:,L,1:NTX)*FENTRA
 #endif  /* TRACERS_ON */
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
                 !========================================================================
                 ! Archive mass flux entrained to the downdraft (kg/m2/s)
                 !========================================================================
@@ -2287,7 +2287,7 @@ DOWNDRAFT: do L=LDRAFT,1,-1
                 TMOMDN(xymoms,1:NTX)= TMOMDN(xymoms,1:NTX)*(1.+FENTRA)
 #endif  /* TRACERS_ON */
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
                 !========================================================================
                 ! Archive mass flux detrained from the downdraft (kg/m2/s)
                 !========================================================================
@@ -2659,7 +2659,7 @@ DOWNDRAFT: do L=LDRAFT,1,-1
             DWNFLX(L,IC,LMIN) = 100.*DDMFLX(L)*bygrav/dtsrc
           endif
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ! Archive plume mass fluxes (kg/m2/s)
 
           ! MCMFLX is the plume mass (CCM; mb) times fraction of plume area/gridbox area (FMC1)
@@ -2785,7 +2785,7 @@ EVAP_PRECIP: do L=LMAX-1,1,-1
             call stop_model("MSTCNV: negative cloud cover", 255)
           END IF
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
           IF ( CCM(L) > 0 ) CCM_REF = CCM(L)
 #endif
 
@@ -2823,7 +2823,7 @@ EVAP_PRECIP: do L=LMAX-1,1,-1
             if (mcloud.gt.0) call get_dq_evap (smold(l),qmold(l),plk(l),airm(l),lhx,pl(l),prcp*AIRM(L)/MCLOUD, dqsum,fprcp)
             dqsum=dqsum*MCLOUD*BYAM(L)
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             ! Re-evaporated precipitation [kg/kg/s]
             kg_plume = 1d2 * mcloud * fevap * DXYP(j_debug) * bygrav
             if (mcloud.gt.0) mc_dqevap(L,IC) = mc_dqevap(L,IC) + (dqsum/mcloud) * kg_plume * bykg(L) * bydtsrc
@@ -3008,7 +3008,7 @@ EVAP_PRECIP: do L=LMAX-1,1,-1
 #endif
 #endif /* TRACERS_WATER */
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             ! Convert (kg/kg)*mb to kg/m2/s
             ! Use CCM_REF set to the last positive CCM(L) in the column to prevent
             ! floating overflows for precipitation beneath the cloud base
@@ -3537,7 +3537,7 @@ OPTICAL_THICKNESS: do L=1,LMCMAX
     QHEATI=0.
     CLDSSL=0
     TAUSSL=0
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
     CLDSSL3D=0.
     TAUSSL3D=0.
     ! Reset arrays that track the condensation/evaporation fluxes
@@ -4061,7 +4061,7 @@ OPTICAL_THICKNESS: do L=1,LMCMAX
 
           call get_dq_evap (tl(l)*rh00(l)/plk(l),ql(l)*rh00(l),plk(l),rh00(l),lhx,pl(l),qclx(l)/(fssl(l)*rh00(l)), dqsum,fqcond1)
           DWDT=DQSUM*RH00(L)*FSSL(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ls_dqevap(l) = ls_dqevap(l) + dwdt / dtsrc
 #endif
           
@@ -4075,7 +4075,7 @@ OPTICAL_THICKNESS: do L=1,LMCMAX
 
           call get_dq_evap (tl(l)*rh00(l)/plk(l),ql(l)*rh00(l),plk(l),rh00(l),lhx,pl(l),qcix(l)/(fssl(l)*rh00(l)), dqsum,fqcond1)
           DWDT=DQSUM*RH00(L)*FSSL(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ls_dqevap(l) = ls_dqevap(l) + dwdt / dtsrc
 #endif
           
@@ -4485,7 +4485,7 @@ OPTICAL_THICKNESS: do L=1,LMCMAX
         SLH=LHX*BYSHA
 
         call get_dq_cond(tl(l),ql(l),1d0,1d0,lhx,pl(l),dqsum,fcond)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         ls_dqcond(l) = ls_dqcond(l) + dqsum * fssl(l) / dtsrc
 #endif
  
@@ -4692,7 +4692,7 @@ OPTICAL_THICKNESS: do L=1,LMCMAX
       SSHR(L)=SSHR(L)+FSSL(L)*(TL(L)-TOLD)*AIRM(L)
       DQLSC(L)=DQLSC(L)+FSSL(L)*(QL(L)-QOLD)
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       ! Convert to kg/m2/s and from top edge (prebar) to bottom edge (ls_pflx*)
       ls_pflx_l(l+1) = (prebar(l)-preice(l)) * 100.
       ls_pflx_i(l+1) =            preice(l)  * 100.
@@ -5180,7 +5180,7 @@ OPTICAL_THICKNESS: do L=1,LMCMAX
 #endif
     end do OPTICAL_THICKNESS
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
     ! Archive these 3-D cloud fractions before converting to areal 2-D cloud fraction
     DO L=1,LMCLD
        IF ( TAUSSL(L) .lt. 0 ) THEN
