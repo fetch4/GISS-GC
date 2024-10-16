@@ -9,7 +9,7 @@
 [submodule "model/geos-chem/src/Cloud-J"]
 	path = model/geos-chem/src/Cloud-J
 	url = git@github.com:fetch4/Cloud-J.git
-	branch = main
+	branch = dev/giss-gc
 [submodule "model/geos-chem/src/HETP"]
 	path = model/geos-chem/src/HETP
 	url = git@github.com:fetch4/HETerogeneous-vectorized-or-Parallel.git

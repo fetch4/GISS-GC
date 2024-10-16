@@ -147,6 +147,7 @@ endif
 	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
 	cp $(GC_BUILD_DIR)/src/HEMCO/mod/*.mod $(MODEL_DIR)/mod/
 	cp $(GC_BUILD_DIR)/src/Cloud-J/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/HETP/mod/*.mod $(MODEL_DIR)/mod/
 	cp $(GC_BUILD_DIR)/src/HEMCO/src/Core/libHCO.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/HEMCO/src/Extensions/libHCOX.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/Headers/libHeadersHco.a $(GC_LIB_DIR)/
@@ -154,7 +155,6 @@ endif
 	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/GeosUtil/libGeosUtilHco.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/NcdfUtil/libNcdfUtilHco.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/HEMCO/src/Interfaces/Shared/libHCOI_Shared.a $(GC_LIB_DIR)/
-	cp $(GC_BUILD_DIR)/src/GEOS-Chem/ISORROPIA/libIsorropia.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/Headers/libHeaders.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/ObsPack/libObsPack.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/History/libHistory.a $(GC_LIB_DIR)/
@@ -165,6 +165,7 @@ endif
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libJulDay.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/NcdfUtil/libNcdfUtil.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/Cloud-J/src/Core/libCloudJ_Core.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HETP/src/Core/libHETP_core.a $(GC_LIB_DIR)/
 endif
 	$(MAKE) -C $(MODEL_DIR) gcm RUN=$(RUN) DECKS_DIR=$(DECKS_DIR) -I$(MODEL_DIR)/mod $(OPTS_MAIN)
 	-mv $(MODEL_DIR)/$(RUN).bin $(BIN_DIR)/$(RUN).exe
@@ -260,6 +261,7 @@ ifneq ($(PFUNIT),)
 	$(MAKE) -C $(TESTS_DIR) clean
 endif
 	$(MAKE) -C $(AUX_DIR) $@ $(OPTS_MAIN)
+	rm -rf $(GC_BUILD_DIR)/../build_info
 	rm -rf $(GC_BUILD_DIR)
 
 exe: $(RUN)/$(RUN) gcm

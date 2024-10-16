@@ -98,7 +98,7 @@ do_main $(RUN).bin: main.o  $(OBJS) #  $(COMPONENTS:=_dir)
 	@echo "===> linking"
 ifeq ($(GC),YES)
 	$(F90) -I./mod main.o $(LFLAGS) $(EXTRA_LFLAGS) $(OBJS) $(F90OBJS) $(ESMF_OBJS) \
-	  -L./geos-chem/lib -lGeosCore -lObsPack -lHistory -lIsorropia -lKPP -lGeosUtil  -lJulDay -lHeaders -lKPP_FirstPass -lCloudJ_Core -lHCOI_Shared -lHCOX -lHCO -lGeosUtilHco -lJulDayHco -lNcdfUtil -lNcdfUtilHco -lHeadersHco \
+	  -L./geos-chem/lib -lGeosCore -lObsPack -lHistory -lHETP_core -lKPP -lGeosUtil  -lJulDay -lHeaders -lKPP_FirstPass -lCloudJ_Core -lHCOI_Shared -lHCOX -lHCO -lGeosUtilHco -lJulDayHco -lNcdfUtil -lNcdfUtilHco -lHeadersHco \
 	  $(COMPLIBS) $(LIBS) \
 	  -o $(RUN).bin $(LINK_OUTPUT)
 else
