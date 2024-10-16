@@ -10,3 +10,6 @@
 	path = model/geos-chem/src/Cloud-J
 	url = https://github.com/fetch4/Cloud-J.git
 	branch = dev/giss-gc-14
+[submodule "model/geos-chem/src/HETP"]
+	path = model/geos-chem/src/HETP
+	url = https://github.com/fetch4/HETerogeneous-vectorized-or-Parallel.git
