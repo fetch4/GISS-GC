@@ -242,7 +242,7 @@ CONTAINS
           State_Met%FRLAND      (II,JJ) = fland(i,j)                  
 
           ! Fraction of land ice [1]
-          State_Met%FRLANDIC    (II,JJ) = flice(i,j)                  
+          State_Met%FRLANDICE   (II,JJ) = flice(i,j)                  
 
           ! Fraction of ocean [1]
           State_Met%FROCEAN     (II,JJ) = focean(i,j)                 
@@ -251,12 +251,12 @@ CONTAINS
           State_Met%FRSEAICE    (II,JJ) = si_atm%RSI(i,j)*focean(i,j) 
 
           ! Surface snow fraction [1]
-          State_Met%FRSNO       (II,JJ) = 0.0                         
+          State_Met%FRSNOW       (II,JJ) = 0.0                         
           if ( si_ocn%snowi(i,j) > 0. ) &
-               State_Met%FRSNO(II,JJ) = si_atm%rsi(i,j)*flake(i,j)
+               State_Met%FRSNOW(II,JJ) = si_atm%rsi(i,j)*flake(i,j)
           if ( atmlnd%SNOWE(i,j) > 0. ) &
-               State_Met%FRSNO(II,JJ) = State_Met%FRSNO(I,J) + atmlnd%snowfr(i,j)*fearth(i,j)
-          State_Met%FRSNO(II,JJ) = min( 1.0, State_Met%FRSNO(II,JJ) )
+               State_Met%FRSNOW(II,JJ) = State_Met%FRSNOW(I,J) + atmlnd%snowfr(i,j)*fearth(i,j)
+          State_Met%FRSNOW(II,JJ) = min( 1.0, State_Met%FRSNOW(II,JJ) )
 
           ! Root soil wetness [1]
           State_Met%GWETROOT    (II,JJ) = 0.0                                                      
@@ -594,7 +594,7 @@ CONTAINS
             State_Chm  = State_Chm,                                             &
             State_Grid = State_Grid,                                            &
             State_Met  = State_Met,                                             &
-            outUnit    = KG_SPECIES,                                            &
+            new_units  = KG_SPECIES,                                            &
             RC         = RC                                                    )
        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
        
@@ -652,7 +652,10 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-    State_Chm%Spc_Units = KG_SPECIES ! TrM is in kg
+    ! Set species units
+    DO N=1, State_Chm%nSpecies
+       State_Chm%Species(N)%Units = KG_SPECIES ! TrM is in kg
+    ENDDO
 
     ! Convert to v/v dry
     CALL Convert_Spc_Units(                                                  &
@@ -660,7 +663,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         outUnit    = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
+         new_units    = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
@@ -681,7 +684,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         outUnit    = KG_SPECIES,                                            &
+         new_units    = KG_SPECIES,                                            &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
@@ -849,7 +852,7 @@ CONTAINS
 !    TYPE(ESMF_Field)               :: IntField
     REAL*8                         :: DT
     CHARACTER(LEN=512)             :: Iam
-    INTEGER                        :: STATUS, HCO_PHASE, RST, origUnit
+    INTEGER                        :: STATUS, HCO_PHASE, RST, previous_units
 
     ! Local logicals to turn on/off individual components
     ! The parts to be executed are based on the input options,
@@ -1100,8 +1103,8 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         outUnit    = KG_SPECIES_PER_KG_DRY_AIR,                             &
-         origUnit   = origUnit,                                              &
+         new_units    = KG_SPECIES_PER_KG_DRY_AIR,                           &
+         previous_units   = previous_units,                                  &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
 
@@ -1382,7 +1385,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         outUnit    = origUnit,                                              &
+         new_units    = previous_units,                                      &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
 
@@ -1444,7 +1447,7 @@ CONTAINS
     TYPE (DIST_GRID), INTENT(IN) :: grid
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
-    INTEGER   :: myPET, NPES, RC, origUnit
+    INTEGER   :: myPET, NPES, RC, previous_units
 
     INTEGER   :: NYMD, NHMS, YEAR, MONTH, DAY, DOY, HOUR, MINUTE, SECOND
     REAL*4    :: MINUTES, hElapsed, UTC
@@ -1845,7 +1848,6 @@ CONTAINS
     Input_Opt%TS_DYN  = INT( DT     )   ! Dynamic   timestep [sec]
     Input_Opt%TS_CONV = INT( DT     )   ! Dynamic   timestep [sec]
     Input_Opt%TS_RAD  = INT( DT     )
-    Input_Opt%TS_DIAG = INT( DTsrc  )
 
     ! Set start and finish time from rundeck
     Input_Opt%NYMDb   = 20141201 ! nymdB
@@ -1863,7 +1865,7 @@ CONTAINS
          Radiation  = Input_Opt%TS_RAD,                   &
          Unit_Conv  = MAX( Input_Opt%TS_DYN,              &
          Input_Opt%TS_CONV ),           &
-         Diagnos    = Input_Opt%TS_DIAG         )
+         Diagnos    = Input_Opt%TS_CHEM         )
 
     !--------------------------------------------------------------------------
     ! For regular simulations, initialize various module arrays etc.
@@ -2135,7 +2137,7 @@ CONTAINS
          grid%j_strt_halo:grid%j_stop_halo, &
          LM                               ) :: sddarr3d
     real*8 :: convert
-    integer :: origUnit
+    integer :: previous_units
     
 !    ! 3-D diagnostics of advected tracers on model levels
 !    call find_groups('taijlh',grpids,ngroups)
@@ -2163,8 +2165,8 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         outUnit    =  MOLES_SPECIES_PER_MOLES_DRY_AIR,                      &
-         origUnit   = origUnit,                                              &
+         new_units    =  MOLES_SPECIES_PER_MOLES_DRY_AIR,                    &
+         previous_units   = previous_units,                                  &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
     
@@ -2198,7 +2200,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         outUnit    = origUnit,                                              &
+         new_units    = previous_units,                                      &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
         
@@ -2328,7 +2330,7 @@ CONTAINS
     ! !LOCAL VARIABLES:
     !
     INTEGER                   :: I, J, L, M, N      ! lon, lat, lev, indexes
-    INTEGER                   :: origUnit
+    INTEGER                   :: previous_units
     LOGICAL                   :: FOUND              ! Found in restart file?
     CHARACTER(LEN=60)         :: Prefix             ! utility string
     CHARACTER(LEN=255)        :: LOC                ! routine location
@@ -2499,8 +2501,10 @@ CONTAINS
     ENDDO
 
     ! Set species units
-    State_Chm%Spc_Units = KG_SPECIES_PER_KG_DRY_AIR
-
+    DO N=1, State_Chm%nSpecies
+       State_Chm%Species(N)%Units = KG_SPECIES_PER_KG_DRY_AIR
+    ENDDO
+    
     ! If in debug mode, print out species min and max in [molec/cm3]
     IF ( .false. ) THEN ! Input_Opt%Verbose ) THEN
 
@@ -2513,8 +2517,8 @@ CONTAINS
             State_Chm  = State_Chm,                                           &
             State_Grid = State_Grid,                                          &
             State_Met  = State_Met,                                           &
-            outUnit    = MOLECULES_SPECIES_PER_CM3,                           &
-            origUnit   = origUnit,                                            &
+            new_units    = MOLECULES_SPECIES_PER_CM3,                         &
+            previous_units   = previous_units,                                &
             RC         = RC                                                  )
 
        ! Trap error
@@ -2541,7 +2545,7 @@ CONTAINS
        !           State_Chm  = State_Chm,                                           &
        !           State_Grid = State_Grid,                                          &
        !           State_Met  = State_Met,                                           &
-       !           outUnit    = origUnit,                                            &
+       !           new_units    = previous_units,                                            &
        !           RC         = RC                                                  )
        !
        !      ! Trap error
