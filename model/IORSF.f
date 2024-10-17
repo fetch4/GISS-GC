@@ -11,6 +11,9 @@
       USE ATM_COM, only: Kradia
       USE MODEL_COM, only : ioread_single,iowrite_single
      *                     ,ioread,ioread_nodiag,iowrite
+#ifdef TRACERS_GC
+      USE CHEM_DRV, only : io_chem
+#endif
 
       IMPLICIT NONE
 !@var filenm name of file to be read or written
@@ -87,6 +90,9 @@ C**** Calls to individual i/o routines
 #ifdef CALCULATE_FLAMMABILITY
         call io_flammability(kunit,iact,ioerr)
 #endif
+#ifdef TRACERS_GC
+        call io_chem(kunit,iact,ioerr)
+#endif        
 #ifdef TRACERS_ON
         call io_tracer (kunit,iact,ioerr)
 #endif

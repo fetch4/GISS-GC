@@ -46,7 +46,7 @@ VER_MINOR := $(word 2,$(VER))
 ifneq (,$(filter 7 8 9 10,$(VER_MINOR))$(filter 2 3 4,$(VER_MAJOR)))
 LIBS += -lmpi_mpifh -lmpi
 else
-LIBS += -lmpi_f77 -lmpi
+LIBS += -lmpi
 # -lmpi_cxx - this library may be needed for ESMF (?)
 endif
 

@@ -3,7 +3,12 @@
 ! crucial that clients do not destroy the calendar subsequent to
 ! creating the Time object.
 
+#include "rundeck_opts.h"
+#ifdef TRACERS_GC
+module Tempus_mod
+#else
 module Time_mod
+#endif
   use AbstractCalendar_mod, only: AbstractCalendar
   use Rational_mod
   use BaseTime_mod
@@ -122,4 +127,8 @@ contains
 
   end subroutine add
 
+#ifdef TRACERS_GC
+end module Tempus_mod
+#else
 end module Time_mod
+#endif

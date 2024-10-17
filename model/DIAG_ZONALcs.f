@@ -7,7 +7,11 @@
       USE CONSTANT, only : twopi
       USE RESOLUTION, only : im,jm
       USE DOMAIN_DECOMP_ATM, only : dist_grid,sumxpe,am_i_root
+#ifdef TRACERS_GC
+      use praecisionem_mod, only : reduce_precision
+#else
       use precision_mod, only : reduce_precision
+#endif
       implicit none
       private
 
