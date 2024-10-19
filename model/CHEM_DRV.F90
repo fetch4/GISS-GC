@@ -53,11 +53,13 @@ module CHEM_DRV
   ! Default flags for GEOS-Chem operators to use; may be overwritten by rundeck
   LOGICAL                               :: DoGCConv     = .true.
   LOGICAL                               :: DoGCEmis     = .true.
-  LOGICAL                               :: DoGCTend     = .true.
+  LOGICAL                               :: DoGCTend     = .false.
   LOGICAL                               :: DoGCTurb     = .true.
   LOGICAL                               :: DoGCChem     = .true.
-  LOGICAL                               :: DoGCDryDep   = .true.
-  LOGICAL                               :: DoGCWetDep   = .true.
+  LOGICAL                               :: DoGCDryDep   = .false.
+  LOGICAL                               :: DoGCWetDep   = .false.
+  LOGICAL                               :: DoGCDiagn    = .false.
+  LOGICAL                               :: coupled_chem = .false.
 
   LOGICAL                               :: first_chem = .true.
 
@@ -726,10 +728,10 @@ CONTAINS
        ENDDO
     ENDDO
 
-    ! IF ( AM_I_ROOT() ) THEN
-    !    WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ! ENDIF
-    
+    !IF ( AM_I_ROOT() ) THEN
+    !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+    !ENDIF
+
     !IF ( AM_I_ROOT() ) THEN
     !   WRITE(6,*) ""
     !   WRITE(6,*) 'O3:', TrM(1,:,1,182)
@@ -2234,7 +2236,7 @@ CONTAINS
                 DO I=I_0,I_1
                    II = I - I_0 + 1
                    JJ = J - J_0 + 1
-                   sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)         
+                   sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)
                 ENDDO
                 ENDDO
                 ENDDO
@@ -2242,6 +2244,42 @@ CONTAINS
                 exit ntm_loop
              end if
           end do ntm_loop
+          if ( trim(subdd%name(k)) .eq. "d13CH4" ) then
+                DO L=1,LmaxSUBDD
+                DO J=J_0,J_1
+                DO I=I_0,I_1
+                   II = I - I_0 + 1
+                   JJ = J - J_0 + 1
+                   sddarr3d(I,J,L) = State_Diag%d13CH4(II,JJ,L)
+                ENDDO
+                ENDDO
+                ENDDO
+                call inc_subdd(subdd,k,sddarr3d)
+          endif
+          if ( trim(subdd%name(k)) .eq. "dDCH4" ) then
+                DO L=1,LmaxSUBDD
+                DO J=J_0,J_1
+                DO I=I_0,I_1
+                   II = I - I_0 + 1
+                   JJ = J - J_0 + 1
+                   sddarr3d(I,J,L) = State_Diag%dDCH4(II,JJ,L)
+                ENDDO
+                ENDDO
+                ENDDO
+                call inc_subdd(subdd,k,sddarr3d)
+          endif
+          if ( trim(subdd%name(k)) .eq. "pMC" ) then
+                DO L=1,LmaxSUBDD
+                DO J=J_0,J_1
+                DO I=I_0,I_1
+                   II = I - I_0 + 1
+                   JJ = J - J_0 + 1
+                   sddarr3d(I,J,L) = State_Diag%pMC(II,JJ,L)         
+                ENDDO
+                ENDDO
+                ENDDO
+                call inc_subdd(subdd,k,sddarr3d)
+          endif
        enddo ! k
     enddo ! igroup
 
@@ -3084,6 +3122,34 @@ do n=1,nsp
        units = 'mol mol-1'                       &
        )
 end do ! tracers loop
+
+!do n=1,State_Chm%nSpecies
+!   ! 3D mixing ratios (SUBDD string is just tracer name):
+!   unitString='mol mol-1'
+!   arr(next()) = info_type_(                                           &
+!        sname = trim(State_Chm%SpcData(N)%Info%Name),                  &
+!        lname = trim(State_Chm%SpcData(N)%Info%Name)//' mixing ratio', &
+!        units = trim(unitString)                  &
+!        )
+!end do ! tracers loop
+
+  arr(next()) = info_type_(                      &
+       sname = 'd13CH4',                         &
+       lname = 'd13CH4',                         &
+       units = 'permil'                          &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'dDCH4',                          &
+       lname = 'dDCH4',                          &
+       units = 'permil'                          &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'pMC',                            &
+       lname = 'pMC',                            &
+       units = '%'                               &
+       )
 
 return
 contains
