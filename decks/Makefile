@@ -131,17 +131,19 @@ ifeq ($(GC),YES)
 	@echo "***************************************************************"
 	mkdir -p $(GC_BUILD_DIR)
 	mkdir -p $(GC_LIB_DIR)
+# If CMAKE_BUILD_TYPE is not specified, it defaults to "Release". May also be set to "Debug"
+# If MECH is not specified, it defaults to "fullchem". May also be "carbon".
 ifeq ($(F90),mpif90)
-	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
 endif
 ifeq ($(F90),gfortran)
-	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
 endif
 ifeq ($(F90),mpiifort)
-	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
 endif
 ifeq ($(F90),ifort)
-	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DOMP=$(MP) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
 endif
 	cd $(GC_BUILD_DIR) && make -j install
 	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
@@ -158,8 +160,14 @@ endif
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/Headers/libHeaders.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/ObsPack/libObsPack.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/History/libHistory.a $(GC_LIB_DIR)/
+ifeq ($(MECH),fullchem)
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP_FirstPass.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP.a $(GC_LIB_DIR)/
+endif
+ifeq ($(MECH),carbon)
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/carbon/libKPP_FirstPass.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/carbon/libKPP.a $(GC_LIB_DIR)/
+endif
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosCore/libGeosCore.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libGeosUtil.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libJulDay.a $(GC_LIB_DIR)/
