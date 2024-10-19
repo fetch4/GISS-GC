@@ -1,7 +1,7 @@
 [submodule "model/geos-chem/src/GEOS-Chem"]
 	path = model/geos-chem/src/GEOS-Chem
 	url = git@github.com:fetch4/geos-chem.git
-	branch = dev/giss-gc
+	branch = dev/giss-gc-iso
 [submodule "model/geos-chem/src/HEMCO"]
 	path = model/geos-chem/src/HEMCO
 	url = git@github.com:fetch4/HEMCO.git
