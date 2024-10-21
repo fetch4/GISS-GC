@@ -1,0 +1,15 @@
+[submodule "model/geos-chem/src/GEOS-Chem"]
+	path = model/geos-chem/src/GEOS-Chem
+	url = git@github.com:fetch4/geos-chem.git
+	branch = dev/giss-gc-iso
+[submodule "model/geos-chem/src/HEMCO"]
+	path = model/geos-chem/src/HEMCO
+	url = git@github.com:fetch4/HEMCO.git
+	branch = dev/giss-gc
+[submodule "model/geos-chem/src/Cloud-J"]
+	path = model/geos-chem/src/Cloud-J
+	url = git@github.com:fetch4/Cloud-J.git
+	branch = dev/giss-gc
+[submodule "model/geos-chem/src/HETP"]
+	path = model/geos-chem/src/HETP
+	url = git@github.com:fetch4/HETerogeneous-vectorized-or-Parallel.git

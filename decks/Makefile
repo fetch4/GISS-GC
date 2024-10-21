@@ -28,6 +28,8 @@ else
   MODEL_E_BUILD_DIR = $(MODEL_E_ROOT)
 endif
 MODEL_DIR = $(MODEL_E_BUILD_DIR)/model
+GC_BUILD_DIR = $(MODEL_DIR)/geos-chem/build
+GC_LIB_DIR = $(MODEL_DIR)/geos-chem/lib
 AUX_DIR = $(MODEL_E_ROOT)/aux
 SCRIPTS_DIR = $(MODEL_E_ROOT)/exec
 DECKS_DIR = $(shell pwd)
@@ -123,7 +125,51 @@ endif
 
 
 gcm $(BIN_DIR)/$(RUN).exe: $(RUN).mk $(BIN_DIR) depend check_vars
-	$(MAKE) -C $(MODEL_DIR) gcm RUN=$(RUN) DECKS_DIR=$(DECKS_DIR) $(OPTS_MAIN)
+ifeq ($(GC),YES)
+	@echo "***************************************************************"
+	@echo "Compiling GEOS-Chem"
+	@echo "***************************************************************"
+	mkdir -p $(GC_BUILD_DIR)
+	mkdir -p $(GC_LIB_DIR)
+# If CMAKE_BUILD_TYPE is not specified, it defaults to "Release". May also be set to "Debug"
+# If MECH is not specified, it defaults to "fullchem". May also be "carbon".
+ifeq ($(COMPILER),gfortran)
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
+endif
+ifeq ($(F90),intel)
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
+endif
+	cd $(GC_BUILD_DIR) && make -j install
+	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/HEMCO/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/Cloud-J/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/HETP/mod/*.mod $(MODEL_DIR)/mod/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Core/libHCO.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Extensions/libHCOX.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/Headers/libHeadersHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/GeosUtil/libJulDayHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/GeosUtil/libGeosUtilHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Shared/NcdfUtil/libNcdfUtilHco.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HEMCO/src/Interfaces/Shared/libHCOI_Shared.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/Headers/libHeaders.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/ObsPack/libObsPack.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/History/libHistory.a $(GC_LIB_DIR)/
+ifeq ($(MECH),fullchem)
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP_FirstPass.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP.a $(GC_LIB_DIR)/
+endif
+ifeq ($(MECH),carbon)
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/carbon/libKPP_FirstPass.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/carbon/libKPP.a $(GC_LIB_DIR)/
+endif
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosCore/libGeosCore.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libGeosUtil.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libJulDay.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/NcdfUtil/libNcdfUtil.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/Cloud-J/src/Core/libCloudJ_Core.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/HETP/src/Core/libHETP_core.a $(GC_LIB_DIR)/
+endif
+	$(MAKE) -C $(MODEL_DIR) gcm RUN=$(RUN) DECKS_DIR=$(DECKS_DIR) -I$(MODEL_DIR)/mod $(OPTS_MAIN)
 	-mv $(MODEL_DIR)/$(RUN).bin $(BIN_DIR)/$(RUN).exe
 	@echo '----    Looks like compilation finished successfully     ----'
 
@@ -217,6 +263,8 @@ ifneq ($(PFUNIT),)
 	$(MAKE) -C $(TESTS_DIR) clean
 endif
 	$(MAKE) -C $(AUX_DIR) $@ $(OPTS_MAIN)
+	rm -rf $(GC_BUILD_DIR)/../build_info
+	rm -rf $(GC_BUILD_DIR)
 
 exe: $(RUN)/$(RUN) gcm
 	@if [ ! -s $(CMRUNDIR)/$(RUN)/I ] ; then \

@@ -3167,7 +3167,7 @@ C     functions
 #ifdef HIGH_FREQUENCY_O3_INPUT
       type(timestream) :: OxHFstream,PSFforO3stream
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       REAL*8, ALLOCATABLE :: save_to3(:,:)
 #endif
 !@dbparam use_sol_Ox_cycle if =1, a cycle of ozone is appled to
@@ -3265,7 +3265,7 @@ C     functions
           plbo3(:)=plbo3_traditional(:)
         endif
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         allocate(save_to3(grid%i_strt:grid%i_stop,
      &                       grid%j_strt:grid%j_stop))
         save_to3 = 0.

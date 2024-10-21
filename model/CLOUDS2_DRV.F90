@@ -195,7 +195,7 @@ subroutine CONDSE
        ,wmclwp,wmctwp,CDNC_TOMAS
 
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
        use CLOUDS_COM, only : cldss3d
        use CLOUDS,     only : taussl3d, cldssl3d
 #endif       
@@ -209,10 +209,12 @@ subroutine CONDSE
   use CLOUDS, only : CUMFLX,DWNFLX,WCUALL,ENTALL,DETALL, &
        MPLUMEALL,PLUME_MAX,PLUME_MIN
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   use CLOUDS, only : mc_up_mf, mc_dd_mf, mc_up_ent, mc_dd_ent, mc_up_det, mc_dd_det
   use CLOUDS, only : mc_dqcond, mc_dqevap, ls_dqcond, ls_dqevap
   use CLOUDS, only : mc_pflx_l, mc_pflx_i, ls_pflx_l, ls_pflx_i
+  use CLOUDS_COM, only : pficu, pflcu, pfilsan, pfllsan
+  use CLOUDS_COM, only : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
 #endif
   use PBLCOM, only : dclev,egcm,w2gcm,pblht,pblptop
   use ATM_COM, only : pk,pek,pmid,pedn,gz,PMIDOLD,pdsig,MWs, &
@@ -302,26 +304,6 @@ subroutine CONDSE
             :: mc_pl_max_p1,mc_pl_max_p2, mc_pl_min_p1,mc_pl_min_p2
     integer LMIN
 #endif
-
-#ifdef GCAP
-    real*8, &
-         dimension(GRID%I_STRT_HALO:GRID%I_STOP_HALO, &
-                   GRID%J_STRT_HALO:GRID%J_STOP_HALO,LM) :: &
-                   dtrain,         & ! Updraft detrainment flux in layer [kg/m2/s]
-                   dqrcu,          & ! Convective rainwater source in layer [kg/kg/s]
-                   dqrlsan,        & ! Stratiform rainwater source in layer [kg/kg/s] 
-                   reevapcn,       & ! Evap./subl. of convective precip in layer [kg/kg/s]
-                   reevapls          ! Evap./subl. of stratiform precip in layer [kg/kg/s]
-    real*8, &
-         dimension(GRID%I_STRT_HALO:GRID%I_STOP_HALO, &
-                   GRID%J_STRT_HALO:GRID%J_STOP_HALO,LM+1) :: &
-                   cmfmc,          & ! Upward cloud mass flux [kg/m2/s]                   
-                   pficu,          & ! Downward flux of convective ice precipitation [kg/m2/s]
-                   pflcu,          & ! Downward flux of convective liq precipitation [kg/m2/s]
-                   pfilsan,        & ! Downward flux of large-scale ice precipitation [kg/m2/s]
-                   pfllsan           ! Downward flux of large-scale liq precipitation [kg/m2/s]                   
-    integer LMIN
-#endif    
 
 #ifdef CACHED_SUBDD
 #ifdef TRACERS_WATER
@@ -571,7 +553,7 @@ subroutine CONDSE
       ! isccp frequency diags
       save_fq_isccp=0.d0
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       ! plume diagnostics
       dtrain = 0.d0
       dqrcu  = 0.d0
@@ -1052,7 +1034,7 @@ subroutine CONDSE
             call inc_ajl(i,j,l,jl_mcdflx,DDMFLX(L))
             call inc_ajl(i,j,l,jl_csizmc,CSIZEL(L)*CLDMCL(L)*AIRM(L))
             aijl(i,j,l,ijl_MCamFX) = aijl(i,j,l,ijl_MCamFX) + MCFLX(L)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
             CMFMC(i,j,l+1) = MCFLX(l) * 100 * bygrav * bydtsrc ! mb -> kg m-2 s-1
 #endif
           end do
@@ -1223,7 +1205,7 @@ subroutine CONDSE
           mc_pl_min_p2(I,J,:) = PLUME_MIN(2,:)
         endif
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         ! plume diagnostics (kg/m2/s)
 
         !---------------------
@@ -1390,7 +1372,7 @@ subroutine CONDSE
              Itime,I,J,LERR,' CONDSE:H2O<0',WMERR,' ->0'
 
         !**** Accumulate diagnostics of LSCOND
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         !---------------------
         ! Mimic MERRA2
         !---------------------
@@ -1469,7 +1451,7 @@ subroutine CONDSE
         end do
 #endif
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         pflcu(i,j,:)   = mc_pflx_l(:) ! kg m-2 s-1
         pfllsan(i,j,:) = ls_pflx_l(:) ! kg m-2 s-1
         pficu(i,j,:)   = mc_pflx_i(:) ! kg m-2 s-1
@@ -1960,7 +1942,7 @@ subroutine CONDSE
 
         TAUSS(:,I,J)=TAUSSL(:)
         CLDSS(:,I,J)=CLDSSL(:)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
         CLDSS3D(:,I,J)=CLDSSL3D(:)
 #endif
         CLDSAV(:,I,J)=CLDSAVL(:)
@@ -2534,7 +2516,7 @@ subroutine CONDSE
     enddo;        enddo
     call inc_subdd(subdd,k,sddarr)
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
     case('PRECANV')
        sddarr(:,:) = 0
        call inc_subdd(subdd,k,sddarr)
@@ -2583,7 +2565,7 @@ subroutine CONDSE
   case ('mcamfx')
     call inc_subdd(subdd,k,cfmip_mcamfx)
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   case ('QL')
     call inc_subdd(subdd,k,qcl)
   case ('QI')
@@ -2734,7 +2716,7 @@ subroutine CONDSE
   endif
 #endif
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   ! Plume diagnostics in aijl file
   call find_groups('aijlh',grpids,ngroups)
   do igrp=1,ngroups
