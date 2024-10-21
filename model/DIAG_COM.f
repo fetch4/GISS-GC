@@ -1883,6 +1883,9 @@ c       call write_attr(grid,fid,tmpstr,'consrv' ,'no')
 #endif
       endif
 
+#ifdef TRACERS_GC
+      call def_rsf_gcdiag(fid,r4_on_disk)
+#endif
 #ifdef TRACERS_ON
       call def_rsf_trdiag(fid,r4_on_disk)
 #endif
@@ -2018,6 +2021,9 @@ c            call io_oda(iu_ODA,Itime,iowrite,ioerr)
 c            IF (AM_I_ROOT()) call closeunit(iu_ODA)
       end select
 
+#ifdef TRACERS_GC
+      call new_io_gcdiag( fid,iaction)
+#endif
 #ifdef TRACERS_ON
         call new_io_trdiag (fid,iaction)
 #endif
@@ -2323,6 +2329,9 @@ c new_io_subdd
 
       call def_meta_rvracc(fid)
 
+#ifdef TRACERS_GC
+      call def_meta_gcdiag(fid)
+#endif
 #ifdef TRACERS_ON
       call def_meta_trdiag(fid)
 #endif
@@ -2498,6 +2507,9 @@ c new_io_subdd
 
       call write_meta_rvracc(fid)
 
+#ifdef TRACERS_GC
+      call write_meta_gcdiag(fid)
+#endif
 #ifdef TRACERS_ON
       call write_meta_trdiag(fid)
 #endif
