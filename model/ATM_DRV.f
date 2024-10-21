@@ -819,6 +819,7 @@ c set-up for MPI implementation
 #endif
 #if defined( TRACERS_GC )
       use CHEM_DRV, only : init_chem
+      !use CHEM_COM, only : alloc_chem_com
 #endif
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
       use TRACER_COM, only: initTracerCom, alloc_tracer_com
@@ -923,6 +924,9 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 #endif
 !!! should be done in init_module_ent
       call alloc_ent_com(grid)
+#ifdef TRACERS_GC
+      call alloc_chem_com
+#endif
 #ifdef TRACERS_ON
       call alloc_trdiag_com
 #ifdef TRACERS_SPECIAL_Shindell
@@ -947,11 +951,12 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 !@sum  def_rsf_atmvars defines atm prognostic array structure in rsf
 !@auth M. Kelley
 !@ver  beta
-#ifdef TRACERS_GC
+#if defined( TRACERS_GC ) && ! defined( NEW_IO )
       use CHEM_DRV, only : io_chem
 #endif
       implicit none
       integer :: fid
+
       call def_rsf_atm    (fid)
       call def_rsf_lakes  (fid)
       call def_rsf_agrice (fid)
@@ -976,7 +981,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 #ifdef TRACERS_ON
       call tracerIO(fid, 'define')
 #endif
-#ifdef TRACERS_GC
+#if defined( TRACERS_GC ) &&    ! defined( NEW_IO )      
       call IO_CHEM(fid, 'define')
 #endif
       call def_rsf_subdd  (fid)
@@ -987,7 +992,10 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       subroutine new_io_atmvars(fid,iorw)
       use model_com, only: ioread, iowrite
 #ifdef TRACERS_GC
-      use CHEM_DRV, only : init_chem, io_chem
+      use CHEM_DRV, only : init_chem
+#ifndef NEW_IO
+      use CHEM_DRV, only : io_chem
+#endif
 #endif
       implicit none
       integer, intent(in) :: fid,iorw
@@ -1023,7 +1031,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
          call tracerIO(fid, 'write_dist')
       end select
 #endif
-#ifdef TRACERS_GC
+#if defined( TRACERS_GC ) && ! defined( NEW_IO )
       select case (iorw)
       case (ioread)
          call IO_CHEM(fid, 'read_dist')

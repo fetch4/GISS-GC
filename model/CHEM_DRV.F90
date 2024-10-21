@@ -2083,6 +2083,12 @@ CONTAINS
        ENDDO
     ENDDO
 
+    ! Initialize diagnostic ids
+    ijlt_OHvmr = 0
+    
+    ! Initialize diagnostics
+    call init_ijlts_diag
+    
     ! Return success
     RC = GC_SUCCESS
 
@@ -2090,6 +2096,36 @@ CONTAINS
   END SUBROUTINE INIT_CHEM
 
   !==========================================================================================================
+
+      subroutine init_ijlts_diag
+!@sum init_ijlts_diag Initialise lat/lon/height tracer diags
+!@auth Gavin Schmidt
+      USE DOMAIN_DECOMP_ATM, only: AM_I_ROOT
+      USE CHEM_COM
+      USE DIAG_COM
+      implicit none
+      integer k,n,i
+      character*50 :: unit_string
+
+      ir_ijlt = ir_log2  ! default
+      ia_ijlt = ia_src   ! default
+      denom_ijlt(:) = 0
+
+      k=0
+      
+      !do n=1,NTM
+      !  !select case(trname(n))
+
+      k = k + 1
+        ijlt_OHvmr=k
+        lname_ijlt(k) = 'OH mixing ratio'
+        sname_ijlt(k) = 'OH_vmr'
+        ijlt_power(k) = 0.0
+        units_ijlt(k) = 'mol mol-1'
+        scale_ijlt(k) = 10.**(-ijlt_power(k))
+
+      return
+      end subroutine init_ijlts_diag
 
 #ifdef CACHED_SUBDD
   SUBROUTINE accumGCsubdd
