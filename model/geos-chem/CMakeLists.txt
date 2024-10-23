@@ -34,7 +34,7 @@ include(GC-Helpers)
 #-----------------------------------------------------------------------------
 get_repo_version(GC_REPO_VERSION ${CMAKE_CURRENT_SOURCE_DIR})
 message("=================================================================")
-message("GCClassic ${PROJECT_VERSION} (superproject wrapper)")
+message("GISS-GC ${PROJECT_VERSION} (superproject wrapper)")
 message("Current status: ${GC_REPO_VERSION}")
 message("=================================================================")
 
@@ -222,7 +222,7 @@ if(NOT GC_EXTERNAL_CONFIG)
    gc_pretty_print(VARIABLE RUNDIR)
 
    # Configure for GCClassic
-   include(GC-ConfigureClassic)
+   include(GC-ConfigureGISS-GC)
    configureGCClassic()
 
 endif()
