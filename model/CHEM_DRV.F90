@@ -45,7 +45,7 @@ module CHEM_DRV
   TYPE(TaggedDgnList)        :: TaggedDiag_List ! Diagnostics state
   TYPE(GrdState)             :: State_Grid ! Grid state
   TYPE(ConfigObj), POINTER   :: HcoConfig
-  
+
   ! Start, stop and size of main grid
   INTEGER                                     :: J_1, J_0, I_1, I_0, J_0H, J_1H, NI, NJ    
   ! Start and end date and time
@@ -536,16 +536,16 @@ CONTAINS
 
     ! Set dry surface pressure (PS1_DRY) from State_Met%PS1_WET
     CALL SET_DRY_SURFACE_PRESSURE( State_Grid, State_Met, 1 )
-    
+
     ! Set dry surface pressure (PS2_DRY) from State_Met%PS2_WET
     CALL SET_DRY_SURFACE_PRESSURE( State_Grid, State_Met, 2 )
-    
+
     ! Initialize surface pressures to match the post-advection pressures
     State_Met%PSC2_WET = State_Met%PS1_WET
     State_Met%PSC2_DRY = State_Met%PS1_DRY
     CALL SET_FLOATING_PRESSURES( State_Grid, State_Met, RC )
     IF ( RC /= GC_SUCCESS ) RETURN
-    
+
     ! Define airmass and related quantities
     CALL AirQnt( Input_Opt, State_Chm, State_Grid, State_Met, RC, .FALSE. )    
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "AirQnt", 255 )
@@ -658,7 +658,7 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO   
-       
+
     ! Convert to v/v dry
     CALL Convert_Spc_Units(                                               &
       Input_Opt  = Input_Opt,                                             &
@@ -1136,7 +1136,7 @@ CONTAINS
           CALL SET_H2O_TRAC( .FALSE., Input_Opt, &
                              State_Chm, State_Grid, State_Met, RC )
        ENDIF
-       
+
        ! Do chemistry
        CALL Do_Chemistry( Input_Opt, State_Chm, State_Diag, &
                           State_Grid, State_Met, RC )
@@ -1532,7 +1532,7 @@ CONTAINS
     CALL sync_param( "DoGCChem",   DoGCChem   )
     CALL sync_param( "DoGCDryDep", DoGCDryDep )
     CALL sync_param( "DoGCWetDep", DoGCWetDep )
-    
+
     ! TODO-LTM: Debug Overrides
     !DoGCConv   = .true.  ! Works
     !DoGCEmis   = .true.  ! Works (make sure 3-D emissions on correct vert grid)
@@ -1541,7 +1541,7 @@ CONTAINS
     !DoGCChem   = .true.  ! Works (make sure to turn off linear strat)
     !DoGCDryDep = .true.  ! Works
     !DoGCWetDep = .true.  ! Works
-    
+
     !================================================================
     ! Specify local domain
     !================================================================
@@ -1560,7 +1560,7 @@ CONTAINS
     State_Grid%XMax         = lon2d_dg(i_1,1)
     State_Grid%YMin         = max( lat2d_dg(1,j_0), -89.0_fp )
     State_Grid%YMax         = min( lat2d_dg(1,j_1),  89.0_fp )
-    
+
     State_Grid%NX           = NI
     State_Grid%NY           = NJ
     State_Grid%NZ           = LM
@@ -1842,22 +1842,22 @@ CONTAINS
     ! TODO-LTM: Check
     ! ! Stratosphere - can't be initialized without HEMCO because of STATE_PSC
     ! IF ( Input_Opt%LUCX ) THEN
-       
+
        ! Initialize stratospheric routines
        CALL INIT_UCX( Input_Opt, State_Chm, State_Diag, State_Grid )
-       
-    ! ENDIF
+
+    !ENDIF
 
     NSP = State_Chm%nSpecies
     NTM = State_Chm%nAdvect + 1
 
     ALLOCATE( TrName(NTM) )
     ALLOCATE( TrFullName(NTM) )
-    ALLOCATE( IsAdvected(NTM) )    
+    ALLOCATE( IsAdvected(NTM) )
     ALLOCATE( t_qlimit(NTM) )
     ALLOCATE(     TrM(       I_0H:I_1H, J_0H:J_1H, LM, NTM  ) )
     ALLOCATE(   TrMom( NMOM, I_0H:I_1H, J_0H:J_1H, LM, NTM ) )
-    
+
     NN=1
     DO N = 1, NSP
        IF ( State_Chm%SpcData(N)%Info%Is_Advected .or. &
