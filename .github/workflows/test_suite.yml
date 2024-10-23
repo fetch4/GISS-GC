@@ -128,5 +128,5 @@ jobs:
         cp .github/rundecks/${RUNID}.R decks
         cp .github/modelErc ~/.modelErc
         # Build the model
-        cd decks
-        make -j setup RUN=${RUNID} F90=mpif90 GC=YES
+        cd ${GISS_HOME}/decks
+        make -j setup RUN=${RUNID} F90=mpif90 GC=YES MECH=carbon
