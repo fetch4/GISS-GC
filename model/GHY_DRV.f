@@ -823,7 +823,7 @@ c****
 #ifdef TRACERS_GASEXCH_land_CO2
       use tracer_com, only : n_CO2n
 #endif
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use ghy_com, only : wfcs, z0m_save, lai_save
 #endif
       use TimeConstants_mod, only: SECONDS_PER_YEAR
@@ -1467,7 +1467,7 @@ C
           sddarr2d(i,j) = atmlnd%runo(i,j)*fearth(i,j)
         enddo;        enddo
         call inc_subdd(subdd,k,sddarr2d)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       case ('GWETTOP')
          do j=j_0,j_1; do i=i_0,i_1
             sddarr2d(i,j)=0.0
@@ -1678,7 +1678,7 @@ c***********************************************************************
      &    ,airrig,aeirrig,alandC
       use ent_com, only : excess_C
       use ghy_com, only : gdeep, gsaveL, fearth
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use ghy_com, only : lai_save
 #endif
       USE CLOUDS_COM, only : DDMS
@@ -1791,7 +1791,7 @@ ccc the following values are returned by PBL
       aij(i,j,ij_rauto)=aij(i,j,ij_rauto)+arauto*ptype
       aij(i,j,ij_clab)=aij(i,j,ij_clab)+(aclab/nisurf)*ptype
       aij(i,j,ij_lai)=aij(i,j,ij_lai)+(alai/nisurf)*ptype
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       lai_save(i,j) = (alai/nisurf)*ptype
 #endif
       aij(i,j,ij_soilresp)=aij(i,j,ij_soilresp)+asoilresp*ptype
