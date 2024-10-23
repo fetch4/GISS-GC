@@ -1,4 +1,4 @@
-# GCClassic high-level CMakeLists.txt
+# GISS-GC high-level CMakeLists.txt
 
 cmake_minimum_required (VERSION 3.13)
 project (geos-chem-classic
@@ -221,9 +221,13 @@ if(NOT GC_EXTERNAL_CONFIG)
    set(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT FALSE)
    gc_pretty_print(VARIABLE RUNDIR)
 
-   # Configure for GCClassic
+   # # Configure for GCClassic
+   # include(GC-ConfigureGCClassic)
+   # configureGCClassic()
+
+   # Configure for GISS-GC
    include(GC-ConfigureGISS-GC)
-   configureGCClassic()
+   configureGISS_GC()
 
 endif()
 
