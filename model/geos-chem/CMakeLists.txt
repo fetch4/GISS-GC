@@ -1,4 +1,4 @@
-# GCClassic high-level CMakeLists.txt
+# GISS-GC high-level CMakeLists.txt
 
 cmake_minimum_required (VERSION 3.13)
 project (geos-chem-classic
@@ -34,7 +34,7 @@ include(GC-Helpers)
 #-----------------------------------------------------------------------------
 get_repo_version(GC_REPO_VERSION ${CMAKE_CURRENT_SOURCE_DIR})
 message("=================================================================")
-message("GCClassic ${PROJECT_VERSION} (superproject wrapper)")
+message("GISS-GC ${PROJECT_VERSION} (superproject wrapper)")
 message("Current status: ${GC_REPO_VERSION}")
 message("=================================================================")
 
@@ -221,9 +221,13 @@ if(NOT GC_EXTERNAL_CONFIG)
    set(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT FALSE)
    gc_pretty_print(VARIABLE RUNDIR)
 
-   # Configure for GCClassic
-   include(GC-ConfigureClassic)
-   configureGCClassic()
+   # # Configure for GCClassic
+   # include(GC-ConfigureGCClassic)
+   # configureGCClassic()
+
+   # Configure for GISS-GC
+   include(GC-ConfigureGISS-GC)
+   configureGISS_GC()
 
 endif()
 
