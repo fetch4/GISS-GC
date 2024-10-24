@@ -13,12 +13,6 @@ env:
   GISS_HOME: /__w/GISS-GC/GISS-GC
   ModelE_Support: /__w/GISS-GC/GISS-GC/run
   DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
-  # Environment variables for compiler
-  CC: gcc
-  CXX: g++
-  FC: gfortran
-  F90: gfortran
-  F77: gfortran
   # Misc. environment variables
   F_UFMTENDIAN: big
   KMP_STACKSIZE: 100000000
