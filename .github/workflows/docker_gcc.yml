@@ -1,4 +1,4 @@
-name: Periodic Docker build
+name: Periodic Docker build with GCC
 
 on:
   # Build the Docker container whenever commits are pushed to an open PR (under conditions defined below)
@@ -26,9 +26,9 @@ jobs:
         uses: tj-actions/changed-files@v44
         with:
           files: |
-            .github/workflows/docker.yml
-            docker/Dockerfile.devenv
-            docker/spack.yaml
+            .github/workflows/docker_gcc.yml
+            docker/Dockerfile.gcc
+            docker/spack_gcc.yaml
           base_sha: develop
 
       - name: Setup Docker buildx
@@ -53,5 +53,5 @@ jobs:
         with:
           push: true
           no-cache: true
-          file: docker/Dockerfile.devenv
-          tags: ghcr.io/fetch4/giss-gc-dev-env:latest
+          file: docker/Dockerfile.gcc
+          tags: ghcr.io/fetch4/giss-gc-dev-env-gcc:latest
