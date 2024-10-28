@@ -1,5 +1,5 @@
-# Workflow to test compilation of GCClassic
-name: Compile GCClassic
+# Workflow to test compilation of GCClassic using GNU compilers
+name: Compile GCClassic with GNU compilers
 
 # Controls when the workflow will run
 on:

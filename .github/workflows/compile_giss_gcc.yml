@@ -1,5 +1,5 @@
-# Workflow to test compilation of GISS Model E
-name: Compile Model E
+# Workflow to test compilation of GISS Model E using GNU compilers
+name: Compile Model E with GNU compilers
 
 # Controls when the workflow will run
 on:
@@ -47,9 +47,9 @@ jobs:
         mode: ["debug", "release"]
         model: ["giss-only", "giss-gc"]
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fetch4/giss-gc-dev-env:latest
+      image: ghcr.io/fetch4/giss-gc-dev-env-gcc:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
