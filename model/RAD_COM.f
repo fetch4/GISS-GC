@@ -400,7 +400,10 @@ C**** Local variables initialised in init_RAD
      *     ,GCCco2_tracer_save,GCCco2rad_to_chem,GCCco2rad_to_file
 #endif
 #ifdef CALC_MERRA2_LIKE_DIAGS
-     *     ,save_alb,tauw3d,taui3d,save_cosz2
+     *     ,save_alb,tauw3d,taui3d
+#ifdef TRACERS_GC
+     *     ,save_COSZ2
+#endif
 #endif
 #ifdef mjo_subdd
      *     ,SWHR_cnt,LWHR_cnt,SWHR,LWHR,OLR_acc,OLR_cnt
