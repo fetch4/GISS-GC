@@ -1,12 +1,12 @@
-name: Periodic Docker build
+name: Periodic Docker build with Intel
 
 on:
   # Build the Docker container whenever commits are pushed to an open PR that changes one of the files listed
   pull_request:
     paths:
-      - .github/workflows/docker.yml
-      - docker/Dockerfile.devenv
-      - docker/spack.yaml
+      - .github/workflows/docker_intel.yml
+      - docker/Dockerfile.intel
+      - docker/spack_intel.yaml
 
   # Build the Docker container at 00:00 on the first day of every 3 months
   schedule:
@@ -45,5 +45,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          file: docker/Dockerfile.devenv
+          no-cache: true
+          file: docker/Dockerfile.intel
           tags: ghcr.io/fetch4/giss-gc-dev-env:latest
