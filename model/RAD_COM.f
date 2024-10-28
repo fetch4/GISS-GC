@@ -460,7 +460,7 @@ C**** Local variables initialised in init_RAD
 #endif
      *     KLIQ(LM,4, I_0H:I_1H, J_0H:J_1H),
      *     COSZ1   (I_0H:I_1H, J_0H:J_1H),
-#if (define CALC_MERRA2_LIKE_DIAGS) && (defined TRACERS_GC)
+#if (defined CALC_MERRA2_LIKE_DIAGS) && (defined TRACERS_GC)
      *     save_COSZ2(I_0H:I_1H, J_0H:J_1H),
 #endif
      *     COSZ_day(I_0H:I_1H, J_0H:J_1H),
