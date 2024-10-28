@@ -109,15 +109,22 @@ CONTAINS
     USE DOMAIN_DECOMP_1D,  ONLY : HALO_UPDATE, SOUTH, NORTH
     USE MODEL_COM,         ONLY : modelEclock, itime, ItimeI, DTsrc
     USE ATM_COM,           ONLY : pedn, pmid, pk, ptropo, zatmo, mws, t, q, ualij, valij, qci, qcl
+#ifdef CALC_MERRA2_LIKE_DIAGS
     USE CLOUDS_COM,        ONLY : tauss, taumc, cldmc, cldss, cldss3d, pficu, pflcu, pfilsan, pfllsan
     USE CLOUDS_COM,        ONLY : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
+#endif
     USE FLUXES,            ONLY : atmsrf, atmlnd, prec, precss, focean, fland, flice
     USE GEOM,              ONLY : axyp, byaxyp
-    USE GHY_COM,           ONLY : fearth, wearth, aiearth, wfcs, lai_save, z0m_save
+    USE GHY_COM,           ONLY : fearth, wearth, aiearth, wfcs
+#ifdef CALC_MERRA2_LIKE_DIAGS
+    USE GHY_COM,           ONLY : lai_save, z0m_save
+#endif
     USE LAKES_COM,         ONLY : flake
+#ifdef CALC_MERRA2_LIKE_DIAGS
     USE O3mod,             ONLY : save_to3
-    USE RAD_COM,           ONLY : save_alb, cfrac, srdn, fsrdir, srvissurf, cosz1, save_cosz2
-    USE RAD_COM,           ONLY : taui3d, tauw3d
+    USE RAD_COM,           ONLY : save_alb, taui3d, tauw3d
+#endif
+    USE RAD_COM,           ONLY : cfrac, srdn, fsrdir, srvissurf, cosz1, save_cosz2
     USE SEAICE_COM,        ONLY : si_atm, si_ocn
     USE CONSTANT,          ONLY : bygrav, lhe, tf, teeny
 
@@ -208,8 +215,10 @@ CONTAINS
           ! Surface fields
           !----------------------------------------------------------------------
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ! Visible surface albedo [1]
           State_Met%ALBD        (II,JJ) = save_alb(i,j)  
+#endif
 
           ! Grid box surface area [cm2]
           State_Met%AREA_M2     (II,JJ) = axyp(i,j)      
@@ -220,6 +229,7 @@ CONTAINS
           ! Column cloud fraction [1]
           State_Met%CLDFRC      (II,JJ) = cfrac(i,j)     
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ! Max cloud top height [levels]
           State_Met%CLDTOPS(II,JJ) = 1                   
           DO K = LM, 1, -1
@@ -228,6 +238,7 @@ CONTAINS
                 EXIT
              ENDIF
           ENDDO
+#endif
 
           ! Latent heat flux [W/m2]
           State_Met%EFLUX       (II,JJ) = -atmsrf%latht(i,j)/dtsrc    
@@ -277,8 +288,10 @@ CONTAINS
           ! Sensible heat flux [W/m2]
           State_Met%HFLUX       (II,JJ) = -atmsrf%sensht(i,j)/dtsrc   
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ! Leaf area index [m2/m2] (online)
-          State_Met%LAI         (II,JJ) = lai_save(i,j)               
+          State_Met%LAI         (II,JJ) = lai_save(i,j)
+#endif
 
           ! Land/water/ice indices [1]
           ! TODO: Uncomment or drop the following
@@ -358,8 +371,10 @@ CONTAINS
           ! Incident radiation @ ground [W/m2]
           State_Met%SWGDN       (II,JJ) = srdn(i,j)*save_cosz2(i,j)                                 
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ! Total overhead O3 column [DU]
           State_Met%TO3         (II,JJ) = save_to3(i,j)                                             
+#endif
 
           ! Tropopause pressure [hPa]     
           State_Met%TROPP       (II,JJ) = ptropo(i,j)                                               
@@ -393,14 +408,18 @@ CONTAINS
           ! Friction velocity [m/s]
           State_Met%USTAR       (II,JJ) = atmsrf%ustar_pbl(i,j)                                     
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ! UV surface albedo [1]
           State_Met%UVALBEDO    (II,JJ) = save_alb(i,j)                                             
+#endif
 
           ! N/S wind speed @ 10m ht [m/s]
           State_Met%V10M        (II,JJ) = atmsrf%vsavg(i,j)                                         
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
           ! Surface roughness height [m]
-          State_Met%Z0          (II,JJ) = z0m_save(i,j)                                             
+          State_Met%Z0          (II,JJ) = z0m_save(i,j)
+#endif
 
 #ifdef MODEL_GEOS
           ! Convective fraction [1] (only used by GEOS)
@@ -432,6 +451,7 @@ CONTAINS
              if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
              if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
              ! 3-D cloud fraction [1]
              State_Met%CLDF        (II,JJ,K) = min(1.0,CLDSS3D(k,i,j) + CLDMC(k,i,j))                   
 
@@ -446,17 +466,21 @@ CONTAINS
 
              ! Detrainment flux [kg/m2/s]
              State_Met%DTRAIN      (II,JJ,K) = dtrain(i,j,k)                                            
+#endif
 
              ! Vertical pressure velocity [Pa/s]
              State_Met%OMEGA       (II,JJ,K) = MWs(i,j,k)*byaxyp(i,j)*100.0/dtsrc                       
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
              ! Visible optical depth [1]
              State_Met%OPTD        (II,JJ,K) = (cldss(k,i,j)*TAUSS(k,i,j) + &                           
                   cldmc(k,i,j)*TAUMC(k,i,j)  ) / ( cldss(k,i,j) + cldmc(k,i,j) + teeny )
+#endif
 
              ! Wet air press @ level edges [hPa]
              State_Met%PEDGE       (II,JJ,K) = pedn(k,i,j)                                              
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
              ! Dwn flux ice prec:conv [kg/m2/s]
              State_Met%PFICU       (II,JJ,K) = pficu(i,j,k)                                             
 
@@ -468,6 +492,7 @@ CONTAINS
 
              ! Dwn flux ice prec:LS+anv [kg/m2/s]
              State_Met%PFLLSAN     (II,JJ,K) = pfllsan(i,j,k)                                           
+#endif
 
              ! Ice mixing ratio [kg/kg dry air]
              State_Met%QI          (II,JJ,K) = qci(i,j,k)                                               
@@ -475,11 +500,13 @@ CONTAINS
              ! Water mixing ratio [kg/kg dry air]
              State_Met%QL          (II,JJ,K) = qcl(i,j,k)                                               
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
              ! Evap of precip conv [kg/kg/s] (assume per dry air)
              State_Met%REEVAPCN    (II,JJ,K) = reevapcn(i,j,k)                                          
 
              ! Evap of precip LS+anvil [kg/kg/s] (assume per dry air)
              State_Met%REEVAPLS    (II,JJ,K) = reevapls(i,j,k)                                          
+#endif
 
              ! Relative humidity [%]
              State_Met%RH          (II,JJ,K) = 100.*q(i,j,k)/QSAT(t(i,j,k)*pk(k,i,j),LHE,pmid(k,i,j))   
@@ -501,11 +528,13 @@ CONTAINS
              ! Temperature [K]
              State_Met%T           (II,JJ,K) = t(i,j,k)*pk(k,i,j)                                       
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
              ! Optical depth of ice clouds [1]
              State_Met%TAUCLI      (II,JJ,K) = taui3d(i,j,k)                                            
 
              ! Optical depth of H2O clouds [1]
              State_Met%TAUCLW      (II,JJ,K) = tauw3d(i,j,k)
+#endif
 
              ! Temperature at start of timestep [K]
              State_Met%TMPU1       (II,JJ,K) = t(i,j,k)*pk(k,i,j)                                       
@@ -536,11 +565,13 @@ CONTAINS
           JJ = J - J_0 + 1
 
           State_Met%PEDGE       (II,JJ,LM+1) =  pedn(LM+1,i,j)                                    
+#ifdef CALC_MERRA2_LIKE_DIAGS
           State_Met%CMFMC       (II,JJ,LM+1) =  cmfmc(i,j,LM+1)
           State_Met%PFICU       (II,JJ,LM+1) =  pficu(i,j,LM+1)
           State_Met%PFILSAN     (II,JJ,LM+1) =  pfilsan(i,j,LM+1)
           State_Met%PFLCU       (II,JJ,LM+1) =  pflcu(i,j,LM+1)
           State_Met%PFLLSAN     (II,JJ,LM+1) =  pfllsan(i,j,LM+1)
+#endif
 
        ENDDO
     ENDDO
