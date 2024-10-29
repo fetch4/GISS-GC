@@ -131,14 +131,14 @@ ifeq ($(GC),YES)
 	@echo "***************************************************************"
 	mkdir -p $(GC_BUILD_DIR)
 	mkdir -p $(GC_LIB_DIR)
-# If CMAKE_BUILD_TYPE is not specified, it defaults to "Release". May also be set to "Debug"
-# If MECH is not specified, it defaults to "fullchem". May also be "carbon".
-ifeq ($(COMPILER),gfortran)
-	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -Wno-main"
-endif
-ifeq ($(F90),intel)
-	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. -DCMAKE_BUILD_TYPE=$(TYPE) -DOMP=$(MP) -DMECH=$(MECH) -DCMAKE_EXE_LINKER_FLAGS="-nostartfiles -nofor-main"
-endif
+	# If CMAKE_BUILD_TYPE is not specified, it defaults to "Release". May also be set to "Debug"
+	# If MECH is not specified, it defaults to "fullchem". May also be "carbon".
+	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. \
+		-DCMAKE_BUILD_TYPE="$(TYPE)" -DOMP="$(MP)" -DMECH="$(MECH)" \
+		-DCMAKE_C_COMPILER="$(CC)" \
+		-DCMAKE_CXX_COMPILER="$(CXX)" \
+		-DCMAKE_Fortran_COMPILER="$(F90)" \
+		-DCMAKE_EXE_LINKER_FLAGS="$(LFLAGS)"
 	cd $(GC_BUILD_DIR) && make -j install
 	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
 	cp $(GC_BUILD_DIR)/src/HEMCO/mod/*.mod $(MODEL_DIR)/mod/
