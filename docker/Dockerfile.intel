@@ -9,6 +9,7 @@ COPY --from=intel /opt/intel/oneapi /opt/intel/oneapi
 # Install software from spack_intel.yaml
 RUN mkdir /opt/spack-environment
 COPY docker/spack_intel.yaml /opt/spack-environment/spack.yaml
+COPY docker/compilers_intel.yaml /root/.spack/linux/compilers.yaml
 RUN cd /opt/spack-environment \
     && spack env activate . \
     && spack install --fail-fast \
@@ -32,6 +33,7 @@ RUN cd /opt/spack-environment \
 FROM ubuntu:22.04
 
 # Copy necessary files from the builder stage
+COPY --from=builder /opt/intel/oneapi /opt/intel/oneapi
 COPY --from=builder /opt/spack-environment /opt/spack-environment
 COPY --from=builder /opt/software /opt/software
 COPY --from=builder /usr /usr

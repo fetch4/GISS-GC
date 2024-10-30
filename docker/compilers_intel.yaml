@@ -1,0 +1,10 @@
+compilers:
+- compiler:
+    modules: []
+    operating_system: ubuntu22.04
+    paths:
+      cc: /opt/intel/oneapi/compiler/2024.0/bin/icx
+      cxx: /opt/intel/oneapi/compiler/2024.0/bin/icx
+      f77: /opt/intel/oneapi/compiler/2024.0/bin/ifx
+      fc: /opt/intel/oneapi/compiler/2024.0/bin/ifx
+    spec: intel@2024.0
