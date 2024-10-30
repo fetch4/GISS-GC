@@ -10,7 +10,7 @@ all: build
 
 # Variables
 COMPILER	?= gcc
-DOCKERFILE	= Dockerfile.$(COMPILER)
+DOCKERFILE	= docker/Dockerfile.$(COMPILER)
 NAMESPACE	= ghcr.io/fetch4
 IMAGE_NAME	= giss-gc-dev-env-$(COMPILER)
 TAG			= latest
