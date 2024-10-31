@@ -45,6 +45,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          no-cache: true
           file: docker/Dockerfile.intel
           tags: ghcr.io/fetch4/giss-gc-dev-env:latest
