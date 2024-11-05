@@ -50,7 +50,7 @@ VerboseOnCores:              root       # Accepted values: root all
 0       Base                   : on    *
 # ----- MAIN SWITCHES ---------------------------------------------------------
     --> EMISSIONS              :       true
-    --> METEOROLOGY            :       true     # 1980-2021
+    --> METEOROLOGY            :       false    # 1980-2021
     --> CHEMISTRY_INPUT        :       true
 # ----- RESTART FIELDS --------------------------------------------------------
     --> GC_RESTART             :       true
