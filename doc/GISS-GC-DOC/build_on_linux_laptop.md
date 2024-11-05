@@ -179,7 +179,7 @@ Tweak `~/.modelErc` as follows:
 # GCMSEARCHPATH - directory to search for gcm input files.
 # All necessary input files should be copied or linked to this directory.
 -GCMSEARCHPATH=/scratch/jwallwo2/run/prod_input_files
-+CMSEARCHPATH=${ModelE_Support}/prod_input_files
++GCMSEARCHPATH=${ModelE_Support}/prod_input_files
 
 # EXECDIR - path to directory with modelE scripts and with some
 # executables. This directory should contain the scripts from modelE/exec.
