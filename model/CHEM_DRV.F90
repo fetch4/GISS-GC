@@ -12,16 +12,15 @@ module CHEM_DRV
   USE DIAG_COM
   USE CHEM_COM
 
-  ! TODO: Use ONLY statements
-  USE Input_Opt_Mod
-  USE State_Chm_Mod
-  USE State_Grid_Mod
-  USE State_Met_Mod
-  USE State_Diag_Mod
-  USE DiagList_Mod      
-  USE TaggedDiagList_Mod
-  USE HCO_Types_Mod,           ONLY : ConfigObj
-  USE Precision_Mod
+  USE Input_Opt_Mod,           ONLY: OptInput
+  USE State_Chm_Mod,           ONLY: ChmState
+  USE State_Grid_Mod,          ONLY: GrdState
+  USE State_Met_Mod,           ONLY: MetState
+  USE State_Diag_Mod,          ONLY: DgnState
+  USE DiagList_Mod,            ONLY: DgnList, Init_DiagList, Print_DiagList
+  USE TaggedDiagList_Mod,      ONLY: TaggedDgnList, Init_TaggedDiagList, Print_TaggedDiagList
+  USE HCO_Types_Mod,           ONLY: ConfigObj
+  USE Precision_Mod,           ONLY: f8, fp
 
   IMPLICIT NONE
   PRIVATE
@@ -828,16 +827,15 @@ CONTAINS
     USE Pressure_Mod,       ONLY : Accept_External_Pedge
     USE State_Chm_Mod,      ONLY : IND_
     USE Time_Mod,           ONLY : Accept_External_Date_Time
-    ! TODO: Use ONLY statement
-    USE UnitConv_Mod
+    USE UnitConv_Mod,       ONLY : Convert_Spc_Units, KG_SPECIES_PER_KG_DRY_AIR
 
     ! Diagnostics
     USE Diagnostics_Mod,    ONLY : Zero_Diagnostics_StartofTimestep
     USE Diagnostics_Mod,    ONLY : Set_Diagnostics_EndofTimestep
     USE Diagnostics_Mod,    ONLY : Set_AerMass_Diagnostic
 
-    USE Calc_Met_Mod,           ONLY : GET_COSINE_SZA
-    USE Species_Mod,   ONLY : Species
+    USE Calc_Met_Mod,       ONLY : GET_COSINE_SZA
+    USE Species_Mod,        ONLY : Species
 
 !
 ! !INPUT PARAMETERS:
@@ -2331,7 +2329,7 @@ CONTAINS
     USE State_Grid_Mod,    ONLY : GrdState
     USE State_Met_Mod,     ONLY : MetState
     USE Time_Mod,          ONLY : Expand_Date
-    USE UnitConv_Mod
+    USE UnitConv_Mod,      ONLY : KG_SPECIES_PER_KG_DRY_AIR, MOLECULES_SPECIES_PER_CM3, Convert_Spc_Units
 #ifdef APM
     USE APM_Init_Mod,      ONLY : APMIDS
 #endif
