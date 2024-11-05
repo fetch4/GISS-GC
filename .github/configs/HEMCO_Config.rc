@@ -37,7 +37,8 @@ Separator:                   /
 Unit tolerance:              1
 Negative values:             0
 Only unitless scale factors: false
-Verbose:                     false
+Verbose:                     3
+Warning:                     3
 VerboseOnCores:              root       # Accepted values: root all
 
 ### END SECTION SETTINGS ###
