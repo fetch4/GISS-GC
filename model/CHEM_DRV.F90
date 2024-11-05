@@ -292,12 +292,6 @@ CONTAINS
           State_Met%LAI         (II,JJ) = lai_save(i,j)
 #endif
 
-          ! Land/water/ice indices [1]
-          ! TODO: Uncomment or drop the following
-          ! State_Met%LWI         (II,JJ) = 1
-          ! if ( focean(i,j) > fearth(i,j) ) State_Met%LWI(II,JJ) = 0
-          ! if ( si_atm%rsi(i,j)*focean(i,j) > 0.5 ) State_Met%LWI(II,JJ) = 2
-
           ! Direct photsynthetically active radiation [W/m2]
           State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)              
 
