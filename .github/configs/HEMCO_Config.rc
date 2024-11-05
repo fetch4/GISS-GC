@@ -53,8 +53,8 @@ VerboseOnCores:              root       # Accepted values: root all
     --> METEOROLOGY            :       false    # 1980-2021
     --> CHEMISTRY_INPUT        :       true
 # ----- RESTART FIELDS --------------------------------------------------------
-    --> GC_RESTART             :       true
-    --> HEMCO_RESTART          :       true
+    --> GC_RESTART             :       false
+    --> HEMCO_RESTART          :       false
 # ----- NESTED GRID FIELDS ----------------------------------------------------
     --> GC_BCs                 :       false
 # ----- REGIONAL INVENTORIES --------------------------------------------------
