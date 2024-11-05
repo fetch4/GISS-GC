@@ -153,9 +153,9 @@ VerboseOnCores:              root       # Accepted values: root all
     --> OFFLINE_SOILNOX        :       true     # 1980-2020
 # ----- NON-EMISSIONS DATA ----------------------------------------------------
     --> UVALBEDO               :       true     # 1985
-    --> CCM_STRAT_Bry          :       true     # 2007
-    --> GMI_OH                 :       true     # 2005
-    --> GMI_PROD_LOSS          :       true     # 2005
+    --> CCM_STRAT_Bry          :       false    # 2007
+    --> GMI_OH                 :       false    # 2005
+    --> GMI_PROD_LOSS          :       false    # 2005
     --> OMOC_RATIO             :       false    # 2010
     --> GMD_SFC_CH4            :       true     # 1979-2020
     --> CMIP6_SFC_CH4          :       false    # 1750-1978
@@ -2805,20 +2805,20 @@ VerboseOnCores:              root       # Accepted values: root all
 0 AEIC19_DAILY_RCHO -                                                                 -        -                - -   -       RCHO 241/114/109 20 1
 )))AEIC2019_DAILY
 (((AEIC2019_MONMEAN
-0 AEIC19_MONMEAN_NO   $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc NO       2019/1-12/1/0 C xyz kg/m2/s NO   241/240     20 1
-0 AEIC19_MONMEAN_NO2  $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc NO2      2019/1-12/1/0 C xyz kg/m2/s NO2  241/240     20 1
-0 AEIC19_MONMEAN_HONO $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc HONO     2019/1-12/1/0 C xyz kg/m2/s HNO2 241/240     20 1
-0 AEIC19_MONMEAN_CO   $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc CO       2019/1-12/1/0 C xyz kg/m2/s CO   241         20 1
+0 AEIC19_MONMEAN_NO   -                                                                          -        -             - xyz kg/m2/s NO   241/240     20 1
+0 AEIC19_MONMEAN_NO2  -                                                                          -        -             - xyz kg/m2/s NO2  241/240     20 1
+0 AEIC19_MONMEAN_HONO -                                                                          -        -             - xyz kg/m2/s HNO2 241/240     20 1
+0 AEIC19_MONMEAN_CO   -                                                                          -        -             - xyz kg/m2/s CO   241         20 1
 0 AEIC19_MONMEAN_SOAP -                                                                          -        -             - -   -       SOAP 241/280     20 1
-0 AEIC19_MONMEAN_SO2  $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc FUELBURN 2019/1-12/1/0 C xyz kg/m2/s SO2  241/111     20 1
+0 AEIC19_MONMEAN_SO2  -                                                                          -        -             - xyz kg/m2/s SO2  241/111     20 1
 0 AEIC19_MONMEAN_pFe  -                                                                          -        -             - -   -       pFe  241/111/66  20 1
 0 AEIC19_MONMEAN_SO4  -                                                                          -        -             - -   -       SO4  241/112     20 1
 0 AEIC19_MONMEAN_H2O  -                                                                          -        -             - -   -       H2O  241/120     20 1
-0 AEIC19_MONMEAN_BCPI $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc BC       2019/1-12/1/0 C xyz kg/m2/s BCPI 241         20 1
-0 AEIC19_MONMEAN_OCPI $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc OC       2019/1-12/1/0 C xyz kg/m2/s OCPI 241         20 1
+0 AEIC19_MONMEAN_BCPI -                                                                          -        -             - xyz kg/m2/s BCPI 241         20 1
+0 AEIC19_MONMEAN_OCPI -                                                                          -        -             - xyz kg/m2/s OCPI 241         20 1
 0 AEIC19_MONMEAN_POG1 -                                                                          -        -             - -   -       POG1 241/74/76   20 1
 0 AEIC19_MONMEAN_POG2 -                                                                          -        -             - -   -       POG2 241/74/77   20 1
-0 AEIC19_MONMEAN_ACET $ROOT/AEIC2019/v2022-03/2019_monmean/AEIC_monmean_2019$MM.0.5x0.625.36L.nc HC       2019/1-12/1/0 C xyz kg/m2/s ACET 241/114/101 20 1
+0 AEIC19_MONMEAN_ACET -                                                                          -        -             - xyz kg/m2/s ACET 241/114/101 20 1
 0 AEIC19_MONMEAN_ALD2 -                                                                          -        -             - -   -       ALD2 241/114/102 20 1
 0 AEIC19_MONMEAN_ALK4 -                                                                          -        -             - -   -       ALK4 241/114/103 20 1
 0 AEIC19_MONMEAN_C2H6 -                                                                          -        -             - -   -       C2H6 241/114/104 20 1
@@ -4436,9 +4436,9 @@ VerboseOnCores:              root       # Accepted values: root all
 # --- CEDS vertical partitioning ---
 #==============================================================================
 (((CEDSv2.or.CEDS_GBDMAPS
-315 ENERGY_LEVS   $ROOT/VerticalScaleFactors/v2021-05/gc_layers.nc g_energy   2017/1/1/0 C xyz 1 1
-316 INDUSTRY_LEVS $ROOT/VerticalScaleFactors/v2021-05/gc_layers.nc g_industry 2017/1/1/0 C xyz 1 1
-317 SHIP_LEVS     $ROOT/VerticalScaleFactors/v2021-05/gc_layers.nc cmv_c3     2017/1/1/0 C xyz 1 1
+315 ENERGY_LEVS   1.0 - - - xyz 1 1
+316 INDUSTRY_LEVS 1.0 - - - xyz 1 1
+317 SHIP_LEVS     1.0 - - - xyz 1 1
 )))CEDSv2.or.CEDS_GBDMAPS
 
 #==============================================================================
