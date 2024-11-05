@@ -1535,15 +1535,6 @@ CONTAINS
     CALL sync_param( "DoGCDryDep", DoGCDryDep )
     CALL sync_param( "DoGCWetDep", DoGCWetDep )
 
-    ! TODO-LTM: Debug Overrides
-    !DoGCConv   = .true.  ! Works
-    !DoGCEmis   = .true.  ! Works (make sure 3-D emissions on correct vert grid)
-    !DoGCTend   = .false. 
-    !DoGCTurb   = .true.  ! Works
-    !DoGCChem   = .true.  ! Works (make sure to turn off linear strat)
-    !DoGCDryDep = .true.  ! Works
-    !DoGCWetDep = .true.  ! Works
-
     !================================================================
     ! Specify local domain
     !================================================================
