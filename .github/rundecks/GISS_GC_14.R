@@ -24,7 +24,7 @@ Preprocessor Options
 #define NEW_BCdalbsn
 #define NEW_IO_SUBDD
 #define CACHED_SUBDD
-#define GCAP
+#define CALC_MERRA2_LIKE_DIAGS
 #define CALCULATE_LIGHTNING
 #define TRACERS_GC               ! tracers using GISS-GC coupling
 #define MERRA_NUDGING

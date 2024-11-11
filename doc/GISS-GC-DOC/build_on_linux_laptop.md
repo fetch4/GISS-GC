@@ -35,6 +35,12 @@ mkdir -p ${ModelE_Support}/huge_space
 mkdir -p ${ModelE_Support}/prod_decks
 mkdir -p ${ModelE_Support}/prod_input_files
 mkdir -p ${ModelE_Support}/prod_runs
+# Environment variables for compiler
+export CC=gcc       # NOTE: Edit if you're using a different C compiler
+export CXX=g++      # NOTE: Edit if you're using a different C++ compiler
+export FC=gfortran  # NOTE: Edit if you're using a different Fortran compiler
+export F90=gfortran # NOTE: Edit if you're using a different Fortran compiler
+export F77=gfortran # NOTE: Edit if you're using a different Fortran compiler
 # Misc. environment variables
 export F_UFMTENDIAN=big
 export KMP_STACKSIZE=100000000
