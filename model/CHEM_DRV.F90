@@ -12,16 +12,15 @@ module CHEM_DRV
   USE DIAG_COM
   USE CHEM_COM
 
-  ! TODO: Use ONLY statements
-  USE Input_Opt_Mod
-  USE State_Chm_Mod
-  USE State_Grid_Mod
-  USE State_Met_Mod
-  USE State_Diag_Mod
-  USE DiagList_Mod      
-  USE TaggedDiagList_Mod
-  USE HCO_Types_Mod,           ONLY : ConfigObj
-  USE Precision_Mod
+  USE Input_Opt_Mod,           ONLY: OptInput
+  USE State_Chm_Mod,           ONLY: ChmState
+  USE State_Grid_Mod,          ONLY: GrdState
+  USE State_Met_Mod,           ONLY: MetState
+  USE State_Diag_Mod,          ONLY: DgnState
+  USE DiagList_Mod,            ONLY: DgnList, Init_DiagList, Print_DiagList
+  USE TaggedDiagList_Mod,      ONLY: TaggedDgnList, Init_TaggedDiagList, Print_TaggedDiagList
+  USE HCO_Types_Mod,           ONLY: ConfigObj
+  USE Precision_Mod,           ONLY: f8, fp
 
   IMPLICIT NONE
   PRIVATE
@@ -292,12 +291,6 @@ CONTAINS
           ! Leaf area index [m2/m2] (online)
           State_Met%LAI         (II,JJ) = lai_save(i,j)
 #endif
-
-          ! Land/water/ice indices [1]
-          ! TODO: Uncomment or drop the following
-          ! State_Met%LWI         (II,JJ) = 1
-          ! if ( focean(i,j) > fearth(i,j) ) State_Met%LWI(II,JJ) = 0
-          ! if ( si_atm%rsi(i,j)*focean(i,j) > 0.5 ) State_Met%LWI(II,JJ) = 2
 
           ! Direct photsynthetically active radiation [W/m2]
           State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)              
@@ -828,16 +821,15 @@ CONTAINS
     USE Pressure_Mod,       ONLY : Accept_External_Pedge
     USE State_Chm_Mod,      ONLY : IND_
     USE Time_Mod,           ONLY : Accept_External_Date_Time
-    ! TODO: Use ONLY statement
-    USE UnitConv_Mod
+    USE UnitConv_Mod,       ONLY : Convert_Spc_Units, KG_SPECIES_PER_KG_DRY_AIR
 
     ! Diagnostics
     USE Diagnostics_Mod,    ONLY : Zero_Diagnostics_StartofTimestep
     USE Diagnostics_Mod,    ONLY : Set_Diagnostics_EndofTimestep
     USE Diagnostics_Mod,    ONLY : Set_AerMass_Diagnostic
 
-    USE Calc_Met_Mod,           ONLY : GET_COSINE_SZA
-    USE Species_Mod,   ONLY : Species
+    USE Calc_Met_Mod,       ONLY : GET_COSINE_SZA
+    USE Species_Mod,        ONLY : Species
 
 !
 ! !INPUT PARAMETERS:
@@ -1536,15 +1528,6 @@ CONTAINS
     CALL sync_param( "DoGCChem",   DoGCChem   )
     CALL sync_param( "DoGCDryDep", DoGCDryDep )
     CALL sync_param( "DoGCWetDep", DoGCWetDep )
-
-    ! TODO-LTM: Debug Overrides
-    !DoGCConv   = .true.  ! Works
-    !DoGCEmis   = .true.  ! Works (make sure 3-D emissions on correct vert grid)
-    !DoGCTend   = .false. 
-    !DoGCTurb   = .true.  ! Works
-    !DoGCChem   = .true.  ! Works (make sure to turn off linear strat)
-    !DoGCDryDep = .true.  ! Works
-    !DoGCWetDep = .true.  ! Works
 
     !================================================================
     ! Specify local domain
@@ -2331,7 +2314,7 @@ CONTAINS
     USE State_Grid_Mod,    ONLY : GrdState
     USE State_Met_Mod,     ONLY : MetState
     USE Time_Mod,          ONLY : Expand_Date
-    USE UnitConv_Mod
+    USE UnitConv_Mod,      ONLY : KG_SPECIES_PER_KG_DRY_AIR, MOLECULES_SPECIES_PER_CM3, Convert_Spc_Units
 #ifdef APM
     USE APM_Init_Mod,      ONLY : APMIDS
 #endif
