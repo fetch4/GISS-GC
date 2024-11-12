@@ -117,6 +117,9 @@ jobs:
       run: |
         . /opt/spack-environment/activate.sh
         export RUNID=GISS_ONLY
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
         # Environment variable for OpenMPI build
         MPIF90=$(find /opt/software -name mpif90 | head -n 1)
         export MPI_ROOT=${MPIF90%/bin/mpif90}
