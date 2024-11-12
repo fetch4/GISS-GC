@@ -113,6 +113,22 @@ jobs:
         touch ${DATA}/nudging/merra2/uwnd.2016.MERRA2onGISSE2.nc4
         touch ${DATA}/nudging/merra2/vwnd.2016.MERRA2onGISSE2.nc4
 
+    - name: Build GISS with GISS_ONLY rundeck
+      run: |
+        . /opt/spack-environment/activate.sh
+        export RUNID=GISS_ONLY
+        # Environment variable for OpenMPI build
+        MPIF90=$(find /opt/software -name mpif90 | head -n 1)
+        export MPI_ROOT=${MPIF90%/bin/mpif90}
+        # Copy over rundeck and modelErc
+        cp .github/rundecks/${RUNID}.R decks
+        cp .github/modelErc ~/.modelErc
+        # Build the model
+        cd ${GISS_HOME}/decks
+        make clean
+        make clean_all
+        make -j setup RUN=${RUNID} F90=mpif90 GC=NO MECH=carbon
+
     - name: Build GISS-GC with GISS_GC_14 rundeck
       run: |
         . /opt/spack-environment/activate.sh
@@ -135,4 +151,6 @@ jobs:
         cp .github/modelErc ~/.modelErc
         # Build the model
         cd ${GISS_HOME}/decks
+        make clean
+        make clean_all
         make -j setup RUN=${RUNID} F90=mpif90 GC=YES MECH=carbon
