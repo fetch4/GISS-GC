@@ -58,7 +58,6 @@ ATM_COM                             ! main atmospheric variables
 ATM_DRV                             ! driver for atmosphere-grid components
 ATMDYN_COM                          ! atmospheric dynamics
 ATM_UTILS                           ! utilities for some atmospheric quantities
-CHEM_DRV CHEM_COM                   ! GEOS-Chem
 QUS_COM QUSDEF                      ! T/Q moments, 1D QUS
 CLOUDS2 CLOUDS2_DRV CLOUDS_COM      ! clouds modules
 SURFACE SURFACE_LANDICE FLUXES      ! surface calculation and fluxes
