@@ -462,6 +462,9 @@
          flash = flash * FLASH_PERTURB
          cg    = cg    * FLASH_PERTURB
 
+      else
+        ! FIXME: Hack to get the code running!
+        htcon = 1.0
       end if
 
       !===============================================
