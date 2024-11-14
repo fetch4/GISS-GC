@@ -147,7 +147,7 @@ jobs:
         MPIF90=$(find /opt/software -name mpif90 | head -n 1)
         export MPI_ROOT=${MPIF90%/bin/mpif90}
         # Link the executable and run the model
-        cd /__w/GISS-GC/GISS-GC/run/prod_runs
+        cd /__w/GISS-GC/GISS-GC/run/prod_runs/${RUNID}
         ./${RUNID}ln
         mpiexec -np ${NP} ./${RUNID}.exe
 
