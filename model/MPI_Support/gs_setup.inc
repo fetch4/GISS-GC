@@ -136,6 +136,8 @@ c calculate gatherv/scatterv info
 #endif
       if (.not. allocated(cntsij)) allocate(cntsij(1))
       if (.not. allocated(displsij)) allocate(displsij(1))
+      if (.not. allocated(cntslij)) allocate(cntslij(1))
+      if (.not. allocated(displslij)) allocate(displslij(1))
         
 #ifdef _GATHER_
 c
