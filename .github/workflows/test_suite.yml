@@ -9,10 +9,8 @@ on:
   pull_request:
 
 env:
-  # Environment variables for GISS modelE
+  # GISS Model E code directory
   GISS_HOME: /__w/GISS-GC/GISS-GC
-  ModelE_Support: /__w/GISS-GC/GISS-GC/run
-  DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
   # Environment variables for compiler
   CC: gcc
   CXX: g++
@@ -50,6 +48,9 @@ jobs:
         /bin/bash compscr
 
     - name: Create fake inputs
+      env:
+        DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
+        ModelE_Support: /__w/GISS-GC/GISS-GC/run
       run: |
         # Make run directories
         mkdir -p ${DATA}
@@ -114,9 +115,10 @@ jobs:
         touch ${DATA}/nudging/merra2/vwnd.2016.MERRA2onGISSE2.nc4
 
     - name: Build GISS with GISS_ONLY rundeck
+      env:
+        RUNID: GISS_ONLY
       run: |
         . /opt/spack-environment/activate.sh
-        export RUNID=GISS_ONLY
         # Environment variables for passing NetCDF-C and NetCDF-Fortran
         export NETCDF_HOME=$(nc-config --prefix)
         export NETCDF_F_HOME=$(nf-config --prefix)
@@ -133,9 +135,10 @@ jobs:
         make -j setup RUN=${RUNID} F90=mpif90 GC=NO MECH=carbon
 
     - name: Build GISS-GC with GISS_GC_14 rundeck
+      env:
+        RUNID: GISS_GC_14
       run: |
         . /opt/spack-environment/activate.sh
-        export RUNID=GISS_GC_14
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
         export NETCDF_HOME=$(nc-config --prefix)
         export GC_BIN=${NETCDF_HOME}/bin
