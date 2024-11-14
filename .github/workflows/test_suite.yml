@@ -134,6 +134,23 @@ jobs:
         make clean_all
         make -j setup RUN=${RUNID} F90=mpif90 GC=NO MECH=carbon
 
+    - name: Run GISS_ONLY on 4 MPI ranks
+      env:
+        RUNID: GISS_ONLY
+        NP: 4
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        # Environment variable for OpenMPI build
+        MPIF90=$(find /opt/software -name mpif90 | head -n 1)
+        export MPI_ROOT=${MPIF90%/bin/mpif90}
+        # Link the executable and run the model
+        cd /__w/GISS-GC/GISS-GC/run/prod_runs
+        ./${RUNID}ln
+        mpiexec -np ${NP} ./${RUNID}.exe
+
     - name: Build GISS-GC with GISS_GC_14 rundeck
       env:
         RUNID: GISS_GC_14
