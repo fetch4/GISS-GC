@@ -429,7 +429,7 @@ module CLOUDS
   ! 4 = downdraft mass flux
   ! 5 = downdraft entrain
   ! 6 = downdraft detrain
-  real*8 :: dZ(LM), dZm(LM+1)
+  real*8 :: dZ(LM), dZm(LM)
 #endif
 #endif
 
@@ -940,8 +940,8 @@ contains
     ! Calculate distance layer midpoints [m] (with special treatment at surface) for
     ! precipitation flux calculation
     dZm(1) = 0.5 * dZ(1)
-    DO L=2,LM+1
-    dZm(L) = 0.5 * ( dZm(L-1) + dZm(L) )
+    DO L=2,LM
+    dZm(L) = 0.5 * ( dZ(L-1) + dZ(L) )
     ENDDO 
     ! Calculate inverse mass in each layer (1/kg)
     DO L=1,LM
