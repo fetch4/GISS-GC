@@ -26,9 +26,8 @@ Preprocessor Options
 #define CACHED_SUBDD
 #define CALC_MERRA2_LIKE_DIAGS
 #define CALCULATE_LIGHTNING
-! TODO: Turn nudging back on
-! #define MERRA_NUDGING
-! #define NUDGE_ON
+#define MERRA_NUDGING
+#define NUDGE_ON
 End Preprocessor Options
 
 Object modules:
