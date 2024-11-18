@@ -66,6 +66,10 @@ C**** Command line options
         end select
       enddo
 
+      ! FIXME: HACK
+      iFile = "I"
+      coldRestart = .true.
+
       if (iFile == "") then
         print*, 'No configuration file specified on command line: '
         print*, 'Aborting ...'
