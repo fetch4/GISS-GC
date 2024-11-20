@@ -139,7 +139,7 @@ ifeq ($(GC),YES)
 		-DCMAKE_CXX_COMPILER="$(CXX)" \
 		-DCMAKE_Fortran_COMPILER="$(F90)" \
 		-DCMAKE_Fortran_FLAGS="$(F90FLAGS)" \
-		-DCMAKE_EXE_LINKER_FLAGS="$(LFLAGS)"
+		-DCMAKE_EXE_LINKER_FLAGS="$(CTM_LFLAGS)"
 	cd $(GC_BUILD_DIR) && make -j install
 	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
 	cp $(GC_BUILD_DIR)/src/HEMCO/mod/*.mod $(MODEL_DIR)/mod/
