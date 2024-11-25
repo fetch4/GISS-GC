@@ -27,13 +27,14 @@ CPPFLAGS += -DCOMPILER_G95
 FFLAGS = -g -cpp -fconvert=big-endian -O2 -fno-range-check -fallow-argument-mismatch
 F90FLAGS = $(FFLAGS) -ffree-line-length-none
 LFLAGS =
-ifeq ($(GC),YES)
-LFLAGS += -nostartfiles -Wno-main
-endif
 ifeq ($(MP),YES)
 FFLAGS += -fopenmp
 F90FLAGS += -fopenmp
 LFLAGS += -fopenmp
+endif
+CTM_LFLAGS = $(LFLAGS)
+ifeq ($(GC),YES)
+CTM_LFLAGS += -nostartfiles -Wno-main
 endif
 
 F90_VERSION = $(shell $(F90) --version | head -1)
