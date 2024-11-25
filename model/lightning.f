@@ -462,6 +462,8 @@
          flash = flash * FLASH_PERTURB
          cg    = cg    * FLASH_PERTURB
 
+      else
+        htcon = 0.0
       end if
 
       !===============================================
