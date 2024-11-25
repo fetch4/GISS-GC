@@ -14,7 +14,7 @@ FFLAGS += -qopenmp
 F90FLAGS += -qopenmp
 LFLAGS += -qopenmp
 endif
-CTM_FLAGS = $(LFLAGS)
+CTM_LFLAGS = $(LFLAGS)
 ifeq ($(GC),YES)
 CTM_LFLAGS += -nostartfiles -nofor-main
 endif
