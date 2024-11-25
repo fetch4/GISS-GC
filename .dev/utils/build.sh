@@ -67,12 +67,13 @@ else
   # Copy over configuration files
   HUGE_SPACE=${ModelE_Support}/huge_space/${RUNID}
   PROD_RUNS=${ModelE_Support}/prod_runs/${RUNID}
+  CONFIG=${GISS_HOME}/.dev/config
   for RUNDIR in ${HUGE_SPACE} ${PROD_RUNS}; do
-    ln -s -f ${GISS_HOME}/geoschem_config.yml ${RUNDIR}/geoschem_config.yml
-    ln -s -f ${GISS_HOME}/HEMCO_Config.rc ${RUNDIR}/HEMCO_Config.rc
-    ln -s -f ${GISS_HOME}/HEMCO_Diagn.rc ${RUNDIR}/HEMCO_Diagn.rc
-    ln -s -f ${GISS_HOME}/HISTORY.rc ${RUNDIR}/HISTORY.rc
-    ln -s -f ${GISS_HOME}/species_database.yml ${RUNDIR}/species_database.yml
+    ln -s -f ${CONFIG}/geoschem_config.yml ${RUNDIR}/geoschem_config.yml
+    ln -s -f ${CONFIG}/HEMCO_Config.rc ${RUNDIR}/HEMCO_Config.rc
+    ln -s -f ${CONFIG}/HEMCO_Diagn.rc ${RUNDIR}/HEMCO_Diagn.rc
+    ln -s -f ${CONFIG}/HISTORY.rc ${RUNDIR}/HISTORY.rc
+    ln -s -f ${CONFIG}/species_database.yml ${RUNDIR}/species_database.yml
   done
   # Create output directories
   mkdir -p ${HUGE_SPACE}/OutputDir
