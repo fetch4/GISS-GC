@@ -6,12 +6,13 @@
 # Envronment variables for GISS modelE
 # NOTE: Path may need to be edited for your system
 export GISS_HOME=${SOFTWARE}/GISS-GC
+# NOTE: Path may need to be edited for your system
 export ModelE_Support=${HOME}/run/giss-gc
 mkdir -p ${ModelE_Support}
 # Environment variables for compiler
-export CC=gcc
-export CXX=g++
-export FC=gfortran
+export CC=gcc      # NOTE: C compiler may need to be modified for your system
+export CXX=g++     # NOTE: C++ compiler may need to be modified for your system
+export FC=gfortran # NOTE: Fortran compiler may need to be modified for your system
 export F90=${FC}
 export F77=${FC}
 # Misc. enviroment variables
@@ -20,8 +21,10 @@ export KMP_STACKSIZE=100000000
 export OMP_NUM_THREADS=1
 
 # Spack setup
+# NOTE: This section may need to be edited for your setup
 spack env activate -p giss-gc
-export MPI_ROOT=${HOME}/software/spack/opt/spack/linux-ubuntu22.04-skylake/gcc-11.4.0/openmpi-4.1.6-s3fu5gvaasgjy4jecnb6rvemx7oofexx
+MPIF90=$(find ${SPACK_ENV} -name mpif90 | head -n 1)
+export MPI_ROOT=${MPIF90%/bin/mpif90}
 
 # Environment variables for passing NetCDF-C paths to GEOS-Chem
 export NETCDF_HOME=$(nc-config --prefix)

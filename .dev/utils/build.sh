@@ -65,8 +65,8 @@ else
   GC=YES
   RUNID=GISS_GC_14
   # Copy over configuration files
-  HUGE_SPACE=${HOME}/data/giss-gc/huge_space/${RUNID}
-  PROD_RUNS=${HOME}/run/giss-gc/prod_runs/${RUNID}
+  HUGE_SPACE=${ModelE_Support}/huge_space/${RUNID}
+  PROD_RUNS=${ModelE_Support}/prod_runs/${RUNID}
   for RUNDIR in ${HUGE_SPACE} ${PROD_RUNS}; do
     ln -s -f ${GISS_HOME}/geoschem_config.yml ${RUNDIR}/geoschem_config.yml
     ln -s -f ${GISS_HOME}/HEMCO_Config.rc ${RUNDIR}/HEMCO_Config.rc

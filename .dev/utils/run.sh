@@ -48,6 +48,6 @@ else
 fi
 
 # Navigate to the run directory and run the model for one hour
-cd ~/run/giss-gc/prod_runs/${RUNID}
+cd ${ModelE_Support}/prod_runs/${RUNID}
 ./${RUNID}ln
 mpiexec -np ${NP} ./${RUNID}.exe -i I -cold-restart
