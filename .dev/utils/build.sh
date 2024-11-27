@@ -82,10 +82,10 @@ fi
 
 # Compile
 if [ "${DEBUG}" = true ]; then
-  git apply .github/utils/DEBUGGING_FLAGS.patch
+  git apply ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
   make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
     TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
-  git apply -R .github/utils/DEBUGGING_FLAGS.patch
+  git apply -R ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
 else
   make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
     TYPE=Release
