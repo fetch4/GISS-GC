@@ -1,9 +1,5 @@
 #!/usr/bin/bash
 
-# Set up the environment used by GISS-GC
-# NOTE: Path may need to be edited for your system
-source ${HOME}/software/GISS-GC/setup.sh
-
 # Default values
 FRESH=false
 OPENMP=false
