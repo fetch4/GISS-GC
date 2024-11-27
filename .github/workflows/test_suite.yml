@@ -168,6 +168,6 @@ jobs:
         export MPI_ROOT=${MPIF90%/bin/mpif90}
         # Copy over modelErc
         cp .github/modelErc ~/.modelErc
-        # Remove the previous build and rebuild the model in debug mode
+        # Build the model in debug mode
         cp .dev/utils/build.sh .
-        ./build.sh -f --debug
+        ./build.sh --debug
