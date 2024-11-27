@@ -1,9 +1,11 @@
-# Developer utils
+# Developer Zone
 
-**CODE IN THIS SUBDIRECTORY IS NOT INTENDED FOR GENERAL USERS**
+**NOTE: CODE IN THIS SUBDIRECTORY IS NOT INTENDED FOR GENERAL USERS**
 
-This directory contains three shell scripts that streamline the development
-process, as described in the following.
+## Developer utilities
+
+The `.dev/utils` subdirectory contains three shell scripts that streamline the
+development process, as described in the following.
 
 The first one is the `setup.sh` script, which sets up your environment for
 building and running GISS-GC. This includes setting environment variables
@@ -43,3 +45,19 @@ cp .dev/utils/run.sh .
 ```
 Note that in order to run the model with `--giss-only` or not, you will need to
 have built the model in the same way.
+
+## Configuration scripts
+
+The `.dev/config` subdirectory contains five configuration files for GEOS-Chem
+and the HEMCO emissions module that provide good starting points for GISS-GC
+development. (Again, these are not intended for general users as they may not
+produce scientifically interesting output.) The configuration scripts are
+automatically picked up by the developer utility scripts mentioned in the
+previous section.
+
+The configuration scripts are:
+* `geoschem_config.yml` - top level configuration file for GEOS-Chem.
+* `HEMCO_Config.rc` - top level configuration file for HEMCO.
+* `HISTORY.rc` - output configuration for GEOS-Chem.
+* `HEMCO_Diagn.rc` - output configuration for HEMCO.
+* `species_database.yml` - configuration file for species used by GEOS-Chem.
