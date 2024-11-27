@@ -62,20 +62,20 @@ VerboseOnCores:              root       # Accepted values: root all
     --> NEI2016_MONMEAN        :       false    # 2002-2020
     --> DICE_Africa            :       false    # 2013
 # ----- GLOBAL INVENTORIES ----------------------------------------------------
-    --> CEDSv2                 :       true     # 1750-2019
+    --> CEDSv2                 :       false    # 1750-2019
     --> CEDS_GBDMAPS           :       false    # 1970-2017
     --> CEDS_GBDMAPS_byFuelType:       false    # 1970-2017
     --> EDGARv43               :       false    # 1970-2010
     --> HTAPv3                 :       false    # 2000-2018
-    --> GEIA_NH3               :       true     # 1990
-    --> SEABIRD_NH3            :       true     # 1990
+    --> GEIA_NH3               :       false    # 1990
+    --> SEABIRD_NH3            :       false    # 1990
     --> POET_EOH               :       false    # 1985
-    --> TZOMPASOSA_C2H6        :       true     # 2010
-    --> XIAO_C3H8              :       true     # 1985
-    --> LIANG_BROMOCARB        :       true     # 2000
-    --> ORDONEZ_IODOCARB       :       true     # 2000
-    --> DECAYING_PLANTS        :       true     # 1985
-    --> AFCID                  :       true     # 2015
+    --> TZOMPASOSA_C2H6        :       false    # 2010
+    --> XIAO_C3H8              :       false    # 1985
+    --> LIANG_BROMOCARB        :       false    # 2000
+    --> ORDONEZ_IODOCARB       :       false    # 2000
+    --> DECAYING_PLANTS        :       false    # 1985
+    --> AFCID                  :       false    # 2015
 # ----- AIRCRAFT EMISSIONS ----------------------------------------------------
 # There are 3 switches:
 #
@@ -107,11 +107,11 @@ VerboseOnCores:              root       # Accepted values: root all
 # See additional notes in the AEIC scale factor section below.
 #------------------------------------------------------------------------------
     --> AEIC2019_DAILY         :       false    # 2019 (daily data)
-    --> AEIC2019_MONMEAN       :       true      # 2019 (monthly-mean data)
-    --> AEIC_SCALE_1990_2019   :       true      # Scale to year in 1990-2019
+    --> AEIC2019_MONMEAN       :       false    # 2019 (monthly-mean data)
+    --> AEIC_SCALE_1990_2019   :       false    # Scale to year in 1990-2019
 # ----- SHIP EMISSIONS --------------------------------------------------------
-    --> SHIP                   :       true
-    --> CEDSv2_SHIP            :       true     # 1750-2017
+    --> SHIP                   :       false
+    --> CEDSv2_SHIP            :       false    # 1750-2017
     --> CEDS_GBDMAPS_SHIP      :       false    # 1970-2017
     --> CEDS_GBDMAPS_SHIP_byFuelType:  false    # 1970-2017
     --> HTAPv3_SHIP            :       false    # 2000-2018
@@ -146,31 +146,31 @@ VerboseOnCores:              root       # Accepted values: root all
 # update ExtNr and Cat in HEMCO_Diagn.rc to properly save out emissions for
 # any affected species.
 #------------------------------------------------------------------------------
-    --> OFFLINE_DUST           :       true     # 1980-2019
-    --> OFFLINE_BIOGENICVOC    :       true     # 1980-2020
-    --> OFFLINE_SEASALT        :       true     # 1980-2019
-    -->  CalcBrSeasalt         :       true
-    --> OFFLINE_SOILNOX        :       true     # 1980-2020
+    --> OFFLINE_DUST           :       false    # 1980-2019
+    --> OFFLINE_BIOGENICVOC    :       false    # 1980-2020
+    --> OFFLINE_SEASALT        :       false    # 1980-2019
+    -->  CalcBrSeasalt         :       false
+    --> OFFLINE_SOILNOX        :       false    # 1980-2020
 # ----- NON-EMISSIONS DATA ----------------------------------------------------
-    --> UVALBEDO               :       true     # 1985
+    --> UVALBEDO               :       false    # 1985
     --> CCM_STRAT_Bry          :       false    # 2007
     --> GMI_OH                 :       false    # 2005
     --> GMI_PROD_LOSS          :       false    # 2005
     --> OMOC_RATIO             :       false    # 2010
-    --> GMD_SFC_CH4            :       true     # 1979-2020
+    --> GMD_SFC_CH4            :       false    # 1979-2020
     --> CMIP6_SFC_CH4          :       false    # 1750-1978
-    --> OLSON_LANDMAP          :       true     # 1985
+    --> OLSON_LANDMAP          :       false    # 1985
     --> YUAN_MODIS_LAI         :       true     # 2000-2020
     --> RRTMG                  :       false    # 2002
-    --> SfcVMR                 :       true     # 1750-2014
-    --> OCEAN_O3_DRYDEP        :       true     # 1985
+    --> SfcVMR                 :       false    # 1750-2014
+    --> OCEAN_O3_DRYDEP        :       false    # 1985
 # -----------------------------------------------------------------------------
 100     Custom                 : off   -
-101     SeaFlux                : on    DMS/ACET/ALD2/MENO3/ETNO3/MOH
-102     ParaNOx                : on    NO/NO2/O3/HNO3
+101     SeaFlux                : off   DMS/ACET/ALD2/MENO3/ETNO3/MOH
+102     ParaNOx                : off   NO/NO2/O3/HNO3
     --> LUT data format        :       nc
     --> LUT source dir         :       $ROOT/PARANOX/v2015-02
-103     LightNOx               : on    NO
+103     LightNOx               : off   NO
     --> LightningClimatology   :       false
     --> CDF table              :       $ROOT/LIGHTNOX/v2014-07/light_dist.ott2010.dat
 104     SoilNOx                : off   NO
@@ -194,7 +194,7 @@ VerboseOnCores:              root       # Accepted values: root all
     --> N per snowflake        :       5.0
     --> Model sea salt Br-     :       true
     --> Br- mass ratio         :       2.11e-3
-108     MEGAN                  : on    ISOP/ACET/PRPE/C2H4/ALD2/MOH/EOH/MTPA/MTPO/LIMO/SESQ/SOAP/SOAS
+108     MEGAN                  : off   ISOP/ACET/PRPE/C2H4/ALD2/MOH/EOH/MTPA/MTPO/LIMO/SESQ/SOAP/SOAS
     --> Isoprene scaling       :       1.0
     --> CO2 inhibition         :       true
     --> CO2 conc (ppmv)        :       390.0
@@ -204,8 +204,8 @@ VerboseOnCores:              root       # Accepted values: root all
     --> Monoterp to SOAS       :       0.050
     --> Othrterp to SOAP       :       0.050
     --> Othrterp to SOAS       :       0.050
-111     GFED                   : on    NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C2H2/C2H4/C3H8/CH2O/C2H6/SO2/NH3/BCPO/BCPI/OCPO/OCPI/POG1/POG2/MTPA/BENZ/TOLU/XYLE/NAP/EOH/MOH/SOAP/FURA/PHEN/MVK/ISOP/ACTA/MGLY/GLYX/RCHO
-    --> GFED4                  :       true
+111     GFED                   : off   NO/CO/ALK4/ACET/MEK/ALD2/PRPE/C2H2/C2H4/C3H8/CH2O/C2H6/SO2/NH3/BCPO/BCPI/OCPO/OCPI/POG1/POG2/MTPA/BENZ/TOLU/XYLE/NAP/EOH/MOH/SOAP/FURA/PHEN/MVK/ISOP/ACTA/MGLY/GLYX/RCHO
+    --> GFED4                  :       true 
     --> GFED_daily             :       false
     --> GFED_3hourly           :       false
     --> Scaling_CO             :       1.05
@@ -224,11 +224,11 @@ VerboseOnCores:              root       # Accepted values: root all
     --> hydrophilic OC         :       0.5
     --> FINN_subgrid_coag      :       false
 115     DustAlk                : off   DSTAL1/DSTAL2/DSTAL3/DSTAL4
-117     Volcano                : on    SO2
+117     Volcano                : off   SO2
     --> Volcano_Source         :       AeroCom
     --> Volcano_Table          :       $ROOT/VOLCANO/v2021-09/$YYYY/$MM/so2_volcanic_emissions_Carns.$YYYY$MM$DD.rc
     --> Volcano_Climatology    :       $ROOT/VOLCANO/v2021-09/so2_volcanic_emissions_CARN_v202005.degassing_only.rc
-120     Inorg_Iodine           : on    HOI/I2
+120     Inorg_Iodine           : off   HOI/I2
     --> Emit HOI               :       true
     --> Emit I2                :       true
 130     TOMAS_Jeagle           : off   SS01/SS02/SS03/SS04/SS05/SS06/SS07/SS08/SS09/SS10/SS11/SS12/SS13/SS14/SS15/SS16/SS17/SS18/SS19/SS20/SS21/SS22/SS23/SS24/SS25/SS26/SS27/SS28/SS29/SS30/SS31/SS32/SS33/SS34/SS35/SS36/SS37/SS38/SS39/SS40
