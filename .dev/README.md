@@ -33,7 +33,8 @@ example, running
 will build GISS Model E *without* GEOS-Chem support and it will remove any
 existing builds before doing so. Note that if you run the build script once with
 the `--giss-only` option and once without then it will create two separate
-builds.
+builds. Similarly for `--debug`, which symlinks the rundeck but renames it as
+`${RUNID}_DEBUG.R`.
 
 The third utility is the `run.sh` script, which runs a model configuration that
 has been built.
@@ -44,7 +45,7 @@ cp .dev/utils/run.sh .
 ./run.sh --help
 ```
 Note that in order to run the model with `--giss-only` or not, you will need to
-have built the model in the same way.
+have built the model in the same way. Similarly for `--debug`.
 
 ## Configuration scripts
 

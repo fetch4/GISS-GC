@@ -152,7 +152,7 @@ VerboseOnCores:              root       # Accepted values: root all
     -->  CalcBrSeasalt         :       false
     --> OFFLINE_SOILNOX        :       false    # 1980-2020
 # ----- NON-EMISSIONS DATA ----------------------------------------------------
-    --> UVALBEDO               :       false    # 1985
+    --> UVALBEDO               :       true     # 1985
     --> CCM_STRAT_Bry          :       false    # 2007
     --> GMI_OH                 :       false    # 2005
     --> GMI_PROD_LOSS          :       false    # 2005
@@ -160,7 +160,7 @@ VerboseOnCores:              root       # Accepted values: root all
     --> GMD_SFC_CH4            :       false    # 1979-2020
     --> CMIP6_SFC_CH4          :       false    # 1750-1978
     --> OLSON_LANDMAP          :       false    # 1985
-    --> YUAN_MODIS_LAI         :       true     # 2000-2020
+    --> YUAN_MODIS_LAI         :       false    # 2000-2020
     --> RRTMG                  :       false    # 2002
     --> SfcVMR                 :       false    # 1750-2014
     --> OCEAN_O3_DRYDEP        :       false    # 1985

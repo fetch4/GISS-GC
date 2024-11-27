@@ -8,6 +8,7 @@ set -e
 # Default values
 NP=1
 GISS_ONLY=false
+DEBUG=false
 
 # Function to display help text
 show_help() {
@@ -19,6 +20,7 @@ show_help() {
   echo "Options:"
   echo "  --help      Show this help message and exit."
   echo "  --giss-only Build without GEOS-Chem coupling."
+  echo "  --debug     Run with debugging turned on."
 }
 
 # Check for --help option
@@ -37,6 +39,10 @@ for arg in "$@"; do
     GISS_ONLY=true
     shift
     ;;
+  --debug)
+    DEBUG=true
+    shift
+    ;;
   *)
     echo "Unknown argument: $arg"
     show_help
@@ -50,6 +56,10 @@ if [ "${GISS_ONLY}" = true ]; then
   RUNID=GISS_ONLY
 else
   RUNID=GISS_GC_14
+fi
+if [ "${DEBUG}" = true ]; then
+  ln -s -f $(pwd)/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+  RUNID="${RUNID}_DEBUG"
 fi
 
 # Navigate to the run directory and run the model for one hour
