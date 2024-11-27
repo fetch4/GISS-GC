@@ -3,6 +3,8 @@
 # Run GISS Model E with (or without) GEOS-Chem support.                        #
 # ============================================================================ #
 
+set -e
+
 # Default values
 NP=1
 GISS_ONLY=false

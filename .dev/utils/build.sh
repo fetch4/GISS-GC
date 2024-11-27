@@ -3,6 +3,8 @@
 # Build GISS Model E with (or without) GEOS-Chem support.                      #
 # ============================================================================ #
 
+set -e
+
 # Default values
 FRESH=false
 OPENMP=false
@@ -74,7 +76,7 @@ echo "DEBUG=${DEBUG}"
 
 # Conditionally fresh rebuild of the model
 cd ${GISS_HOME}/decks/
-cp ${GISS_HOME}/.github/rundecks/${RUNID}.R .
+ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
 if [ "${FRESH}" = true ]; then
   make clean
   make clean_all
