@@ -7,7 +7,7 @@ set -e
 
 # Envronment variables for GISS modelE
 # NOTE: Path may need to be edited for your system
-export GISS_HOME=${SOFTWARE}/GISS-GC
+export GISS_HOME=${HOME}/software/GISS-GC
 # NOTE: Path may need to be edited for your system
 export ModelE_Support=${HOME}/run/giss-gc
 mkdir -p ${ModelE_Support}
