@@ -98,9 +98,8 @@ fi
 if [ "${GISS_ONLY}" = false ]; then
   # Copy over configuration files
   HUGE_SPACE=${ModelE_Support}/huge_space/${RUNID}
-  PROD_RUNS=${ModelE_Support}/prod_runs/${RUNID}
   CONFIG=${GISS_HOME}/.dev/config
-  for DIR in ${GISS_HOME} ${HUGE_SPACE} ${PROD_RUNS}; do
+  for DIR in ${GISS_HOME} ${HUGE_SPACE}; do
     ln -s -f ${CONFIG}/geoschem_config.yml ${DIR}/geoschem_config.yml
     ln -s -f ${CONFIG}/HEMCO_Config.rc ${DIR}/HEMCO_Config.rc
     ln -s -f ${CONFIG}/HEMCO_Diagn.rc ${DIR}/HEMCO_Diagn.rc
@@ -109,5 +108,8 @@ if [ "${GISS_ONLY}" = false ]; then
   done
   # Create output directories
   mkdir -p ${HUGE_SPACE}/OutputDir
-  mkdir -p ${PROD_RUNS}/OutputDir
+  # Setup restarts
+  mkdir -p ${HUGE_SPACE}/Restarts
+  ln -s -f ${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4 \
+    ${HUGE_SPACE}/Restarts/GEOSChem.Restart.20190701_0000z.nc4
 fi
