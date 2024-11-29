@@ -42,7 +42,7 @@ export GC_F_LIB=${NETCDF_F_HOME}/lib
 
 # GEOS-Chem input data
 # NOTE: Path may need to be edited for your system
-export GC_INPUTS=${HOME}/data/gcclassic
+export GC_INPUTS=${DATA}/gcclassic
 export ROOT=${GC_INPUTS}/ExtData/HEMCO/
 
 # Put tools in the path
