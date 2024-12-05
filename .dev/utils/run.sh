@@ -5,6 +5,8 @@
 
 set -e
 
+# despacktivate
+
 # Default values
 NP=1
 GISS_ONLY=false
