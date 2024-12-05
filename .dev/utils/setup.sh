@@ -3,9 +3,7 @@
 # Activate the Python and spack environments used by GISS-GC.                  #
 # ============================================================================ #
 
-set -e
-
-# Envronment variables for GISS modelE
+# Environment variables for GISS modelE
 # NOTE: Path may need to be edited for your system
 export GISS_HOME=${HOME}/software/GISS-GC
 # NOTE: Path may need to be edited for your system
