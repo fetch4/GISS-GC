@@ -1921,7 +1921,43 @@ C
          call inc_subdd(subdd,k,ptropo*100) ! Convert to Pa
       case ('PS')
         sddarr2d = pedn(1,:,:)*100. ! Convert to Pa
-        call inc_subdd(subdd,k,sddarr2d)         
+        call inc_subdd(subdd,k,sddarr2d)
+      ! NOTE: OH index is obtained using Ind_ function (from State_Chm_Mod) with
+      !       key 'OH' on L1426 of GEOS-Chem/GeosCore/diagnostics_mod.F90.
+      case ('OH')
+         call inc_subdd(subdd,k,ptropo) ! TODO: Output correct field, not ptropo
+      ! NOTE: NO index is obtained using Ind_ function (from State_Chm_Mod) with
+      !       key 'NO' on L282 of GEOS-Chem/GeosCore/hco_interface_gc_mod.F90.
+      !       This index is used on L2653 to access an entry of
+      !       State_Chm%Species.
+      case ('NO')
+         call inc_subdd(subdd,k,ptropo) ! TODO: Output correct field, not ptropo
+      ! NOTE: O3 appears in State_Diag with index 1
+      !       (see L18820 of GEOS-Chem/Headers/state_diag_mod.F90)
+      ! NOTE: O3 index is obtained using Ind_ function (from State_Chm_Mod) with
+      !       key 'O3' on L284 of GEOS-Chem/GeosCore/hco_interface_gc_mod.F90.
+      !       This index is used on L2601 to access an entry of
+      !       State_Chm%Species.
+      case ('O3')
+         call inc_subdd(subdd,k,ptropo) ! TODO: Output correct field, not ptropo
+      ! NOTE: NO2 index is obtained using Ind_ function (from State_Chm_Mod)
+      !       with key 'NO2' on L283 of GEOS-Chem/GeosCore/hco_interface_gc_mod.F90.
+      !       This index is used on L2627 to access an entry of
+      !       State_Chm%Species.
+      case ('NO2')
+         call inc_subdd(subdd,k,ptropo) ! TODO: Output correct field, not ptropo
+      ! NOTE: CO index is obtained using Ind_ function (from State_Chm_Mod) with
+      !       key 'CO' on L936 of GEOS-Chem/GeosCore/carbon_gases_mod.F90.
+      !       This index is used on L219 to access an entry of
+      !       State_Chm%Species.
+      case ('CO')
+         call inc_subdd(subdd,k,ptropo) ! TODO: Output correct field, not ptropo
+      ! NOTE: CH4 index is obtained using Ind_ function (from State_Chm_Mod)
+      !       with key 'CH4' on L540 of GEOS-Chem/GeosCore/global_ch4_mod.F90.
+      !       This index is used on L549 to access an entry of
+      !       State_Chm%SpcData.
+      case ('CH4')
+         call inc_subdd(subdd,k,ptropo) ! TODO: Output correct field, not ptropo
 #endif
         
       end select

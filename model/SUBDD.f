@@ -2392,6 +2392,36 @@ c
      &  units = 'Pa'
      &     )
       arr(next()) = info_type_(
+     &  sname = 'OH',
+     &  lname = 'Hydroxide',
+     &  units = '1' ! TODO: Check correct units?
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'NO',
+     &  lname = 'Nitric oxide',
+     &  units = '1' ! TODO: Check correct units?
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'O3',
+     &  lname = 'Ozone',
+     &  units = '1' ! TODO: Check correct units?
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'NO2',
+     &  lname = 'Nitrogen dioxide',
+     &  units = '1' ! TODO: Check correct units?
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'CO',
+     &  lname = 'Carbon monoxide',
+     &  units = '1' ! TODO: Check correct units?
+     &     )
+      arr(next()) = info_type_(
+     &  sname = 'CH4',
+     &  lname = 'Methane',
+     &  units = '1' ! TODO: Check correct units?
+     &     )
+      arr(next()) = info_type_(
      &  sname = 'FRSEAICE',
      &  lname = 'ice_covered_fraction_of_tile',
      &  units = '1'
