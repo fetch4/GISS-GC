@@ -115,7 +115,7 @@ jobs:
         mkdir -p ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0
         touch ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4
 
-    - name: Build GISS with GISS_ONLY rundeck
+    - name: Build GISS Model E without GEOS-Chem support
       run: |
         . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C and NetCDF-Fortran
@@ -130,7 +130,7 @@ jobs:
         cp .dev/utils/build.sh .
         ./build.sh --giss-only
 
-    - name: Build GISS-GC with GISS_GC_14 rundeck
+    - name: Build GISS-GC with GEOS-Chem support
       run: |
         . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
@@ -152,7 +152,7 @@ jobs:
         cp .dev/utils/build.sh .
         ./build.sh
 
-    - name: Build GISS-GC with GISS_GC_14 rundeck in debug mode
+    - name: Build GISS-GC with GEOS-Chem support in debug mode
       run: |
         . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
@@ -173,3 +173,23 @@ jobs:
         # Build the model in debug mode
         cp .dev/utils/build.sh .
         ./build.sh --debug
+
+    - name: Build GCClassic
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        # Build the model without GEOS-Chem support
+        cp .dev/utils/build.sh .
+        ./build.sh --classic
+
+    - name: Build GCClassic in debug mode
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        # Build the model without GEOS-Chem support
+        cp .dev/utils/build.sh .
+        ./build.sh --classic --debug
