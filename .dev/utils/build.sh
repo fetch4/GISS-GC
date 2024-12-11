@@ -149,9 +149,10 @@ if [ "${GISS_ONLY}" = false ]; then
   # NOTE: The restart file will need to have been saved in the following location
   ln -s -f ${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z.LATEST.nc4 \
     ${HUGE_SPACE}/Restarts/GEOSChem.Restart.20160701_0000z.nc4
-fi
-if [ "${CLASSIC}" = true ]; then
-  sed -i "s/METEOROLOGY            :       false/METEOROLOGY            :       true /" HEMCO_Config.rc
-else
-  sed -i "s/METEOROLOGY            :       true /METEOROLOGY            :       false/" HEMCO_Config.rc
+  # Edit HEMCO_Config to say whether we are running with or without meteorology
+  if [ "${CLASSIC}" = true ]; then
+    sed -i "s/METEOROLOGY            :       false/METEOROLOGY            :       true /" HEMCO_Config.rc
+  else
+    sed -i "s/METEOROLOGY            :       true /METEOROLOGY            :       false/" HEMCO_Config.rc
+  fi
 fi
