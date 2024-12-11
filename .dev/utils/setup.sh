@@ -8,6 +8,8 @@
 export GISS_HOME=${HOME}/software/GISS-GC
 # NOTE: Path may need to be edited for your system
 export ModelE_Support=${HOME}/run/GISS-GC
+# NOTE: Path may need to be edited for your system
+export GCCLASSIC_RUNDIR=${HOME}/run/gcclassic/gc_4x5_merra2_fullchem
 mkdir -p ${ModelE_Support}
 # Environment variables for compiler
 export CC=gcc      # NOTE: C compiler may need to be modified for your system

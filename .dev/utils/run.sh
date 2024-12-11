@@ -8,6 +8,7 @@ set -e
 # Default values
 NP=1
 GISS_ONLY=false
+CLASSIC=false
 DEBUG=false
 
 # Function to display help text
@@ -20,6 +21,7 @@ show_help() {
   echo "Options:"
   echo "  --help      Show this help message and exit."
   echo "  --giss-only Build without GEOS-Chem coupling."
+  echo "  --classic   Build without GCClassic as the driver, rather than Model E."
   echo "  --debug     Run with debugging turned on."
 }
 
@@ -39,6 +41,10 @@ for arg in "$@"; do
     GISS_ONLY=true
     shift
     ;;
+  --classic)
+    CLASSIC=true
+    shift
+    ;;
   --debug)
     DEBUG=true
     shift
@@ -51,18 +57,27 @@ for arg in "$@"; do
   esac
 done
 
-# Set RUNID appropriately
-if [ "${GISS_ONLY}" = true ]; then
-  RUNID=GISS_ONLY
+if [ "${CLASSIC}" = true ]; then
+  if [ "${NP}" != "1" ]; then
+    echo "GCClassic only runs in serial"
+    exit 1
+  fi
+  cd ${GCCLASSIC_RUNDIR}
+  ./gcclassic
 else
-  RUNID=GISS_GC_14
-fi
-if [ "${DEBUG}" = true ]; then
-  ln -s -f $(pwd)/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
-  RUNID="${RUNID}_DEBUG"
-fi
+  # Set RUNID appropriately
+  if [ "${GISS_ONLY}" = true ]; then
+    RUNID=GISS_ONLY
+  else
+    RUNID=GISS_GC_14
+  fi
+  if [ "${DEBUG}" = true ]; then
+    ln -s -f $(pwd)/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+    RUNID="${RUNID}_DEBUG"
+  fi
 
-# Navigate to the run directory and run the model for one hour
-cd ${ModelE_Support}/prod_runs/${RUNID}
-./${RUNID}ln
-mpiexec -np ${NP} ./${RUNID}.exe -i I -cold-restart
+  # Navigate to the run directory and run the model for one hour
+  cd ${ModelE_Support}/prod_runs/${RUNID}
+  ./${RUNID}ln
+  mpiexec -np ${NP} ./${RUNID}.exe -i I -cold-restart
+fi

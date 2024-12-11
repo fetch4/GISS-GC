@@ -6,20 +6,23 @@
 set -e
 
 # Default values
-FRESH=false
 OPENMP=false
 GISS_ONLY=false
 MECH=fullchem
+CLASSIC=false
 DEBUG=false
+FRESH=false
 
 # Function to display help text
 show_help() {
-  echo "Usage: $0 [MECH=fullchem|carbon|Hg|custom] [--openmp] [--giss-only] [-f] [--debug]"
+  echo "Usage: $0 [MECH=fullchem|carbon|Hg|custom] [--openmp] [--giss-only] [--classic]"
+  echo "          [-f] [--debug]"
   echo
   echo "Options:"
   echo "  MECH=<mechanism>  Set the chemical mechanism (defaults to fullchem)."
   echo "  --openmp          Compile with OpenMP enabled."
   echo "  --giss-only       Build without GEOS-Chem coupling."
+  echo "  --classic   Build without GCClassic as the driver, rather than Model E."
   echo "  --debug           Run with debugging turned on."
   echo "  -f                Fresh rebuild of the model."
   echo "  --help            Show this help message and exit."
@@ -41,16 +44,20 @@ for arg in "$@"; do
     OPENMP=true
     shift
     ;;
-  -f)
-    FRESH=true
-    shift
-    ;;
   --giss-only)
     GISS_ONLY=true
     shift
     ;;
+  --classic)
+    CLASSIC=true
+    shift
+    ;;
   --debug)
     DEBUG=true
+    shift
+    ;;
+  -f)
+    FRESH=true
     shift
     ;;
   *)
@@ -62,6 +69,10 @@ for arg in "$@"; do
 done
 
 if [ "${GISS_ONLY}" = true ]; then
+  if [ "${CLASSIC}" = true ]; then
+    echo "--giss-only and --classic are mutually exclusive"
+    exit 1
+  fi
   GC=NO
   RUNID=GISS_ONLY
 else
@@ -73,6 +84,8 @@ fi
 echo "MECH=${MECH}"
 echo "OPENMP=${OPENMP}"
 echo "GC=${GC}"
+echo "GISS_ONLY=${GISS_ONLY}"
+echo "CLASSIC=${CLASSIC}"
 echo "FRESH=${FRESH}"
 echo "DEBUG=${DEBUG}"
 
@@ -84,22 +97,41 @@ if [ "${FRESH}" = true ]; then
 fi
 
 # Compile
-if [ "${DEBUG}" = true ]; then
-  ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
-  RUNID="${RUNID}_DEBUG"
-  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
-    TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
+if [ "${CLASSIC}" = true ]; then
+  # TODO: GCCLASSIC_RUNDIR needs setting up first time?
+  cd ${GCCLASSIC_RUNDIR}
+  BUILD_DIR=build
+  rm -rf ${BUILD_DIR}
+  mkdir -p ${BUILD_DIR}
+  cd ${BUILD_DIR}
+  cmake ../CodeDir -DRUNDIR=..
+  if [ "${DEBUG}" = true ]; then
+    cmake . -DBUILD_TYPE=Debug -DMECH=${MECH}
+  else
+    cmake . -DBUILD_TYPE=Release -DMECH=${MECH}
+  fi
+  make -j10
+  cd -
+  RUNDIR=${GCCLASSIC_RUNDIR}
 else
-  ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
-  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
-    TYPE=Release OVERWRITE=YES
+  if [ "${DEBUG}" = true ]; then
+    ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+    RUNID="${RUNID}_DEBUG"
+    make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
+      TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
+  else
+    ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
+    make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
+      TYPE=Release OVERWRITE=YES
+  fi
+  RUNDIR=${ModelE_Support}/huge_space/${RUNID}
 fi
 
+# Configuration
 if [ "${GISS_ONLY}" = false ]; then
   # Copy over configuration files
-  HUGE_SPACE=${ModelE_Support}/huge_space/${RUNID}
   CONFIG=${GISS_HOME}/.dev/config
-  for DIR in ${GISS_HOME} ${HUGE_SPACE}; do
+  for DIR in ${GISS_HOME} ${RUNDIR}; do
     ln -s -f ${CONFIG}/geoschem_config.yml ${DIR}/geoschem_config.yml
     ln -s -f ${CONFIG}/HEMCO_Config.rc ${DIR}/HEMCO_Config.rc
     ln -s -f ${CONFIG}/HEMCO_Diagn.rc ${DIR}/HEMCO_Diagn.rc
@@ -107,10 +139,15 @@ if [ "${GISS_ONLY}" = false ]; then
     ln -s -f ${CONFIG}/species_database.yml ${DIR}/species_database.yml
   done
   # Create output directories
-  mkdir -p ${HUGE_SPACE}/OutputDir
+  mkdir -p ${RUNDIR}/OutputDir
   # Setup restarts
   mkdir -p ${HUGE_SPACE}/Restarts
   # NOTE: The restart file will need to have been saved in the following location
   ln -s -f ${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z.LATEST.nc4 \
     ${HUGE_SPACE}/Restarts/GEOSChem.Restart.20160701_0000z.nc4
+fi
+if [ "${CLASSIC}" = true ]; then
+  sed -i "s/METEOROLOGY            :       false/METEOROLOGY            :       true /" HEMCO_Config.rc
+else
+  sed -i "s/METEOROLOGY            :       true /METEOROLOGY            :       false/" HEMCO_Config.rc
 fi
