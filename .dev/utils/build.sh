@@ -78,8 +78,8 @@ echo "DEBUG=${DEBUG}"
 cd ${GISS_HOME}/decks/
 ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
 if [ "${FRESH}" = true ]; then
-  make clean
-  make clean_all
+  make clean OVERWRITE=YES
+  make clean_all OVERWRITE=YES
 fi
 
 # Compile
@@ -92,7 +92,7 @@ if [ "${DEBUG}" = true ]; then
   git apply -R ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
 else
   make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
-    TYPE=Release
+    TYPE=Release OVERWRITE=YES
 fi
 
 if [ "${GISS_ONLY}" = false ]; then
