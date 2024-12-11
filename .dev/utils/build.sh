@@ -101,14 +101,18 @@ if [ "${CLASSIC}" = true ]; then
   # TODO: GCCLASSIC_RUNDIR needs setting up first time?
   cd ${GCCLASSIC_RUNDIR}
   BUILD_DIR=build
-  rm -rf ${BUILD_DIR}
+  if [ "${DEBUG}" = true ]; then
+    BUILD_DIR=${BUILD_DIR}_debug
+  fi
+  if [ "${FRESH}" = true ]; then
+    rm -rf ${BUILD_DIR}
+  fi
   mkdir -p ${BUILD_DIR}
   cd ${BUILD_DIR}
-  cmake ../CodeDir -DRUNDIR=..
   if [ "${DEBUG}" = true ]; then
-    cmake . -DBUILD_TYPE=Debug -DMECH=${MECH}
+    cmake ../CodeDir -DRUNDIR=.. -DCMAKE_BUILD_TYPE=Debug -DMECH=${MECH}
   else
-    cmake . -DBUILD_TYPE=Release -DMECH=${MECH}
+    cmake ../CodeDir -DRUNDIR=.. -DCMAKE_BUILD_TYPE=Release -DMECH=${MECH}
   fi
   make -j10
   cd -

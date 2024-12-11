@@ -63,7 +63,11 @@ if [ "${CLASSIC}" = true ]; then
     exit 1
   fi
   cd ${GCCLASSIC_RUNDIR}
-  ./gcclassic
+  if [ "${DEBUG}" = true ]; then
+    ./build_debug/bin/gcclassic
+  else
+    ./build/bin/gcclassic
+  fi
 else
   # Set RUNID appropriately
   if [ "${GISS_ONLY}" = true ]; then
