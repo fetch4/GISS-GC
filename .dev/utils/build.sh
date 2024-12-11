@@ -151,8 +151,8 @@ if [ "${GISS_ONLY}" = false ]; then
     ${HUGE_SPACE}/Restarts/GEOSChem.Restart.20160701_0000z.nc4
   # Edit HEMCO_Config to say whether we are running with or without meteorology
   if [ "${CLASSIC}" = true ]; then
-    sed -i "s/METEOROLOGY            :       false/METEOROLOGY            :       true /" HEMCO_Config.rc
+    sed -i "s/METEOROLOGY            :       false/METEOROLOGY            :       true /" ${CONFIG}/HEMCO_Config.rc
   else
-    sed -i "s/METEOROLOGY            :       true /METEOROLOGY            :       false/" HEMCO_Config.rc
+    sed -i "s/METEOROLOGY            :       true /METEOROLOGY            :       false/" ${CONFIG}/HEMCO_Config.rc
   fi
 fi
