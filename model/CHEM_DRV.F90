@@ -2154,6 +2154,7 @@ CONTAINS
     integer :: previous_units
     
 !    ! 3-D diagnostics of advected tracers on model levels
+!    ! FIXME:? JGW
 !    call find_groups('taijlh',grpids,ngroups)
 !    do igrp=1,ngroups
 !       subdd => subdd_groups(grpids(igrp))
@@ -2185,6 +2186,7 @@ CONTAINS
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
     
     ! 3-D diagnostics of all tracers (advected and non-advected) on model levels
+    ! FIXME: JGW
     call find_groups('taijlh',grpids,ngroups)
     do igrp=1,ngroups
        subdd => subdd_groups(grpids(igrp))
@@ -2219,6 +2221,7 @@ CONTAINS
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
         
     ! 2-D diagnostics
+    ! FIXME: JGW
     call find_groups('taijh',grpids,ngroups)
     do igrp=1,ngroups
        subdd => subdd_groups(grpids(igrp))
