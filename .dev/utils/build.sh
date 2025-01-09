@@ -76,7 +76,6 @@ echo "DEBUG=${DEBUG}"
 
 # Conditionally fresh rebuild of the model
 cd ${GISS_HOME}/decks/
-ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
 if [ "${FRESH}" = true ]; then
   make clean OVERWRITE=YES
   make clean_all OVERWRITE=YES
@@ -84,13 +83,14 @@ fi
 
 # Compile
 if [ "${DEBUG}" = true ]; then
-  ln -s -f $(pwd)/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+  ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
   RUNID="${RUNID}_DEBUG"
   git apply ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
   make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
     TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
   git apply -R ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
 else
+  ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
   make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
     TYPE=Release OVERWRITE=YES
 fi
