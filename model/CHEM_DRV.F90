@@ -2107,8 +2107,10 @@ CONTAINS
        ENDIF
     ENDDO
     t_qlimit(:) = .true.
-    TrM    = 0d0
-    TrMom  = 0d0
+    TrM(:,:,:,:) = 0d0
+    IF ( isRoot ) CALL DEBUG_MSG( 'DEBUG: setting TrMom = 0d0' )
+    TrMom(:,:,:,:,:) = 0d0 ! NOTE: This is as far as I can get locally before going OOM
+    IF ( isRoot ) CALL DEBUG_MSG( 'DEBUG: done' )
     
     ! Copy State_Chm into TrM as kg kg-1 for now
     ! State_Met is not populated so we can't convert to kg
