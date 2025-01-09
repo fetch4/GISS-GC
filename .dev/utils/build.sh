@@ -84,7 +84,7 @@ fi
 
 # Compile
 if [ "${DEBUG}" = true ]; then
-  ln -s -f $(pwd)/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+  ln -s -f $(pwd)/.github/rundecks/${RUNID}.R $(pwd)/decks/${RUNID}_DEBUG.R
   RUNID="${RUNID}_DEBUG"
   git apply ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
   make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
