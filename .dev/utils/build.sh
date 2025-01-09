@@ -111,6 +111,6 @@ if [ "${GISS_ONLY}" = false ]; then
   # Setup restarts
   mkdir -p ${HUGE_SPACE}/Restarts
   # NOTE: The restart file will need to have been saved in the following location
-  ln -s -f ${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z_Lee.nc4 \
+  ln -s -f ${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z.LATEST.nc4 \
     ${HUGE_SPACE}/Restarts/GEOSChem.Restart.20160701_0000z.nc4
 fi
