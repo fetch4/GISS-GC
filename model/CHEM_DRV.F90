@@ -1541,6 +1541,8 @@ CONTAINS
     NI = I_1 - I_0 + 1
     NJ = J_1 - J_0 + 1
 
+    ! FIXME: Why is the grid hard-coded? Should be read from geoschem_config.
+    State_Grid%GridRes      = '2.0x2.5'
     State_Grid%DX           = 2.5e+0_fp
     State_Grid%DY           = 2.0e+0_fp
     State_Grid%XMin         = lon2d_dg(i_0,1)
