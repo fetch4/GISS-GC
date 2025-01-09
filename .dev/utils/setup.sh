@@ -7,7 +7,7 @@
 # NOTE: Path may need to be edited for your system
 export GISS_HOME=${HOME}/software/GISS-GC
 # NOTE: Path may need to be edited for your system
-export ModelE_Support=${HOME}/run/giss-gc
+export ModelE_Support=${HOME}/run/GISS-GC
 mkdir -p ${ModelE_Support}
 # Environment variables for compiler
 export CC=gcc      # NOTE: C compiler may need to be modified for your system
@@ -40,7 +40,7 @@ export GC_F_LIB=${NETCDF_F_HOME}/lib
 
 # GEOS-Chem input data
 # NOTE: Path may need to be edited for your system
-export GC_INPUTS=${DATA}/gcclassic
+export GC_INPUTS=${DATA}/GISS-GC/prod_input_files
 export ROOT=${GC_INPUTS}/ExtData/HEMCO/
 
 # Put tools in the path

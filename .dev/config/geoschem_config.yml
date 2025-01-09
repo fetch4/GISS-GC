@@ -12,7 +12,7 @@ simulation:
   name: fullchem
   start_date: [20160701, 000000]
   end_date: [20160801, 000000]
-  root_data_dir: /home/joe/data/gcclassic/ExtData
+  root_data_dir: /home/joe/data/GISS-GC/prod_input_files/ExtData
   met_field: MERRA2
   species_database_file: ./species_database.yml
   species_metadata_output_file: OutputDir/geoschem_species_metadata.yml
@@ -89,8 +89,8 @@ operations:
   photolysis:
     activate: true
     input_directories:
-      fastjx_input_dir: /home/joe/data/gcclassic/ExtData/CHEM_INPUTS/FAST_JX/v2021-10/
-      cloudj_input_dir: /home/joe/data/gcclassic/ExtData/CHEM_INPUTS/CLOUD_J/v2023-05/
+      fastjx_input_dir: /home/joe/data/GISS-GC/prod_input_files/ExtData/CHEM_INPUTS/FAST_JX/v2021-10/
+      cloudj_input_dir: /home/joe/data/GISS-GC/prod_input_files/ExtData/CHEM_INPUTS/CLOUD_J/v2023-05/
     overhead_O3:
       use_online_O3_from_model: true 
       use_column_O3_from_met: true

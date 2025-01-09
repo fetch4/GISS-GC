@@ -25,7 +25,7 @@
 ### BEGIN SECTION SETTINGS
 ###############################################################################
 
-ROOT:                        /home/joe/data/gcclassic/ExtData/HEMCO
+ROOT:                        /home/joe/data/GISS-GC/prod_input_files/ExtData/HEMCO
 GCAPSCENARIO:                not_used
 GCAPVERTRES:                 47
 Logfile:                     *
