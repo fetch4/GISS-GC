@@ -82,16 +82,17 @@ if [ "${FRESH}" = true ]; then
 fi
 
 # Compile
+MECH=fullchem
 if [ "${DEBUG}" = true ]; then
   ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
   RUNID="${RUNID}_DEBUG"
   git apply ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
-  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
+  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
     TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
   git apply -R ${GISS_HOME}/.dev/utils/DEBUGGING_FLAGS.patch
 else
   ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
-  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=carbon \
+  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
     TYPE=Release OVERWRITE=YES
 fi
 
