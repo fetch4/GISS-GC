@@ -25,7 +25,7 @@ endif
 FMAKEDEP = $(SCRIPTS_DIR)/sfmakedepend
 CPPFLAGS += -DCOMPILER_G95
 ifeq ($(TYPE),Debug)
-FFLAGS = -g -cpp -fconvert=big-endian -O0 -Wall -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion -fbacktrace -fallow-argument-mismatch
+FFLAGS = -g -cpp -fconvert=big-endian -O0 -Wall -fcheck=do -fcheck=mem -fcheck=recursion -fallow-argument-mismatch
 else
 FFLAGS = -g -cpp -fconvert=big-endian -O2 -fno-range-check -fallow-argument-mismatch
 endif
@@ -73,8 +73,8 @@ endif
 # uncomment next two lines for extensive debugging
 # the following switch adds extra debugging
 ifeq ($(COMPILE_WITH_TRAPS),YES)
-FFLAGS += -fbounds-check -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -fbacktrace
-F90FLAGS += -fbounds-check -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -fbacktrace
+FFLAGS += -fcheck=bounds -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -fbacktrace
+F90FLAGS += -fcheck=bounds -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -fbacktrace
 FFLAGS += -finit-real=snan
 F90FLAGS += -finit-real=snan
 #LFLAGS += -lefence
