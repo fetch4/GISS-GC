@@ -28,8 +28,9 @@ else
   MODEL_E_BUILD_DIR = $(MODEL_E_ROOT)
 endif
 MODEL_DIR = $(MODEL_E_BUILD_DIR)/model
-GC_BUILD_DIR = $(MODEL_DIR)/geos-chem/build
-GC_LIB_DIR = $(MODEL_DIR)/geos-chem/lib
+GC_HOME = $(MODEL_DIR)/geos-chem
+GC_BUILD_DIR = $(GC_HOME)/build
+GC_LIB_DIR = $(GC_HOME)/lib
 AUX_DIR = $(MODEL_E_ROOT)/aux
 SCRIPTS_DIR = $(MODEL_E_ROOT)/exec
 DECKS_DIR = $(shell pwd)
@@ -267,7 +268,8 @@ ifneq ($(PFUNIT),)
 	$(MAKE) -C $(TESTS_DIR) clean
 endif
 	$(MAKE) -C $(AUX_DIR) $@ $(OPTS_MAIN)
-	rm -rf $(GC_BUILD_DIR)/../build_info
+	rm -rf $(GC_HOME)/build_info
+	rm -rf $(GC_HOME)/gcclassic
 	rm -rf $(GC_BUILD_DIR)
 
 exe: $(RUN)/$(RUN) gcm
