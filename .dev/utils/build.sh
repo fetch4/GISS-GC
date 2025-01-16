@@ -9,18 +9,20 @@ set -e
 FRESH=false
 OPENMP=false
 GISS_ONLY=false
+MECH=fullchem
 DEBUG=false
 
 # Function to display help text
 show_help() {
-  echo "Usage: $0 [MP=YES|NO] [--openmp] [--giss-only] [-f] [--debug]"
+  echo "Usage: $0 [MECH=fullchem|carbon|Hg|custom] [--openmp] [--giss-only] [-f] [--debug]"
   echo
   echo "Options:"
-  echo "  --help      Show this help message and exit."
-  echo "  --openmp    Compile with OpenMP enabled."
-  echo "  --giss-only Build without GEOS-Chem coupling."
-  echo "  -f          Fresh rebuild of the model."
-  echo "  --debug     Run with debugging turned on."
+  echo "  MECH=<mechanism>  Set the chemical mechanism (defaults to fullchem)."
+  echo "  --openmp          Compile with OpenMP enabled."
+  echo "  --giss-only       Build without GEOS-Chem coupling."
+  echo "  --debug           Run with debugging turned on."
+  echo "  -f                Fresh rebuild of the model."
+  echo "  --help            Show this help message and exit."
 }
 
 # Check for --help option
@@ -32,8 +34,8 @@ fi
 # Parse arguments
 for arg in "$@"; do
   case $arg in
-  NP=*)
-    NP="${arg#*=}"
+  MECH=*)
+    MECH="${arg#*=}"
     ;;
   --openmp)
     OPENMP=true
@@ -68,7 +70,7 @@ else
 fi
 
 # Print the values for verification
-echo "NP=${NP}"
+echo "MECH=${MECH}"
 echo "OPENMP=${OPENMP}"
 echo "GC=${GC}"
 echo "FRESH=${FRESH}"
@@ -82,7 +84,6 @@ if [ "${FRESH}" = true ]; then
 fi
 
 # Compile
-MECH=fullchem
 if [ "${DEBUG}" = true ]; then
   ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
   RUNID="${RUNID}_DEBUG"
