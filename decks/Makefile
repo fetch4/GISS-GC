@@ -159,14 +159,8 @@ ifeq ($(GC),YES)
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/Headers/libHeaders.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/ObsPack/libObsPack.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/History/libHistory.a $(GC_LIB_DIR)/
-ifeq ($(MECH),fullchem)
-	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP_FirstPass.a $(GC_LIB_DIR)/
-	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/fullchem/libKPP.a $(GC_LIB_DIR)/
-endif
-ifeq ($(MECH),carbon)
-	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/carbon/libKPP_FirstPass.a $(GC_LIB_DIR)/
-	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/carbon/libKPP.a $(GC_LIB_DIR)/
-endif
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/$(MECH)/libKPP_FirstPass.a $(GC_LIB_DIR)/
+	cp $(GC_BUILD_DIR)/src/GEOS-Chem/KPP/$(MECH)/libKPP.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosCore/libGeosCore.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libGeosUtil.a $(GC_LIB_DIR)/
 	cp $(GC_BUILD_DIR)/src/GEOS-Chem/GeosUtil/libJulDay.a $(GC_LIB_DIR)/
