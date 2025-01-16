@@ -62,7 +62,11 @@ I = I
 # by default assume that fortran compiler can do cpp
 EXTERNAL_CPP = NO
 # assume that C compiler understands basic gcc flags
+ifeq ($(TYPE),Debug)
+CFLAGS = -O0
+else
 CFLAGS = -O2
+endif
 # check if ABI was specified
 ifneq ($(ABI),)
   CFLAGS += -m$(ABI)
@@ -430,7 +434,7 @@ endif
 	 $(CPP) $(CPPFLAGS) $< > $@
 
 %.o: %.c
-	$(CC) -c -O2 -m64 $<
+	$(CC) -c $(CFLAGS) -m64 $<
 
 %.f: %.m4f
 	-rm -f $@

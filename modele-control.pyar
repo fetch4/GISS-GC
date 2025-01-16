@@ -3447,7 +3447,7 @@ macro(modele_set_flags)
     add_definitions(-DCOMPILER_G95)
     # This breaks if you try to wrap the long line in the obvious way.
     set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O2 -g -fconvert=big-endian -fno-range-check -ffree-line-length-none")
-    set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O -g -fbacktrace -fconvert=big-endian -fno-range-check -ffree-line-length-none -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion")
+    set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O0 -g -fbacktrace -fconvert=big-endian -fno-range-check -ffree-line-length-none -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion")
 
 
     if (CMAKE_BUILD_TYPE MATCHES Release)
