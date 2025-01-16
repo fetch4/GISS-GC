@@ -1,7 +1,7 @@
 # GISS-GC high-level CMakeLists.txt
 
-cmake_minimum_required (VERSION 3.13)
-project (geos-chem-classic
+cmake_minimum_required(VERSION 3.13)
+project(GISS-GC
   VERSION 14.4.3
   LANGUAGES Fortran
 )
@@ -220,10 +220,6 @@ if(NOT GC_EXTERNAL_CONFIG)
    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Fake CMAKE_INSTALL_PREFIX (use RUNDIR instead)" FORCE)
    set(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT FALSE)
    gc_pretty_print(VARIABLE RUNDIR)
-
-   # # Configure for GCClassic
-   # include(GC-ConfigureGCClassic)
-   # configureGCClassic()
 
    # Configure for GISS-GC
    include(GC-ConfigureGISS-GC)

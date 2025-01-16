@@ -213,7 +213,8 @@ function(configureGISS_GC)
     # Export the following variables to GEOS-Chem directory's scope
     #-------------------------------------------------------------------------
     set(GCHP                    FALSE                       PARENT_SCOPE)
-    # LTM: Need to set this to false to get GISS-GC to compile
+    set(MODEL_GISS              TRUE                        PARENT_SCOPE)
+    # NOTE: Need to set the following to FALSE to get GISS-GC to compile
     set(MODEL_CLASSIC           FALSE                       PARENT_SCOPE)
     set(MECH                    ${MECH}                     PARENT_SCOPE)
     set(TOMAS                   ${TOMAS}                    PARENT_SCOPE)
