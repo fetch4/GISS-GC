@@ -16,7 +16,7 @@ LFLAGS += -qopenmp
 endif
 CTM_LFLAGS = $(LFLAGS)
 ifeq ($(GC),YES)
-CTM_LFLAGS += -nostartfiles -nofor-main
+CTM_LFLAGS += -nostartfiles
 endif
 R8 = -r8
 EXTENDED_SOURCE = -extend_source

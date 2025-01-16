@@ -135,8 +135,6 @@ ifeq ($(GC),YES)
 	# If MECH is not specified, it defaults to "fullchem". May also be "carbon".
 	cd $(GC_BUILD_DIR) && cmake ../ -DINSTALLCOPY=.. \
 		-DCMAKE_BUILD_TYPE="$(TYPE)" -DOMP="$(MP)" -DMECH="$(MECH)" \
-		-DCMAKE_C_COMPILER="$(CC)" \
-		-DCMAKE_CXX_COMPILER="$(CXX)" \
 		-DCMAKE_Fortran_COMPILER="$(F90)" \
 		-DCMAKE_Fortran_FLAGS="$(F90FLAGS)" \
 		-DCMAKE_EXE_LINKER_FLAGS="$(CTM_LFLAGS)"

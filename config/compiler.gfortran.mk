@@ -34,7 +34,7 @@ LFLAGS += -fopenmp
 endif
 CTM_LFLAGS = $(LFLAGS)
 ifeq ($(GC),YES)
-CTM_LFLAGS += -nostartfiles -Wno-main
+CTM_LFLAGS += -nostartfiles
 endif
 
 F90_VERSION = $(shell $(F90) --version | head -1)
