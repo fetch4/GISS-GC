@@ -1,21 +1,31 @@
-.DS_Store
-.#*
-#*
-#*#
+# Directories
+build/
+decks/
+
+# Specific files
+HEMCO_Config.rc
+HEMCO_Diagn.rc
+HISTORY.rc
 a.out
-*.o
-*.build
-*.mod
-*.stamp
-*.pyc
-*~
-build/*
-*.png
-*.pdf
-*.nc
-*.pik
+geoschem_config.yml
 spack-build.*
 spconfig.py
-decks/*
-!decks/Makefile
+species_database.yml
 
+# File extensions
+*.DS_Store
+*.build
+*.log
+*.mod
+*.nc
+*.o
+*.pdf
+*.pik
+*.png
+*.pyc
+*.stamp
+*~
+.#*
+
+# Exceptions
+!decks/Makefile
