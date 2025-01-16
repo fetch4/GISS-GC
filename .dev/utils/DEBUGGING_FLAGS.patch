@@ -1,0 +1,77 @@
+diff --git a/config/compiler.gfortran.mk b/config/compiler.gfortran.mk
+index 007a335..3fdf8e4 100644
+--- a/config/compiler.gfortran.mk
++++ b/config/compiler.gfortran.mk
+@@ -24,7 +24,7 @@ endif
+ 
+ FMAKEDEP = $(SCRIPTS_DIR)/sfmakedepend
+ CPPFLAGS += -DCOMPILER_G95
+-FFLAGS = -g -cpp -fconvert=big-endian -O2 -fno-range-check -fallow-argument-mismatch
++FFLAGS = -g -cpp -fconvert=big-endian -O0 -Wall -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion -fbacktrace -fallow-argument-mismatch
+ F90FLAGS = $(FFLAGS) -ffree-line-length-none
+ LFLAGS =
+ ifeq ($(MP),YES)
+diff --git a/config/compiler.intel.mk b/config/compiler.intel.mk
+index a73a4fe..68839af 100644
+--- a/config/compiler.intel.mk
++++ b/config/compiler.intel.mk
+@@ -4,9 +4,9 @@ IFORT_RELEASE := $(shell ifort --version | perl -e \
+   'while(<>){ if(/ifort.* (\d+\.\d+)/) { print "$$1"; } }')
+ FMAKEDEP = $(SCRIPTS_DIR)/sfmakedepend
+ CMP_MOD = $(SCRIPTS_DIR)/compare_module_file.pl -compiler INTEL-ifort-9-0-on-LINUX
+-FFLAGS = -fpp -O2 -ftz -convert big_endian
++FFLAGS = -fpp -O0 -warn all -check bounds -check uninit -check pointers -traceback -assume byterecl -ftz -convert big_endian
+ F90FLAGS = $(FFLAGS) -free
+-LFLAGS = -O2 -ftz
++LFLAGS = -O0 -ftz
+ CPPFLAGS += -DCOMPILER_Intel8 -DCONVERT_BIGENDIAN
+ F90_VERSION = $(shell $(F90) --version 2>&1)
+ ifeq ($(MP),YES)
+diff --git a/config/rules.mk b/config/rules.mk
+index d981c80..87ef4f2 100644
+--- a/config/rules.mk
++++ b/config/rules.mk
+@@ -62,7 +62,7 @@ I = I
+ # by default assume that fortran compiler can do cpp
+ EXTERNAL_CPP = NO
+ # assume that C compiler understands basic gcc flags
+-CFLAGS = -O2
++CFLAGS = -O0
+ # check if ABI was specified
+ ifneq ($(ABI),)
+   CFLAGS += -m$(ABI)
+@@ -430,7 +430,7 @@ endif
+ 	 $(CPP) $(CPPFLAGS) $< > $@
+ 
+ %.o: %.c
+-	$(CC) -c -O2 -m64 $<
++	$(CC) -c -O0 -Wall -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion -g -fbacktrace -fallow-argument-mismatch -m64 $<
+ 
+ %.f: %.m4f
+ 	-rm -f $@
+diff --git a/decks/Makefile b/decks/Makefile
+index 4d2791a..c167dc6 100644
+--- a/decks/Makefile
++++ b/decks/Makefile
+@@ -140,7 +140,7 @@ ifeq ($(GC),YES)
+ 		-DCMAKE_Fortran_COMPILER="$(F90)" \
+ 		-DCMAKE_Fortran_FLAGS="$(F90FLAGS)" \
+ 		-DCMAKE_EXE_LINKER_FLAGS="$(CTM_LFLAGS)"
+-	cd $(GC_BUILD_DIR) && make -j install
++	cd $(GC_BUILD_DIR) && make VERBOSE=1 -j install
+ 	cp $(GC_BUILD_DIR)/mod/*.mod $(MODEL_DIR)/mod/
+ 	cp $(GC_BUILD_DIR)/src/HEMCO/mod/*.mod $(MODEL_DIR)/mod/
+ 	cp $(GC_BUILD_DIR)/src/Cloud-J/mod/*.mod $(MODEL_DIR)/mod/
+diff --git a/modele-control.pyar b/modele-control.pyar
+index cf10239..1d78b27 100644
+--- a/modele-control.pyar
++++ b/modele-control.pyar
+@@ -3447,7 +3447,7 @@ macro(modele_set_flags)
+     add_definitions(-DCOMPILER_G95)
+     # This breaks if you try to wrap the long line in the obvious way.
+     set (CMAKE_Fortran_FLAGS_RELEASE "${CPPFLAGS} -O2 -g -fconvert=big-endian -fno-range-check -ffree-line-length-none")
+-    set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O -g -fbacktrace -fconvert=big-endian -fno-range-check -ffree-line-length-none -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion")
++    set (CMAKE_Fortran_FLAGS_DEBUG "${CPPFLAGS} -O0 -g -fbacktrace -fconvert=big-endian -fno-range-check -ffree-line-length-none -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion")
+ 
+ 
+     if (CMAKE_BUILD_TYPE MATCHES Release)

@@ -13,10 +13,16 @@ env:
   GISS_HOME: /__w/GISS-GC/GISS-GC
   ModelE_Support: /__w/GISS-GC/GISS-GC/run
   DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
+  # Environment variables for compiler
+  CC: gcc
+  CXX: g++
+  FC: gfortran
+  F90: gfortran
+  F77: gfortran
   # Misc. environment variables
   F_UFMTENDIAN: big
   KMP_STACKSIZE: 100000000
-  OMP_NUM_THREADS: 36
+  OMP_NUM_THREADS: 1
 
 jobs:
   # Test that GISS-GC can be compiled without error
@@ -106,11 +112,27 @@ jobs:
         touch ${DATA}/nudging/merra2/vwnd.2015.MERRA2onGISSE2.nc4
         touch ${DATA}/nudging/merra2/uwnd.2016.MERRA2onGISSE2.nc4
         touch ${DATA}/nudging/merra2/vwnd.2016.MERRA2onGISSE2.nc4
+        mkdir -p ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0
+        touch ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4
+
+    - name: Build GISS with GISS_ONLY rundeck
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        # Environment variable for OpenMPI build
+        MPIF90=$(find /opt/software -name mpif90 | head -n 1)
+        export MPI_ROOT=${MPIF90%/bin/mpif90}
+        # Copy over modelErc
+        cp .github/modelErc ~/.modelErc
+        # Build the model without GEOS-Chem support
+        cp .dev/utils/build.sh .
+        ./build.sh --giss-only
 
     - name: Build GISS-GC with GISS_GC_14 rundeck
       run: |
         . /opt/spack-environment/activate.sh
-        export RUNID=GISS_GC_14
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
         export NETCDF_HOME=$(nc-config --prefix)
         export GC_BIN=${NETCDF_HOME}/bin
@@ -124,9 +146,30 @@ jobs:
         # Environment variable for OpenMPI build
         MPIF90=$(find /opt/software -name mpif90 | head -n 1)
         export MPI_ROOT=${MPIF90%/bin/mpif90}
-        # Copy over rundeck and modelErc
-        cp .github/rundecks/${RUNID}.R decks
+        # Copy over modelErc
         cp .github/modelErc ~/.modelErc
         # Build the model
-        cd decks
-        make -j setup RUN=${RUNID} F90=mpif90 GC=YES
+        cp .dev/utils/build.sh .
+        ./build.sh
+
+    - name: Build GISS-GC with GISS_GC_14 rundeck in debug mode
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for passing NetCDF-C paths to GEOS-Chem
+        export NETCDF_HOME=$(nc-config --prefix)
+        export GC_BIN=${NETCDF_HOME}/bin
+        export GC_INCLUDE=${NETCDF_HOME}/include
+        export GC_LIB=${NETCDF_HOME}/lib
+        # Environment variables for passing NetCDF-Fortran paths to GEOS-Chem
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        export GC_F_BIN=${NETCDF_F_HOME}/bin
+        export GC_F_INCLUDE=${NETCDF_F_HOME}/include
+        export GC_F_LIB=${NETCDF_F_HOME}/lib
+        # Environment variable for OpenMPI build
+        MPIF90=$(find /opt/software -name mpif90 | head -n 1)
+        export MPI_ROOT=${MPIF90%/bin/mpif90}
+        # Copy over modelErc
+        cp .github/modelErc ~/.modelErc
+        # Build the model in debug mode
+        cp .dev/utils/build.sh .
+        ./build.sh --debug

@@ -1,6 +1,6 @@
-GISS_GC_14.R GISS ModelE Lat-Lon Atmosphere Model, 1850 atm./ocean
+GISS_ONLY.R GISS ModelE Lat-Lon Atmosphere Model, 1850 atm./ocean
 
-! GISS_GC_14 is based on E6F40 with updated aerosol/ozone input files for CMIP6
+! GISS_ONLY is based on E6F40 with updated aerosol/ozone input files for CMIP6
 ! simulations
 !
 ! It uses GEOS-Chem at version 14.3.1
@@ -26,7 +26,6 @@ Preprocessor Options
 #define CACHED_SUBDD
 #define CALC_MERRA2_LIKE_DIAGS
 #define CALCULATE_LIGHTNING
-#define TRACERS_GC               ! tracers using GISS-GC coupling
 #define MERRA_NUDGING
 #define NUDGE_ON
 End Preprocessor Options
@@ -59,7 +58,6 @@ ATM_COM                             ! main atmospheric variables
 ATM_DRV                             ! driver for atmosphere-grid components
 ATMDYN_COM                          ! atmospheric dynamics
 ATM_UTILS                           ! utilities for some atmospheric quantities
-CHEM_DRV CHEM_COM                   ! GEOS-Chem
 QUS_COM QUSDEF                      ! T/Q moments, 1D QUS
 CLOUDS2 CLOUDS2_DRV CLOUDS_COM      ! clouds modules
 SURFACE SURFACE_LANDICE FLUXES      ! surface calculation and fluxes
@@ -157,7 +155,7 @@ MSU_wts=MSU_SSU_RSS_weights.txt   ! MSU-diag
 REG=REG2X2.5                      ! special regions-diag
 
 Label and Namelist:  (next 2 lines)
-GISS_GC_14 (LLF40 + updated aerosol/ozone input files for CMIP6 simulations, 1850 atm/ocean)
+GISS_ONLY (LLF40 + updated aerosol/ozone input files for CMIP6 simulations, 1850 atm/ocean)
 
 &&PARAMETERS
 ! parameters set for choice of ocean model:
@@ -216,15 +214,6 @@ cc_cdncx=0.        ! do not include 2nd indirect effect (used 0.0036)
 dalbsnX=1.
 
 MADVOL=2
-
-! GEOS-Chem Operators (1=true, 0=false) ! TODO: Turn these on
-! DoGCConv=1
-! DoGCEmis=1
-! DoGCTend=0
-! DoGCTurb=1
-! DoGCChem=1
-! DoGCDryDep=1
-! DoGCWetDep=1
 
 DTsrc=1800.      ! physics timestep (cannot be changed after a run starts)
 DT=225.          ! advection timestep
