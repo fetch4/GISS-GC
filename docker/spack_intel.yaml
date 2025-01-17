@@ -1,7 +1,7 @@
 spack:
   packages:
     all:
-      compiler: [intel@2024.0]
+      compiler: [intel@2025.0]
   specs:
   - cmake
   - gmake
