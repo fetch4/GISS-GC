@@ -1,4 +1,4 @@
-name: Periodic Docker build with Intel
+name: Periodic Docker build with Intel compiler
 
 on:
   # Build the Docker container whenever commits are pushed to an open PR that changes one of the files listed
@@ -46,4 +46,4 @@ jobs:
         with:
           push: true
           file: docker/Dockerfile.intel
-          tags: ghcr.io/fetch4/giss-gc-dev-env:latest
+          tags: ghcr.io/fetch4/giss-gc-dev-env-intel:latest

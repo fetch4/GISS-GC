@@ -1,12 +1,12 @@
-name: Periodic Docker build with GCC
+name: Periodic Docker build with GNU compiler
 
 on:
   # Build the Docker container whenever commits are pushed to an open PR that changes one of the files listed
   pull_request:
     paths:
-      - .github/workflows/docker_gcc.yml
-      - docker/Dockerfile.gcc
-      - docker/spack_gcc.yaml
+      - .github/workflows/docker_gnu.yml
+      - docker/Dockerfile.gnu
+      - docker/spack_gnu.yaml
 
   # Build the Docker container at 00:00 on the first day of every 3 months
   schedule:
@@ -38,5 +38,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          file: docker/Dockerfile.gcc
-          tags: ghcr.io/fetch4/giss-gc-dev-env-gcc:latest
+          file: docker/Dockerfile.gnu
+          tags: ghcr.io/fetch4/giss-gc-dev-env-gnu:latest
