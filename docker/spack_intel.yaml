@@ -1,17 +1,15 @@
 spack:
   packages:
     all:
-      compiler: [intel@2025.0]
+      compiler: [oneapi@2025.0.4]
   specs:
-  - cmake
-  - gmake
-  - hdf5
-  - netcdf-c+mpi+parallel-netcdf
-  - netcdf-fortran
-  - openmpi
+  - cmake%oneapi@2025.0.4
+  - gmake%oneapi@2025.0.4
+  - hdf5%oneapi@2025.0.4
+  - netcdf-c%oneapi@2025.0.4+mpi+parallel-netcdf
+  - netcdf-fortran%oneapi@2025.0.4
+  - openmpi%oneapi@2025.0.4
   concretizer:
     unify: true
   config:
     install_missing_compilers: true
-    install_tree: /opt/software
-  view: /opt/views/view
