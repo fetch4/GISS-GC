@@ -7,11 +7,20 @@ HEMCO_Config.rc
 HEMCO_Diagn.rc
 HISTORY.rc
 a.out
+build.sh
+clean.sh
 gcclassic
+gdb.sh
 geoschem_config.yml
-spack-build.*
+run.sh
+setup.sh
 spconfig.py
 species_database.yml
+
+# File patterns
+load_modules-*.sh
+machine.file.*
+spack-build.*
 
 # File extensions
 *.DS_Store
@@ -20,11 +29,15 @@ species_database.yml
 *.mod
 *.nc
 *.o
+*.out
+*.patch
 *.pdf
 *.pik
 *.png
 *.pyc
+*.slm
 *.stamp
+*.swp
 *~
 .#*
 
