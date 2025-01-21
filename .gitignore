@@ -7,6 +7,7 @@ HEMCO_Config.rc
 HEMCO_Diagn.rc
 HISTORY.rc
 a.out
+gcclassic
 geoschem_config.yml
 spack-build.*
 spconfig.py
