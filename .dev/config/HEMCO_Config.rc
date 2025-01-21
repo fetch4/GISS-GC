@@ -157,7 +157,7 @@ VerboseOnCores:              root       # Accepted values: root all
     --> GMI_OH                 :       false    # 2005
     --> GMI_PROD_LOSS          :       false    # 2005
     --> OMOC_RATIO             :       false    # 2010
-    --> GMD_SFC_CH4            :       false    # 1979-2020
+    --> GMD_SFC_CH4            :       true     # 1979-2020
     --> CMIP6_SFC_CH4          :       false    # 1750-1978
     --> OLSON_LANDMAP          :       true     # 1985
     --> YUAN_MODIS_LAI         :       false    # 2000-2020
