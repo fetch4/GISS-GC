@@ -35,7 +35,10 @@ jobs:
         password: ${{ secrets.github_token }}
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      with:
+        persist-credentials: false
+      uses: actions/checkout@v2
 
     - name: Setup submodules
       run: |
