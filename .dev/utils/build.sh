@@ -96,6 +96,12 @@ if [ "${FRESH}" = true ]; then
   make clean_all OVERWRITE=YES
 fi
 
+if [ "${DEBUG}" = true ]; then
+  TYPE=Debug
+else
+  TYPE=Release
+fi
+
 # Compile
 if [ "${CLASSIC}" = true ]; then
   # TODO: GCCLASSIC_RUNDIR needs setting up first time?
@@ -109,11 +115,7 @@ if [ "${CLASSIC}" = true ]; then
   fi
   mkdir -p ${BUILD_DIR}
   cd ${BUILD_DIR}
-  if [ "${DEBUG}" = true ]; then
-    cmake ../CodeDir -DRUNDIR=.. -DCMAKE_BUILD_TYPE=Debug -DMECH=${MECH}
-  else
-    cmake ../CodeDir -DRUNDIR=.. -DCMAKE_BUILD_TYPE=Release -DMECH=${MECH}
-  fi
+  cmake ../CodeDir -DRUNDIR=.. -DCMAKE_BUILD_TYPE=${TYPE} -DMECH=${MECH}
   make -j10
   cd -
   RUNDIR=${GCCLASSIC_RUNDIR}
@@ -122,11 +124,11 @@ else
     ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
     RUNID="${RUNID}_DEBUG"
     make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
-      TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
+      TYPE=${TYPE} DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
   else
     ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
     make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
-      TYPE=Release OVERWRITE=YES
+      TYPE=${TYPE} OVERWRITE=YES
   fi
   RUNDIR=${ModelE_Support}/huge_space/${RUNID}
 fi
