@@ -104,7 +104,17 @@ fi
 
 # Compile
 if [ "${CLASSIC}" = true ]; then
-  # TODO: GCCLASSIC_RUNDIR needs setting up first time?
+  # Set up GCClassic rundir
+  cd "${GISS_HOME}/model/geos-chem/src/GEOS-Chem/run/GCClassic"
+  ./createRunDir.sh <<<"1
+  1
+  1
+  2
+  2
+  ${GCCLASSIC_RUNDIR}
+
+  n"
+  # Build GCClassic
   cd ${GCCLASSIC_RUNDIR}
   BUILD_DIR=build
   if [ "${DEBUG}" = true ]; then
@@ -117,7 +127,6 @@ if [ "${CLASSIC}" = true ]; then
   cd ${BUILD_DIR}
   cmake ../CodeDir -DRUNDIR=.. -DCMAKE_BUILD_TYPE=${TYPE} -DMECH=${MECH}
   make -j10
-  cd -
   RUNDIR=${GCCLASSIC_RUNDIR}
 else
   if [ "${DEBUG}" = true ]; then
