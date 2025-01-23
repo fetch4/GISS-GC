@@ -65,4 +65,5 @@ fi
 # Navigate to the run directory and run the model for one hour
 cd ${ModelE_Support}/prod_runs/${RUNID}
 ./${RUNID}ln
-mpiexec -np ${NP} ./${RUNID}.exe -i I -cold-restart
+MP_SET_NUM_THREADS="${NP}" ./${RUNID} -i I -cold-restart &
+tail -f ${RUNID}.PRT
