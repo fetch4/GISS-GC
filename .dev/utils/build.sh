@@ -104,16 +104,6 @@ fi
 
 # Compile
 if [ "${CLASSIC}" = true ]; then
-  # Set up GCClassic rundir
-  cd "${GISS_HOME}/model/geos-chem/src/GEOS-Chem/run/GCClassic"
-  ./createRunDir.sh <<<"1
-  1
-  1
-  2
-  2
-  ${GCCLASSIC_RUNDIR}
-
-  n"
   # Build GCClassic
   cd ${GCCLASSIC_RUNDIR}
   BUILD_DIR=build

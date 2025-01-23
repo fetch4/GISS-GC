@@ -56,15 +56,22 @@ jobs:
         mkdir -p ${DATA}/GEOSCHEM_RESTARTS/GC_14.3.0
         touch ${DATA}/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4
 
-    - name: Build GCClassic
+    - name: Setup GCClassic environment
       run: |
-        . /opt/spack-environment/activate.sh
         mkdir -p ~/.geoschem
-        mkdir -p ${GCCLASSIC_RUNDIR}
         {
           echo "export GC_DATA_ROOT=${DATA}"
           echo "export GC_USER_REGISTERED=true"
         } > ~/.geoschem/config
+
+    - name: Setup GCClassic run directory
+      run: |
+        cd .github
+        ./set_gcclassic_rundir.sh
+
+    - name: Build GCClassic
+      run: |
+        . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C and NetCDF-Fortran
         export NETCDF_HOME=$(nc-config --prefix)
         export NETCDF_F_HOME=$(nf-config --prefix)
