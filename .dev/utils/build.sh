@@ -31,6 +31,16 @@ if [ "$1" = "--help" ]; then
   exit 0
 fi
 
+# Check for unset environment variables
+if [ -z ${GISS_HOME+x} ]; then
+  echo "GISS_HOME is unset. Exiting."
+  exit 0
+fi
+if [ -z ${ModelE_Support+x} ]; then
+  echo "ModelE_Support is unset. Exiting."
+  exit 0
+fi
+
 # Parse arguments
 for arg in "$@"; do
   case $arg in
@@ -77,7 +87,7 @@ echo "FRESH=${FRESH}"
 echo "DEBUG=${DEBUG}"
 
 # Conditionally fresh rebuild of the model
-cd ${GISS_HOME}/decks/
+cd "${GISS_HOME}/decks"
 if [ "${FRESH}" = true ]; then
   make clean OVERWRITE=YES
   make clean_all OVERWRITE=YES
@@ -85,32 +95,32 @@ fi
 
 # Compile
 if [ "${DEBUG}" = true ]; then
-  ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+  ln -s -f "${GISS_HOME}/.github/rundecks/${RUNID}.R" "$(pwd)/${RUNID}_DEBUG.R"
   RUNID="${RUNID}_DEBUG"
-  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
+  make -j setup RUN="${RUNID}" F90=mpif90 GC="${GC}" MP="${OPENMP}" MPI=YES MECH="${MECH}" \
     TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
 else
-  ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
-  make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
+  ln -s -f "${GISS_HOME}/.github/rundecks/${RUNID}.R" "$(pwd)/${RUNID}.R"
+  make -j setup RUN="${RUNID}" F90=mpif90 GC="${GC}" MP="${OPENMP}" MPI=YES MECH="${MECH}" \
     TYPE=Release OVERWRITE=YES
 fi
 
 if [ "${GISS_ONLY}" = false ]; then
   # Copy over configuration files
-  HUGE_SPACE=${ModelE_Support}/huge_space/${RUNID}
-  CONFIG=${GISS_HOME}/.dev/config
+  HUGE_SPACE="${ModelE_Support}/huge_space/${RUNID}"
+  CONFIG="${GISS_HOME}/.dev/config"
   for DIR in ${GISS_HOME} ${HUGE_SPACE}; do
-    ln -s -f ${CONFIG}/geoschem_config.yml ${DIR}/geoschem_config.yml
-    ln -s -f ${CONFIG}/HEMCO_Config.rc ${DIR}/HEMCO_Config.rc
-    ln -s -f ${CONFIG}/HEMCO_Diagn.rc ${DIR}/HEMCO_Diagn.rc
-    ln -s -f ${CONFIG}/HISTORY.rc ${DIR}/HISTORY.rc
-    ln -s -f ${CONFIG}/species_database.yml ${DIR}/species_database.yml
+    ln -s -f "${CONFIG}/geoschem_config.yml" "${DIR}/geoschem_config.yml"
+    ln -s -f "${CONFIG}/HEMCO_Config.rc" "${DIR}/HEMCO_Config.rc"
+    ln -s -f "${CONFIG}/HEMCO_Diagn.rc" "${DIR}/HEMCO_Diagn.rc"
+    ln -s -f "${CONFIG}/HISTORY.rc" "${DIR}/HISTORY.rc"
+    ln -s -f "${CONFIG}/species_database.yml" "${DIR}/species_database.yml"
   done
   # Create output directories
-  mkdir -p ${HUGE_SPACE}/OutputDir
+  mkdir -p "${HUGE_SPACE}/OutputDir"
   # Setup restarts
-  mkdir -p ${HUGE_SPACE}/Restarts
+  mkdir -p "${HUGE_SPACE}/Restarts"
   # NOTE: The restart file will need to have been saved in the following location
-  ln -s -f ${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z.LATEST.nc4 \
-    ${HUGE_SPACE}/Restarts/GEOSChem.Restart.20160701_0000z.nc4
+  ln -s -f "${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z.LATEST.nc4" \
+    "${HUGE_SPACE}/Restarts/GEOSChem.Restart.20160701_0000z.nc4"
 fi
