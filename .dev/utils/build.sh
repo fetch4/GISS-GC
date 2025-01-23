@@ -125,7 +125,7 @@ if [ "${CLASSIC}" = true ]; then
   fi
   mkdir -p ${BUILD_DIR}
   cd ${BUILD_DIR}
-  cmake ../CodeDir -DRUNDIR=.. -DCMAKE_BUILD_TYPE=${TYPE} -DMECH=${MECH}
+  cmake "${GISS_HOME}/model/geos-chem" -DRUNDIR=.. -DCMAKE_BUILD_TYPE=${TYPE} -DMECH=${MECH}
   make -j10
   RUNDIR=${GCCLASSIC_RUNDIR}
 else
