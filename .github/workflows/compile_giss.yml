@@ -1,5 +1,7 @@
-name: Test suite
+# Workflow to test compilation of GISS Model E
+name: Compile Model E
 
+# Controls when the workflow will run
 on:
   # Trigger the CI whenever a commit is pushed to main or develop, i.e., a PR is merged
   push:
@@ -9,7 +11,7 @@ on:
   pull_request:
 
 env:
-  # Environment variables for GISS modelE
+  # Environment variables for GISS Model E
   GISS_HOME: /__w/GISS-GC/GISS-GC
   ModelE_Support: /__w/GISS-GC/GISS-GC/run
   DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
@@ -25,7 +27,7 @@ env:
   OMP_NUM_THREADS: 1
 
 jobs:
-  # Test that GISS-GC can be compiled without error
+  # Test that GISS Model E can be compiled without error
   compile:
     runs-on: ubuntu-22.04
     container:
@@ -115,7 +117,7 @@ jobs:
         mkdir -p ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0
         touch ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4
 
-    - name: Build GISS with GISS_ONLY rundeck
+    - name: Build GISS Model E (without GEOS-Chem support)
       run: |
         . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C and NetCDF-Fortran
@@ -130,7 +132,7 @@ jobs:
         cp .dev/utils/build.sh .
         ./build.sh --giss-only
 
-    - name: Build GISS-GC with GISS_GC_14 rundeck
+    - name: Build GISS-GC in Release mode
       run: |
         . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
@@ -152,7 +154,7 @@ jobs:
         cp .dev/utils/build.sh .
         ./build.sh
 
-    - name: Build GISS-GC with GISS_GC_14 rundeck in debug mode
+    - name: Build GISS-GC in Debug mode
       run: |
         . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C paths to GEOS-Chem
