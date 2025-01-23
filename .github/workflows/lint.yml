@@ -10,8 +10,9 @@ on:
   # Triggers the workflow on pushes to open pull requests with code changes
   pull_request:
     paths:
-      - '.github/workflows/lint.yml'
       - '.dev/utils/*.sh'
+      - '.github/*.sh'
+      - '.github/workflows/lint.yml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -50,7 +51,9 @@ jobs:
       - name: shellcheck
         if: always()
         run: |
-          cd ${{ github.workspace }}/.dev/utils
+          cd ${{ github.workspace }}
+          shellcheck -x .github/set_gcclassic_rundir.sh
+          cd .dev/utils
           for FILE in $(find . -name "*.sh"); do
             shellcheck -x ${FILE}
           done
