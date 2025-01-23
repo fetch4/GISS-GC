@@ -1,0 +1,71 @@
+# Workflow to test compilation of GCClassic
+name: Compile GCClassic
+
+# Controls when the workflow will run
+on:
+  # Trigger the CI whenever a commit is pushed to main or develop, i.e., a PR is merged
+  push:
+    branches: [main, develop]
+
+  # Trigger the CI whenever a commit is pushed to an open PR that changes files matching one or more
+  # paths listed
+  pull_request:
+    paths:
+      - '.github/workflows/compile_gcclassic.yml'
+      - '.gitmodules'
+      - '.dev/utils/*.sh'
+
+env:
+  # Environment variables for GISS modelE
+  GISS_HOME: /__w/GISS-GC/GISS-GC
+  ModelE_Support: /__w/GISS-GC/GISS-GC/run
+  DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
+  # Environment variables for compiler
+  CC: gcc
+  CXX: g++
+  FC: gfortran
+  F90: gfortran
+  F77: gfortran
+  # Misc. environment variables
+  F_UFMTENDIAN: big
+  KMP_STACKSIZE: 100000000
+  OMP_NUM_THREADS: 1
+
+jobs:
+  # Test that GCClassic can be compiled without error
+  compile:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/fetch4/giss-gc-dev-env:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup submodules
+      run: |
+        git config --global --add safe.directory ${GISS_HOME}
+        git submodule init
+        git submodule update
+
+    - name: Build GCClassic
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        # Build the model without GEOS-Chem support
+        cp .dev/utils/build.sh .
+        ./build.sh --classic
+
+    - name: Build GCClassic in debug mode
+      run: |
+        . /opt/spack-environment/activate.sh
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        # Build the model without GEOS-Chem support
+        cp .dev/utils/build.sh .
+        ./build.sh --classic --debug
