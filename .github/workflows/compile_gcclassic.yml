@@ -16,10 +16,9 @@ on:
       - '.dev/utils/*.sh'
 
 env:
-  # Environment variables for GISS modelE
+  # Environment variables for GCClassic
   GISS_HOME: /__w/GISS-GC/GISS-GC
-  ModelE_Support: /__w/GISS-GC/GISS-GC/run
-  DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files
+  DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files/ExtData
   # Environment variables for compiler
   CC: gcc
   CXX: g++
@@ -50,9 +49,19 @@ jobs:
         git submodule init
         git submodule update
 
+    - name: Create fake inputs
+      run: |
+        mkdir -p ${DATA}/GEOSCHEM_RESTARTS/GC_14.3.0
+        touch ${DATA}/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4
+
     - name: Build GCClassic
       run: |
         . /opt/spack-environment/activate.sh
+        mkdir -p ~/.geoschem
+        {
+          echo "export GC_DATA_ROOT=${DATA}"
+          echo "export GC_USER_REGISTERED=true"
+        } > ~/.geoschem/config
         # Environment variables for passing NetCDF-C and NetCDF-Fortran
         export NETCDF_HOME=$(nc-config --prefix)
         export NETCDF_F_HOME=$(nf-config --prefix)
