@@ -18,7 +18,8 @@ on:
 env:
   # Environment variables for GCClassic
   GISS_HOME: /__w/GISS-GC/GISS-GC
-  DATA: /__w/GISS-GC/GISS-GC/run/prod_input_files/ExtData
+  DATA: /__w/GISS-GC/GISS-GC/data/ExtData
+  GCCLASSIC_RUNDIR: /__w/GISS-GC/GISS-GC/run/gcclassic
   # Environment variables for compiler
   CC: gcc
   CXX: g++
@@ -58,6 +59,7 @@ jobs:
       run: |
         . /opt/spack-environment/activate.sh
         mkdir -p ~/.geoschem
+        mkdir -p ${GCCLASSIC_RUNDIR}
         {
           echo "export GC_DATA_ROOT=${DATA}"
           echo "export GC_USER_REGISTERED=true"
