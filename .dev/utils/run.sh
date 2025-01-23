@@ -29,6 +29,12 @@ if [ "$1" = "--help" ]; then
   exit 0
 fi
 
+# Check for unset environment variables
+if [ -z ${ModelE_Support+x} ]; then
+  echo "ModelE_Support is unset. Exiting."
+  exit 0
+fi
+
 # Parse arguments
 for arg in "$@"; do
   case $arg in
@@ -58,12 +64,12 @@ else
   RUNID=GISS_GC_14
 fi
 if [ "${DEBUG}" = true ]; then
-  ln -s -f $(pwd)/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+  ln -s -f "$(pwd)/${RUNID}.R" "$(pwd)/${RUNID}_DEBUG.R"
   RUNID="${RUNID}_DEBUG"
 fi
 
 # Navigate to the run directory and run the model for one hour
-cd ${ModelE_Support}/prod_runs/${RUNID}
+cd "${ModelE_Support}/prod_runs/${RUNID}"
 ./${RUNID}ln
 MP_SET_NUM_THREADS="${NP}" ./${RUNID} -i I -cold-restart &
 tail -f ${RUNID}.PRT
