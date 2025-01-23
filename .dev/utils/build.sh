@@ -181,9 +181,9 @@ if [ "${GISS_ONLY}" = false ]; then
     ln -s -f "${CONFIG}/species_database.yml" "${DIR}/species_database.yml"
   done
   # Create output directories
-  mkdir -p "${HUGE_SPACE}/OutputDir"
+  mkdir -p "${RUNDIR}/OutputDir"
   # Setup restarts
-  mkdir -p "${HUGE_SPACE}/Restarts"
+  mkdir -p "${RUNDIR}/Restarts"
   # NOTE: The restart file will need to have been saved in the following location
   ln -s -f "${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z.LATEST.nc4" \
     "${RUNDIR}/Restarts/GEOSChem.Restart.20160701_0000z.nc4"
