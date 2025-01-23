@@ -6,11 +6,12 @@
 set -e
 
 # Default values
+COMPILE_WITH_TRAPS=NO
+DEBUG=false
 FRESH=false
-OPENMP=false
 GISS_ONLY=false
 MECH=fullchem
-DEBUG=false
+OPENMP=false
 
 # Function to display help text
 show_help() {
@@ -21,6 +22,7 @@ show_help() {
   echo "  --openmp          Compile with OpenMP enabled."
   echo "  --giss-only       Build without GEOS-Chem coupling."
   echo "  --debug           Run with debugging turned on."
+  echo "  --traps           Run with additional 'COMPILE_WITH_TRAPS' debugging option."
   echo "  -f                Fresh rebuild of the model."
   echo "  --help            Show this help message and exit."
 }
@@ -63,6 +65,10 @@ for arg in "$@"; do
     DEBUG=true
     shift
     ;;
+  --traps)
+    COMPILE_WITH_TRAPS=YES
+    shift
+    ;;
   *)
     echo "Unknown argument: $arg"
     show_help
@@ -80,11 +86,12 @@ else
 fi
 
 # Print the values for verification
+echo "COMPILE_WITH_TRAPS=${COMPILE_WITH_TRAPS}"
+echo "DEBUG=${DEBUG}"
+echo "FRESH=${FRESH}"
+echo "GC=${GC}"
 echo "MECH=${MECH}"
 echo "OPENMP=${OPENMP}"
-echo "GC=${GC}"
-echo "FRESH=${FRESH}"
-echo "DEBUG=${DEBUG}"
 
 # Conditionally fresh rebuild of the model
 cd "${GISS_HOME}/decks"
@@ -98,7 +105,10 @@ if [ "${DEBUG}" = true ]; then
   ln -s -f "${GISS_HOME}/.github/rundecks/${RUNID}.R" "$(pwd)/${RUNID}_DEBUG.R"
   RUNID="${RUNID}_DEBUG"
   make -j setup RUN="${RUNID}" F90=mpif90 GC="${GC}" MP="${OPENMP}" MPI=YES MECH="${MECH}" \
-    TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
+    TYPE=Debug DEBUG=YES COMPILE_WITH_TRAPS="${COMPILE_WITH_TRAPS}" TRACEBACK=YES OVERWRITE=YES
+elif [ "${COMPILE_WITH_TRAPS}" = "YES" ]; then
+  echo "COMPILE_WITH_TRAPS only has an effect if debug mode is turned on. Exiting."
+  exit 0
 else
   ln -s -f "${GISS_HOME}/.github/rundecks/${RUNID}.R" "$(pwd)/${RUNID}.R"
   make -j setup RUN="${RUNID}" F90=mpif90 GC="${GC}" MP="${OPENMP}" MPI=YES MECH="${MECH}" \
