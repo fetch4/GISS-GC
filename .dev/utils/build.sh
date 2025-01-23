@@ -36,16 +36,6 @@ if [ "$1" = "--help" ]; then
   exit 0
 fi
 
-# Check for unset environment variables
-if [ -z ${GISS_HOME+x} ]; then
-  echo "GISS_HOME is unset. Exiting."
-  exit 0
-fi
-if [ -z ${ModelE_Support+x} ]; then
-  echo "ModelE_Support is unset. Exiting."
-  exit 0
-fi
-
 # Parse arguments
 for arg in "$@"; do
   case $arg in
@@ -84,6 +74,36 @@ for arg in "$@"; do
   esac
 done
 
+# Print the values for verification
+echo "CLASSIC=${CLASSIC}"
+echo "COMPILE_WITH_TRAPS=${COMPILE_WITH_TRAPS}"
+echo "DEBUG=${DEBUG}"
+echo "FRESH=${FRESH}"
+echo "GISS_ONLY=${GISS_ONLY}"
+echo "MECH=${MECH}"
+echo "OPENMP=${OPENMP}"
+
+# Check for unset environment variables
+if [ -z ${GISS_HOME+x} ]; then
+  echo "GISS_HOME is unset. Exiting."
+  exit 0
+fi
+if [ -z ${ModelE_Support+x} ]; then
+  echo "ModelE_Support is unset. Exiting."
+  exit 0
+fi
+if [ "${CLASSIC}" = true ]; then
+  if [ -z ${GCCLASSIC_RUNDIR+x} ]; then
+    echo "GCCLASSIC_RUNDIR is unset. Exiting."
+    exit 0
+  fi
+  if [ -z ${F90FLAGS+x} ]; then
+    echo "F90FLAGS is unset. Exiting."
+    exit 0
+  fi
+fi
+
+# Set environment variables appropriately for the chosen mode
 if [ "${GISS_ONLY}" = true ]; then
   if [ "${CLASSIC}" = true ]; then
     echo "--giss-only and --classic are mutually exclusive"
@@ -95,16 +115,8 @@ else
   GC=YES
   RUNID=GISS_GC_14
 fi
-
-# Print the values for verification
-echo "CLASSIC=${CLASSIC}"
-echo "COMPILE_WITH_TRAPS=${COMPILE_WITH_TRAPS}"
-echo "DEBUG=${DEBUG}"
-echo "FRESH=${FRESH}"
 echo "GC=${GC}"
-echo "GISS_ONLY=${GISS_ONLY}"
-echo "MECH=${MECH}"
-echo "OPENMP=${OPENMP}"
+echo "RUNID=${RUNID}"
 
 # Conditionally fresh rebuild of the model
 cd "${GISS_HOME}/decks"
@@ -118,6 +130,7 @@ if [ "${DEBUG}" = true ]; then
 else
   TYPE=Release
 fi
+echo "TYPE=${TYPE}"
 
 # Compile
 if [ "${CLASSIC}" = true ]; then
@@ -127,6 +140,7 @@ if [ "${CLASSIC}" = true ]; then
   if [ "${DEBUG}" = true ]; then
     BUILD_DIR=${BUILD_DIR}_debug
   fi
+  echo "BUILD_DIR=${BUILD_DIR}"
   if [ "${FRESH}" = true ]; then
     rm -rf ${BUILD_DIR}
   fi
