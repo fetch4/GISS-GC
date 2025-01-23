@@ -22,7 +22,7 @@ show_help() {
   echo "  MECH=<mechanism>  Set the chemical mechanism (defaults to fullchem)."
   echo "  --openmp          Compile with OpenMP enabled."
   echo "  --giss-only       Build without GEOS-Chem coupling."
-  echo "  --classic   Build without GCClassic as the driver, rather than Model E."
+  echo "  --classic         Build without GCClassic as the driver, rather than Model E."
   echo "  --debug           Run with debugging turned on."
   echo "  -f                Fresh rebuild of the model."
   echo "  --help            Show this help message and exit."
@@ -115,18 +115,19 @@ if [ "${CLASSIC}" = true ]; then
   fi
   mkdir -p ${BUILD_DIR}
   cd ${BUILD_DIR}
-  # TODO: Need to pass appropriate compiler flags for debug/release
   cmake "${GISS_HOME}/model/geos-chem" -DRUNDIR=.. -DCMAKE_BUILD_TYPE=${TYPE} \
     -DMECH=${MECH} -DCMAKE_Fortran_FLAGS="${F90FLAGS}"
   make -j10
   RUNDIR=${GCCLASSIC_RUNDIR}
 else
   if [ "${DEBUG}" = true ]; then
+    # Build GISS Model E in Debug mode
     ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
     RUNID="${RUNID}_DEBUG"
     make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
       TYPE=${TYPE} DEBUG=YES COMPILE_WITH_TRAPS=YES TRACEBACK=YES OVERWRITE=YES
   else
+    # Build GISS Model E in Release mode
     ln -s -f ${GISS_HOME}/.github/rundecks/${RUNID}.R $(pwd)/${RUNID}.R
     make -j setup RUN=${RUNID} F90=mpif90 GC=${GC} MP=${OPENMP} MPI=YES MECH=${MECH} \
       TYPE=${TYPE} OVERWRITE=YES
@@ -148,10 +149,10 @@ if [ "${GISS_ONLY}" = false ]; then
   # Create output directories
   mkdir -p ${RUNDIR}/OutputDir
   # Setup restarts
-  mkdir -p ${HUGE_SPACE}/Restarts
+  mkdir -p ${RUNDIR}/Restarts
   # NOTE: The restart file will need to have been saved in the following location
   ln -s -f ${GC_INPUTS}/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.20160701_0000z.LATEST.nc4 \
-    ${HUGE_SPACE}/Restarts/GEOSChem.Restart.20160701_0000z.nc4
+    ${RUNDIR}/Restarts/GEOSChem.Restart.20160701_0000z.nc4
   # Edit HEMCO_Config to say whether we are running with or without meteorology
   if [ "${CLASSIC}" = true ]; then
     sed -i "s/METEOROLOGY            :       false/METEOROLOGY            :       true /" ${CONFIG}/HEMCO_Config.rc
