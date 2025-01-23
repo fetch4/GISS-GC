@@ -125,7 +125,9 @@ if [ "${CLASSIC}" = true ]; then
   fi
   mkdir -p ${BUILD_DIR}
   cd ${BUILD_DIR}
-  cmake "${GISS_HOME}/model/geos-chem" -DRUNDIR=.. -DCMAKE_BUILD_TYPE=${TYPE} -DMECH=${MECH}
+  # TODO: Need to pass appropriate compiler flags for debug/release
+  cmake "${GISS_HOME}/model/geos-chem" -DRUNDIR=.. -DCMAKE_BUILD_TYPE=${TYPE} \
+    -DMECH=${MECH} -DCMAKE_Fortran_FLAGS="${F90FLAGS}"
   make -j10
   RUNDIR=${GCCLASSIC_RUNDIR}
 else

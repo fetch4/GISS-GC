@@ -26,6 +26,7 @@ env:
   FC: gfortran
   F90: gfortran
   F77: gfortran
+  F90FLAGS: -nostartfiles
   # Misc. environment variables
   F_UFMTENDIAN: big
   KMP_STACKSIZE: 100000000
