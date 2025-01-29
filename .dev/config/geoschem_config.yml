@@ -11,7 +11,7 @@
 simulation:
   name: fullchem
   start_date: [20160701, 000000]
-  end_date: [20160701, 010000]
+  end_date: [20160701, 020000]
   root_data_dir: /home/joe/data/GISS-GC/prod_input_files/ExtData
   met_field: MERRA2
   species_database_file: ./species_database.yml
