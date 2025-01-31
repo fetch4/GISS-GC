@@ -35,7 +35,6 @@ env:
 jobs:
   # Test that GCClassic can be compiled without error
   compile:
-    runs-on: ubuntu-22.04
     strategy:
       matrix:
         debug: ["--debug", ""]
