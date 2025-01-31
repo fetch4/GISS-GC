@@ -10,6 +10,11 @@ on:
   # Trigger the CI whenever a commit is pushed to an open PR
   pull_request:
 
+# Cancel jobs running if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   # Environment variables for GISS Model E
   GISS_HOME: /__w/GISS-GC/GISS-GC

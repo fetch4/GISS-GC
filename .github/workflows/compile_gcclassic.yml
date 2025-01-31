@@ -15,6 +15,11 @@ on:
       - '.gitmodules'
       - '.dev/utils/*.sh'
 
+# Cancel jobs running if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   # Environment variables for GCClassic
   GISS_HOME: /__w/GISS-GC/GISS-GC
