@@ -33,11 +33,10 @@ jobs:
       matrix:
         mode: ["debug", "release"]
         model: ["giss-only", "giss-gc"]
-        container: ["ghcr.io/fetch4/giss-gc-dev-env:latest"]
 
     runs-on: ubuntu-22.04
     container:
-      image: ${{ matrix.container }}
+      image: ghcr.io/fetch4/giss-gc-dev-env:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
