@@ -36,8 +36,14 @@ jobs:
   # Test that GCClassic can be compiled without error
   compile:
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        debug: ["--debug", ""]
+        container: ["ghcr.io/fetch4/giss-gc-dev-env:latest"]
+
+    runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/fetch4/giss-gc-dev-env:latest
+      image: ${{ matrix.container }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
@@ -77,14 +83,4 @@ jobs:
         export NETCDF_F_HOME=$(nf-config --prefix)
         # Build the model without GEOS-Chem support
         cp .dev/utils/build.sh .
-        ./build.sh --classic
-
-    - name: Build GCClassic in debug mode
-      run: |
-        . /opt/spack-environment/activate.sh
-        # Environment variables for passing NetCDF-C and NetCDF-Fortran
-        export NETCDF_HOME=$(nc-config --prefix)
-        export NETCDF_F_HOME=$(nf-config --prefix)
-        # Build the model without GEOS-Chem support
-        cp .dev/utils/build.sh .
-        ./build.sh --classic --debug
+        ./build.sh --classic ${{ matrix.debug }}
