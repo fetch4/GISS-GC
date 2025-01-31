@@ -37,7 +37,7 @@ jobs:
   compile:
     strategy:
       matrix:
-        debug: ["--debug", ""]
+        mode: ["debug", "release"]
         container: ["ghcr.io/fetch4/giss-gc-dev-env:latest"]
 
     runs-on: ubuntu-22.04
@@ -82,4 +82,8 @@ jobs:
         export NETCDF_F_HOME=$(nf-config --prefix)
         # Build the model without GEOS-Chem support
         cp .dev/utils/build.sh .
-        ./build.sh --classic ${{ matrix.debug }}
+        OPTS="--classic"
+        if [ "${{ matrix.mode }}" == "debug" ]; then
+          OPTS="${OPTS} --debug"
+        fi
+        ./build.sh ${OPTS}
