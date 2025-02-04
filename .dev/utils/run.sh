@@ -57,12 +57,30 @@ for arg in "$@"; do
   esac
 done
 
+# Print the values for verification
+echo "CLASSIC=${CLASSIC}"
+echo "DEBUG=${DEBUG}"
+echo "GISS_ONLY=${GISS_ONLY}"
+echo "NP=${NP}"
+
+# Check for unset environment variables
+if [ -z ${ModelE_Support+x} ]; then
+  echo "ModelE_Support is unset. Exiting."
+  exit 0
+fi
+if [ "${CLASSIC}" = true ]; then
+  if [ -z ${GCCLASSIC_RUNDIR+x} ]; then
+    echo "GCCLASSIC_RUNDIR is unset. Exiting."
+    exit 0
+  fi
+fi
+
 if [ "${CLASSIC}" = true ]; then
   if [ "${NP}" != "1" ]; then
     echo "GCClassic only runs in serial"
     exit 1
   fi
-  cd ${GCCLASSIC_RUNDIR}
+  cd "${GCCLASSIC_RUNDIR}"
   if [ "${DEBUG}" = true ]; then
     ./build_debug/bin/gcclassic
   else
@@ -76,12 +94,14 @@ else
     RUNID=GISS_GC_14
   fi
   if [ "${DEBUG}" = true ]; then
-    ln -s -f $(pwd)/${RUNID}.R $(pwd)/${RUNID}_DEBUG.R
+    ln -s -f "$(pwd)/${RUNID}.R" "$(pwd)/${RUNID}_DEBUG.R"
     RUNID="${RUNID}_DEBUG"
   fi
+  echo "RUNID=${RUNID}"
 
   # Navigate to the run directory and run the model for one hour
-  cd ${ModelE_Support}/prod_runs/${RUNID}
+  cd "${ModelE_Support}/prod_runs/${RUNID}"
   ./${RUNID}ln
-  mpiexec -np ${NP} ./${RUNID}.exe -i I -cold-restart
+  MP_SET_NUM_THREADS="${NP}" ./${RUNID} -i I -cold-restart &
+  tail -f ${RUNID}.PRT
 fi
