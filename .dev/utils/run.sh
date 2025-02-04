@@ -115,7 +115,7 @@ else
   ./${RUNID}ln
   if [ "${COLD_RESTART}" = true ]; then
     # Run the model for one hour
-    ./${RUNID} -np "${NP}" -i I -cold-restart
+    ./${RUNID} -np "${NP}" -i I -cold-restart -l cold-restart.log
   else
     # Pick up from a checkpoint and run the model for the full duration
     ./${RUNID} -np "${NP}" -i I
