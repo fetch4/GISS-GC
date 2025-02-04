@@ -392,7 +392,7 @@ print RUNID <<EOF;
     opts=
     touch_ifile=0
     if [ "\$NP"x = x ] ; then NP=1; fi
-    if [ "\$DEBUG_COMMAND"x = x ] ; then DEBUG_COMMAND="xterm -e gdb --args"; fi
+    if [ "\$DEBUG_COMMAND"x = x ] ; then DEBUG_COMMAND="gdb --args"; fi
     while [ \$\# -ge 1 ] ; do
       OPT=\$1 ; shift
       case \$OPT in
