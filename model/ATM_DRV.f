@@ -1016,19 +1016,20 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
 #ifdef CALCULATE_FLAMMABILITY
       call new_io_flammability(fid,iorw)
 #endif
+#ifdef TRACERS_ON
+      select case (iorw)
+      case (ioread)
+         call tracerIO(fid, 'read_dist')
+      case (iowrite)
+         call tracerIO(fid, 'write_dist')
+      end select
+#endif
 #ifdef TRACERS_GC
       select case (iorw)
       case (ioread)
          call IO_CHEM(fid, 'read_dist')
       case (iowrite)
          call IO_CHEM(fid, 'write_dist')
-      end select
-#elif TRACERS_ON
-      select case (iorw)
-      case (ioread)
-         call tracerIO(fid, 'read_dist')
-      case (iowrite)
-         call tracerIO(fid, 'write_dist')
       end select
 #endif
       call new_io_subdd  (fid,iorw)
