@@ -31,11 +31,6 @@ env:
   KMP_STACKSIZE: 100000000
   OMP_NUM_THREADS: 1
 
-# Cancel jobs running if new commits are pushed
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   # Test that GISS Model E can be compiled without error
   compile:
