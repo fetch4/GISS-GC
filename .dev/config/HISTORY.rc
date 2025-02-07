@@ -3,6 +3,8 @@
 ###  Contact: GEOS-Chem Support Team (geos-chem-supportg.harvard.edu)      ###
 ###############################################################################
 
+### HISTORY.rc file for Model E
+
 #============================================================================
 # EXPID allows you to specify the beginning of the file path corresponding
 # to each diagnostic collection.  For example:
