@@ -15,6 +15,11 @@ on:
       - '.gitmodules'
       - '.dev/utils/*.sh'
 
+# Cancel jobs running if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   # Environment variables for GCClassic
   GISS_HOME: /__w/GISS-GC/GISS-GC
@@ -35,6 +40,10 @@ env:
 jobs:
   # Test that GCClassic can be compiled without error
   compile:
+    strategy:
+      matrix:
+        mode: ["debug", "release"]
+
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/fetch4/giss-gc-dev-env:latest
@@ -80,14 +89,8 @@ jobs:
         export NETCDF_F_HOME=$(nf-config --prefix)
         # Build the model without GEOS-Chem support
         cp .dev/utils/build.sh .
-        ./build.sh --classic
-
-    - name: Build GCClassic in debug mode
-      run: |
-        . /opt/spack-environment/activate.sh
-        # Environment variables for passing NetCDF-C and NetCDF-Fortran
-        export NETCDF_HOME=$(nc-config --prefix)
-        export NETCDF_F_HOME=$(nf-config --prefix)
-        # Build the model without GEOS-Chem support
-        cp .dev/utils/build.sh .
-        ./build.sh --classic --debug
+        OPTS="--classic"
+        if [ "${{ matrix.mode }}" == "debug" ]; then
+          OPTS="${OPTS} --debug"
+        fi
+        ./build.sh ${OPTS}

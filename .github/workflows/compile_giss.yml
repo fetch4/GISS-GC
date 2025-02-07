@@ -10,6 +10,11 @@ on:
   # Trigger the CI whenever a commit is pushed to an open PR
   pull_request:
 
+# Cancel jobs running if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   # Environment variables for GISS Model E
   GISS_HOME: /__w/GISS-GC/GISS-GC
@@ -34,6 +39,11 @@ concurrency:
 jobs:
   # Test that GISS Model E can be compiled without error
   compile:
+    strategy:
+      matrix:
+        mode: ["debug", "release"]
+        model: ["giss-only", "giss-gc"]
+
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/fetch4/giss-gc-dev-env:latest
@@ -125,7 +135,7 @@ jobs:
         mkdir -p ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0
         touch ${DATA}/gcclassic/ExtData/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4
 
-    - name: Build GISS Model E (without GEOS-Chem support)
+    - name: Build GISS-GC
       run: |
         . /opt/spack-environment/activate.sh
         # Environment variables for passing NetCDF-C and NetCDF-Fortran
@@ -136,50 +146,13 @@ jobs:
         export MPI_ROOT=${MPIF90%/bin/mpif90}
         # Copy over modelErc
         cp .github/modelErc ~/.modelErc
-        # Build the model without GEOS-Chem support
+        # Build the model with the provided configuration
         cp .dev/utils/build.sh .
-        ./build.sh --giss-only
-
-    - name: Build GISS-GC in Release mode
-      run: |
-        . /opt/spack-environment/activate.sh
-        # Environment variables for passing NetCDF-C paths to GEOS-Chem
-        export NETCDF_HOME=$(nc-config --prefix)
-        export GC_BIN=${NETCDF_HOME}/bin
-        export GC_INCLUDE=${NETCDF_HOME}/include
-        export GC_LIB=${NETCDF_HOME}/lib
-        # Environment variables for passing NetCDF-Fortran paths to GEOS-Chem
-        export NETCDF_F_HOME=$(nf-config --prefix)
-        export GC_F_BIN=${NETCDF_F_HOME}/bin
-        export GC_F_INCLUDE=${NETCDF_F_HOME}/include
-        export GC_F_LIB=${NETCDF_F_HOME}/lib
-        # Environment variable for OpenMPI build
-        MPIF90=$(find /opt/software -name mpif90 | head -n 1)
-        export MPI_ROOT=${MPIF90%/bin/mpif90}
-        # Copy over modelErc
-        cp .github/modelErc ~/.modelErc
-        # Build the model
-        cp .dev/utils/build.sh .
-        ./build.sh
-
-    - name: Build GISS-GC in Debug mode
-      run: |
-        . /opt/spack-environment/activate.sh
-        # Environment variables for passing NetCDF-C paths to GEOS-Chem
-        export NETCDF_HOME=$(nc-config --prefix)
-        export GC_BIN=${NETCDF_HOME}/bin
-        export GC_INCLUDE=${NETCDF_HOME}/include
-        export GC_LIB=${NETCDF_HOME}/lib
-        # Environment variables for passing NetCDF-Fortran paths to GEOS-Chem
-        export NETCDF_F_HOME=$(nf-config --prefix)
-        export GC_F_BIN=${NETCDF_F_HOME}/bin
-        export GC_F_INCLUDE=${NETCDF_F_HOME}/include
-        export GC_F_LIB=${NETCDF_F_HOME}/lib
-        # Environment variable for OpenMPI build
-        MPIF90=$(find /opt/software -name mpif90 | head -n 1)
-        export MPI_ROOT=${MPIF90%/bin/mpif90}
-        # Copy over modelErc
-        cp .github/modelErc ~/.modelErc
-        # Build the model in debug mode
-        cp .dev/utils/build.sh .
-        ./build.sh --debug
+        OPTS=""
+        if [ "${{ matrix.mode }}" == "debug" ]; then
+          OPTS="${OPTS} --debug"
+        fi
+        if [ "${{ matrix.model }}" == "giss-only" ]; then
+          OPTS="${OPTS} --giss-only"
+        fi
+        ./build.sh ${OPTS}
