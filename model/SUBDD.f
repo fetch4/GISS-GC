@@ -1824,30 +1824,14 @@ c add (calls to) the analogs of ijh_defs et al.
       catshapes(k) = 'aijlh'; categories(k) = 'taijlh'
       input_sizes3(k) = lm
       call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
-#endif
-
-#ifdef TRACERS_GC
-      k = k + 1
-      catshapes(k) = 'aijlh'; categories(k) = 'taijlh'
-      input_sizes3(k) = lm
-      call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
-#endif
-
-#ifdef TRACERS_GC
-      
-      k = k + 1
-      catshapes(k) = 'aijlh'; categories(k) = 'taijlh'
-      input_sizes3(k) = lm
-      call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
 
       k = k + 1
       catshapes(k) = 'aijh'; categories(k) = 'taijh'
       input_sizes3(k) = 0
       call tijh_defs(diaglists(1,k),nmax_possible,diaglens(k))
-      
 #endif
 
-      
+
 c
 c check whether each requested diagnostic is in the list
 c of declared possible outputs
