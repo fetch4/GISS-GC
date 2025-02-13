@@ -3,22 +3,21 @@
 ###  Contact: GEOS-Chem Support Team (geos-chem-supportg.harvard.edu)      ###
 ###############################################################################
 
-### HISTORY.rc file for Model E
 
 #============================================================================
 # EXPID allows you to specify the beginning of the file path corresponding
 # to each diagnostic collection.  For example:
 #
-#   EXPID: ./ModelE
-#      Will create netCDF files whose names begin "ModelE",
+#   EXPID: ./GEOSChem
+#      Will create netCDF files whose names begin "GEOSChem",
 #      in this run directory.
 #
-#   EXPID: ./OutputDir/ModelE
-#      Will create netCDF files whose names begin with "ModelE"
+#   EXPID: ./OutputDir/GEOSChem
+#      Will create netCDF files whose names begin with "GEOSChem"
 #      in the OutputDir sub-folder of this run directory.
 #
 #============================================================================
-EXPID:  ./OutputDir/ModelE
+EXPID:  ./OutputDir/GEOSChem
 
 #==============================================================================
 # %%%%% COLLECTION NAME DECLARATIONS %%%%%
