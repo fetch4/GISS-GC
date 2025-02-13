@@ -1154,14 +1154,6 @@ CONTAINS
     ENDIF
 #endif
 
-    ! Compute the cosine of the solar zenith angle array:
-    !    State_Met%SUNCOS     => COS(SZA) at the current time
-    !    State_Met%SUNCOSmid  => COS(SZA) at the midpt of the chem timestep
-    !    COS(SZA) at the midpt of the chem timestep 5hrs ago is now
-    !    calculated elsewhere, in the HEMCO PARANOx extension
-    CALL GET_COSINE_SZA( Input_Opt, State_Grid, State_Met, RC )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "GET_COSINE_SZA", 255 )
-
     !=======================================================================
     ! EMISSIONS. Pass HEMCO Phase 1 which only updates the HEMCO clock
     ! and the HEMCO data list. Should be called every time to make sure
