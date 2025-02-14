@@ -1512,8 +1512,8 @@ CONTAINS
 
     State_Grid%DX           = 2.5e+0_fp
     State_Grid%DY           = 2.0e+0_fp
-    State_Grid%XMin         = lon2d_dg(i_0,1)
-    State_Grid%XMax         = lon2d_dg(i_1,1)
+    State_Grid%XMin         = lon2d_dg(i_0,lbound(lon2d_dg,dim=2))
+    State_Grid%XMax         = lon2d_dg(i_1,lbound(lon2d_dg,dim=2))
     State_Grid%YMin         = max( lat2d_dg(1,j_0), -89.0_fp )
     State_Grid%YMax         = min( lat2d_dg(1,j_1),  89.0_fp )
 
