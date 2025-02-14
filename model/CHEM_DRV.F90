@@ -103,6 +103,7 @@ CONTAINS
     USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT, GRID, getDomainBounds, hasnorthpole, hassouthpole
     USE DOMAIN_DECOMP_1D,  ONLY : HALO_UPDATE, SOUTH, NORTH
     USE MODEL_COM,         ONLY : modelEclock, itime, ItimeI, DTsrc
+    ! USE MODELE_DRV,        ONLY : coldRestart
     USE ATM_COM,           ONLY : pedn, pmid, pk, ptropo, zatmo, mws, t, q, ualij, valij, qci, qcl
 #ifdef CALC_MERRA2_LIKE_DIAGS
     USE CLOUDS_COM,        ONLY : tauss, taumc, cldmc, cldss, cldss3d, pficu, pflcu, pfilsan, pfllsan
@@ -1400,7 +1401,7 @@ CONTAINS
 
   !==========================================================================================================
 
-  SUBROUTINE INIT_CHEM( grid )
+  SUBROUTINE INIT_CHEM( grid, is_coldstart )
 
     USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator 
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
@@ -1435,9 +1436,12 @@ CONTAINS
     USE Photolysis_Mod,          ONLY : Init_Photolysis
     USE Vdiff_Mod,               ONLY : Max_PblHt_for_Vdiff
 
+    USE pario,                   ONLY : par_open, par_close
+
     IMPLICIT NONE
 
     TYPE (DIST_GRID), INTENT(IN) :: grid
+    LOGICAL, INTENT(IN)          :: is_coldstart
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
     INTEGER   :: RC, previous_units
@@ -1451,6 +1455,8 @@ CONTAINS
     INTEGER   :: id_H2O, id_CH4, id_CLOCK
 
     INTEGER   :: TAU, TAUb
+
+    INTEGER   :: fid
 
     CHARACTER(LEN=255)       :: ThisLoc, historyConfigFile
     CHARACTER(LEN=512)       :: ErrMsg, Instr
@@ -1986,18 +1992,25 @@ CONTAINS
        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
     ENDIF
 
-    CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, &
-         State_Met, RC )    
+    IF (is_coldstart) THEN
+      ! In the case of a cold restart, initialise GEOS-Chem from its restart file
+      CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
 
-    IF ( AM_I_ROOT() ) THEN
-       WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ENDIF
- 
-    ! Trap potential errors
-    IF ( RC /= GC_SUCCESS ) THEN
-       ErrMsg = 'Error encountered in "Get_GC_Restart"'
-       Instr  = ''
-       CALL Error_Stop( ErrMsg, ThisLoc, Instr )
+      IF ( AM_I_ROOT() ) THEN
+        WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+      ENDIF
+  
+      ! Trap potential errors
+      IF ( RC /= GC_SUCCESS ) THEN
+        ErrMsg = 'Error encountered in "Get_GC_Restart"'
+        Instr  = ''
+        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
+      ENDIF
+    ELSE
+      ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
+      fid = par_open( grid, trim( 'checkpoint.nc' ), 'read' )
+      CALL IO_CHEM(fid, 'read' )
+      call par_close( grid, fid )
     ENDIF
 
     IF ( Input_Opt%useTimers ) THEN
