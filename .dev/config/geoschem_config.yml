@@ -51,7 +51,8 @@ timesteps:
 operations:
 
   chemistry:
-    activate: true
+    # TODO: Reactivate chemistry
+    activate: false
     linear_chemistry_aloft:
       activate: true
       use_linoz_for_O3: true

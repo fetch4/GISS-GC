@@ -243,8 +243,7 @@ aer_rad_forc=0   ! turn off aerosol radiative forcing diagnostics
 cloud_rad_forc=1 ! turn on cloud radiative forcing diagnostics
 
 ! diagnostics
-! SUBDD='OH:4 NO:4 O3:4 NO2:4 CO:4 CH4:4 PS:4' ! TODO: Turn these on
-SUBDD=''
+SUBDD='OH:4 NO:4 O3:4 NO2:4 CO:4 CH4:4 PS:4'
 NSUBDD=1         ! saving sub-daily diags every NSUBDD-th physics timestep
 DAYS_PER_FILE=1
 KCOPY=1          ! save accumulated diagnostics files
@@ -262,5 +261,5 @@ Ndisk=960        ! write fort.1.nc or fort.2.nc every NDISK source timestep
 &INPUTZ
  YEARI=2016,MONTHI=7,DATEI=1,HOURI=0,
  YEARE=2016,MONTHE=7,DATEE=1,HOURE=2,     KDIAG=13*0,
- ISTART=2,IRANDI=0, YEARE=2016,MONTHE=7,DATEE=1,HOURE=2,
+ ISTART=2,IRANDI=0, YEARE=2016,MONTHE=7,DATEE=1,HOURE=1,
 /
