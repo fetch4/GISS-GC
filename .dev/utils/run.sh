@@ -115,6 +115,7 @@ else
   ./${RUNID}ln
   if [ "${COLD_RESTART}" = true ]; then
     # Run the model for one hour
+    # NOTE: Add --tag-output (OpenMPI) or -prepend-rank (Intel) to see output per rank
     mpiexec -np "${NP}" ./${RUNID}.exe -i I -cold-restart 2>&1 | tee cold-restart.log
   else
     # Pick up from a checkpoint and run the model for the full duration
