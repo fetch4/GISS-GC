@@ -2027,7 +2027,7 @@ CONTAINS
       ENDIF
     ELSE
       ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
-      fid = par_open( grid, trim( 'checkpoint.nc' ), 'read' )
+      fid = par_open( grid, trim( 'fort.1.nc' ), 'read' )
       CALL IO_CHEM(fid, 'read' )
       call par_close( grid, fid )
     ENDIF
