@@ -260,7 +260,7 @@ CONTAINS
           if ( si_ocn%snowi(i,j) > 0. ) &
                State_Met%FRSNOW(II,JJ) = si_atm%rsi(i,j)*flake(i,j)
           if ( atmlnd%SNOWE(i,j) > 0. ) &
-               State_Met%FRSNOW(II,JJ) = State_Met%FRSNOW(I,J) + atmlnd%snowfr(i,j)*fearth(i,j)
+               State_Met%FRSNOW(II,JJ) = State_Met%FRSNOW(II,JJ) + atmlnd%snowfr(i,j)*fearth(i,j)
           State_Met%FRSNOW(II,JJ) = min( 1.0, State_Met%FRSNOW(II,JJ) )
 
           ! Root soil wetness [1]
