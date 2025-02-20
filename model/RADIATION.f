@@ -8686,12 +8686,8 @@ C
       RETURN
       END SUBROUTINE WRITET
 
-      END MODULE RADPAR
-
-
       SUBROUTINE GTREND(XNOW,TNOW)
 C
-      USE RADPAR, only: nghg,ghgyr1,ghgyr2,ghgam
       IMPLICIT NONE
       REAL*8 xnow(nghg),tnow,year,dy,frac
       INTEGER iy,n
@@ -8724,3 +8720,4 @@ C
       RETURN
       END SUBROUTINE GTREND
 
+      END MODULE RADPAR
