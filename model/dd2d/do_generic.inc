@@ -44,7 +44,7 @@
          call write_dist_data(handle%grid, handle%fileId, variableName, &
               & arr, jdim=jdim, no_xdim=no_xdim)
       case ('default')
-         call stop_model('NetCdFHandle::do() unsupported option for iAction.')
+         call stop_model('NetCdFHandle::do() unsupported option for iAction.', 1)
       end select
 
    end subroutine _PROC_NAME_
