@@ -28,8 +28,7 @@ EXPID:  ./OutputDir/ModelE
 # NOTE: These are the "default" collections for Model E, but you can create
 # your own customized diagnostic collections as well.
 #==============================================================================
-COLLECTIONS: 'Restart',
-             'Metrics',
+COLLECTIONS: 'Metrics',
              'SpeciesConc',
              #'AdvFluxVert',
              #'AerosolMass',
@@ -65,32 +64,6 @@ COLLECTIONS: 'Restart',
 ### collections above, ends with a double-colon ("::").                     ###
 ###############################################################################
 
-#==============================================================================
-# %%%%% THE Restart COLLECTION %%%%%
-#
-# Model E restart file fields
-#
-# Available for all simulations
-#==============================================================================
-  Restart.filename:           './Restarts/ModelE.Restart.%y4%m2%d2_%h2%n2z.nc4',
-  Restart.frequency:          00000100 000000
-  Restart.duration:           00000100 000000
-  Restart.mode:               'instantaneous'
-  Restart.fields:             'SpeciesRst_?ALL?               ',
-                              'Chem_AeroH2OSNA                ',
-                              'Chem_ORVCsesq                  ',
-                              'Chem_H2O2AfterChem             ',
-                              'Chem_JOH                       ',
-                              'Chem_JNO2                      ',
-                              'Chem_SO2AfterChem              ',
-                              'Chem_DryDepNitrogen            ',
-                              'Chem_WetDepNitrogen            ',
-                              'Chem_KPPHvalue                 ',
-                              'Chem_StatePSC                  ',
-                              'Met_DELPDRY                    ',
-                              'Met_BXHEIGHT                   ',
-                              'Met_TropLev                    ',
-::
 #==============================================================================
 # %%%%% THE Metrics COLLECTION %%%%%
 #
