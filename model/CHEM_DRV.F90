@@ -2017,8 +2017,8 @@ CONTAINS
        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
     ENDIF
 
+    ! In the case of a cold restart, initialise GEOS-Chem from its restart file
     IF (is_coldstart) THEN
-      ! In the case of a cold restart, initialise GEOS-Chem from its restart file
       CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
 
       ! IF ( AM_I_ROOT() ) THEN
@@ -2031,11 +2031,6 @@ CONTAINS
         Instr  = ''
         CALL Error_Stop( ErrMsg, ThisLoc, Instr )
       ENDIF
-    ELSE
-      ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
-      fid = par_open( grid, trim( 'fort.1.nc' ), 'read' )
-      CALL IO_CHEM(fid, 'read' )
-      call par_close( grid, fid )
     ENDIF
 
     IF ( Input_Opt%useTimers ) THEN
@@ -2113,23 +2108,30 @@ CONTAINS
        ENDIF
     ENDDO
     t_qlimit(:) = .true.
+
+    ! In the case of a cold restart, copy State_Chm into TrM as kg kg-1 for now
+    ! State_Met is not populated so we can't convert to kg
     TrM    = 0d0
     TrMom  = 0d0
-    
-    ! Copy State_Chm into TrM as kg kg-1 for now
-    ! State_Met is not populated so we can't convert to kg
-    DO N=1,NTM
-       DO L=1,LM
-          DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-    
+    IF (is_coldstart) THEN
+      DO N=1,NTM
+         DO L=1,LM
+            DO J=J_0,J_1
+               DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
+    ELSE
+      ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
+      fid = par_open( grid, trim( 'fort.2.nc' ), 'read' )
+      CALL IO_CHEM(fid, 'read' )
+      call par_close( grid, fid )
+    ENDIF
+
     ! Return success
     RC = GC_SUCCESS
     
