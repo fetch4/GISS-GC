@@ -602,12 +602,13 @@ CONTAINS
             YEAR, '-', MONTH, '-', DAY, HOUR, ':', MINUTE, ':', SECOND
     ENDIF
 
-    ! Set species units
-    DO N=1, State_Chm%nSpecies
-       State_Chm%Species(N)%Units = KG_SPECIES ! TrM is in kg
-    ENDDO
-
     IF ( FIRST_CHEM ) THEN
+
+       ! Set species units to kg kg-1
+       DO N=1, State_Chm%nSpecies
+         State_Chm%Species(N)%Units = KG_SPECIES_PER_KG_DRY_AIR
+       ENDDO
+
        ! Species_Chm has initial conditions in kg kg-1 at the moment.
        ! Now that we have meteorology in State_Met, we need to convert it to kg
        ! put into TrM
@@ -675,6 +676,11 @@ CONTAINS
              ENDDO
           ENDDO
        ENDDO
+    ENDDO
+
+    ! Set species units
+    DO N=1, State_Chm%nSpecies
+       State_Chm%Species(N)%Units = KG_SPECIES ! TrM is in kg
     ENDDO
 
     ! Convert to v/v dry
