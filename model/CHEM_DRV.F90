@@ -2367,7 +2367,7 @@ CONTAINS
     SpcInfo     => NULL()
 
     ! Name of this routine
-    LOC = ' -> at Get_GC_Restart (in GeosCore/hco_utilities_gc_mod.F90)'
+    LOC = ' -> at Get_GC_Restart (in model/CHEM_DRV.F90)'
 
     ! Set minimum value threshold for [mol/mol]
     SMALL_NUM = 1.0e-30_fp
