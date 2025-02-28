@@ -2289,14 +2289,12 @@ CONTAINS
   END SUBROUTINE IO_CHEM
 
   ! Read restart file and put into State_Chm
-  SUBROUTINE Get_GC_Restart( Input_Opt, State_Chm, State_Grid, &
-       State_Met, RC )
+  SUBROUTINE Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
     !
     ! !USES:
     !
-    USE CMN_SIZE_Mod,     ONLY  : NDUST
-    USE ErrCode_Mod
-    USE Error_Mod
+    USE CMN_SIZE_Mod,      ONLY : NDUST
+    USE Error_Mod,         ONLY : Debug_Msg
     USE HCO_State_GC_Mod,  ONLY : HcoState
     USE HCO_Utilities_GC_Mod, ONLY : HCO_GC_GetPtr
     USE PhysConstants,     ONLY : AIRMW
@@ -2306,7 +2304,8 @@ CONTAINS
     USE State_Grid_Mod,    ONLY : GrdState
     USE State_Met_Mod,     ONLY : MetState
     USE Time_Mod,          ONLY : Expand_Date
-    USE UnitConv_Mod,      ONLY : KG_SPECIES_PER_KG_DRY_AIR, MOLECULES_SPECIES_PER_CM3, Convert_Spc_Units
+    USE UnitConv_Mod,      ONLY : KG_SPECIES_PER_KG_DRY_AIR, MOLECULES_SPECIES_PER_CM3, &
+                                  Convert_Spc_Units
 #ifdef APM
     USE APM_Init_Mod,      ONLY : APMIDS
 #endif
