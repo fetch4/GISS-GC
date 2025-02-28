@@ -9,8 +9,7 @@ module CHEM_DRV
   USE QUSDEF,      ONLY : nmom
   USE RESOLUTION,  ONLY : im, jm, lm
   USE ERRCODE_MOD, ONLY : GC_SUCCESS 
-  USE DIAG_COM
-  USE CHEM_COM
+  USE CHEM_COM,    ONLY : IsAdvected, NTM, TrM, TrMom, TrName
 
   USE Input_Opt_Mod,           ONLY: OptInput
   USE State_Chm_Mod,           ONLY: ChmState
@@ -44,7 +43,6 @@ module CHEM_DRV
   TYPE(DgnList)              :: Diag_List  ! Diagnostics state
   TYPE(TaggedDgnList)        :: TaggedDiag_List ! Diagnostics state
   TYPE(GrdState)             :: State_Grid ! Grid state
-  TYPE(ConfigObj), POINTER   :: HcoConfig
 
 
   ! Start, stop and size of main grid
@@ -60,8 +58,6 @@ module CHEM_DRV
   LOGICAL                               :: DoGCChem     = .true.
   LOGICAL                               :: DoGCDryDep   = .true.
   LOGICAL                               :: DoGCWetDep   = .true.
-  LOGICAL                               :: DoGCDiagn    = .false.
-  LOGICAL                               :: coupled_chem = .false.
 
   LOGICAL                               :: first_chem = .true.
 
@@ -113,7 +109,7 @@ CONTAINS
     USE CLOUDS_COM,        ONLY : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
 #endif
     USE FLUXES,            ONLY : atmsrf, atmlnd, prec, precss, focean, fland, flice
-    USE GEOM,              ONLY : axyp, byaxyp
+    USE GEOM,              ONLY : axyp , byaxyp
     USE GHY_COM,           ONLY : fearth, wearth, aiearth, wfcs
 #ifdef CALC_MERRA2_LIKE_DIAGS
     USE GHY_COM,           ONLY : lai_save, z0m_save
@@ -128,7 +124,6 @@ CONTAINS
     USE CONSTANT,          ONLY : bygrav, lhe, tf, teeny
 
     ! GEOS-Chem modules
-    USE HCO_State_GC_Mod,  ONLY : HcoState, ExtState
     USE HCO_Interface_Common, ONLY : SetHcoTime
     USE Time_Mod,          ONLY : Accept_External_Date_Time
     USE Emissions_Mod,     ONLY : Emissions_Run         
@@ -138,10 +133,11 @@ CONTAINS
     USE Pressure_Mod,      ONLY : Accept_External_Pedge
     USE Calc_Met_Mod,      ONLY : Set_Dry_Surface_Pressure
     USE Calc_Met_Mod,      ONLY : GCHP_Cap_Tropopause_Prs
-    USE PBL_Mix_Mod
-    USE VDIFF_Mod
+    USE PBL_Mix_Mod,       ONLY : Compute_PBL_Height
+    USE VDIFF_Mod,         ONLY : Max_PblHt_For_Vdiff
     USE ERROR_MOD,         ONLY : Safe_Div, IT_IS_NAN, ERROR_STOP
-    USE UnitConv_Mod
+    USE UnitConv_Mod,      ONLY : Convert_Spc_Units, KG_SPECIES, KG_SPECIES_PER_KG_DRY_AIR, &
+                                  MOLES_SPECIES_PER_MOLES_DRY_AIR
 
     USE Photolysis_Mod,  ONLY : Init_Photolysis
 
@@ -151,19 +147,18 @@ CONTAINS
     INTEGER   :: DOY,     HOUR,     MINUTE,  SECOND
     INTEGER   :: I,       J,        L,       K,        N
     INTEGER   :: II,      JJ,       III,     JJJ,      RC
-    INTEGER   :: STATUS
     REAL*4    :: MINUTES, hElapsed, UTC
     REAL*8    :: sElapsed
     LOGICAL   :: IsChemTime, IsRadTime
-    INTEGER   :: OrigUnit
 
-    LOGICAL, SAVE :: FIRST_CHEM = .true.
     CHARACTER(LEN=256)       :: ThisLoc
-    CHARACTER(LEN=512)       :: ErrMsg, Instr
+    CHARACTER(LEN=512)       :: ErrMsg
     
     ! External functions (from shared/Utilities.F90)
     REAL*8 SLP
     REAL*8 QSAT
+
+    LOGICAL, SAVE :: FIRST_CHEM = .true.
 
     ! Assume initial success
     RC = GC_SUCCESS
@@ -746,7 +741,7 @@ CONTAINS
   SUBROUTINE TrDYNAM
 
     USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT
-    USE TRACER_ADV,     only : AADVQ, sfbm, sbm, sbf, sfcm, scm, scf, safv, sbfv
+    USE TRACER_ADV,        ONLY : AADVQ, sfbm, sfcm
 
     IMPLICIT NONE
 
@@ -784,7 +779,6 @@ CONTAINS
     ! GEOS-Chem state objects
     USE Input_Opt_Mod,      ONLY : OptInput
     USE State_Chm_Mod,      ONLY : ChmState
-    USE State_Diag_Mod
     USE State_Grid_Mod,     ONLY : GrdState
     USE State_Met_Mod,      ONLY : MetState
 
@@ -815,9 +809,6 @@ CONTAINS
     USE Vdiff_Mod,          ONLY : Max_PblHt_for_Vdiff
 
     ! Utilities
-    USE ErrCode_Mod
-    USE Error_Mod
-    USE HCO_Error_Mod
     USE Pressure_Mod,       ONLY : Accept_External_Pedge
     USE State_Chm_Mod,      ONLY : IND_
     USE Time_Mod,           ONLY : Accept_External_Date_Time
@@ -875,7 +866,7 @@ CONTAINS
 !    TYPE(ESMF_Field)               :: IntField
     REAL*8                         :: DT
     CHARACTER(LEN=512)             :: Iam
-    INTEGER                        :: STATUS, HCO_PHASE, RST, previous_units
+    INTEGER                        :: HCO_PHASE, previous_units
 
     ! Local logicals to turn on/off individual components
     ! The parts to be executed are based on the input options,
@@ -891,7 +882,6 @@ CONTAINS
 
     ! First call?
     LOGICAL, SAVE                  :: FIRST    = .TRUE.
-    LOGICAL, SAVE                  :: FIRST_RT = .TRUE. ! RRTMG
 
     ! # of times this routine has been called. Only temporary for printing
     ! processes on the first 10 calls.
@@ -900,22 +890,11 @@ CONTAINS
     ! Strat. H2O settings
     LOGICAL                        :: SetStratH2O
 
-    ! For RRTMG
-    INTEGER                        :: N
-
     ! Whether to scale mixing ratio with meteorology update in AirQnt
     LOGICAL, SAVE                  :: scaleMR = .FALSE.
 
     ! Debug variables
     INTEGER, parameter             :: I_DBG = 6, J_DBG = 5, L_DBG=1
-
-    ! For stratospheric adjustment
-    REAL(f8), ALLOCATABLE          :: DT_3D(:,:,:)
-    REAL(f8), ALLOCATABLE          :: DT_3D_UPDATE(:,:,:)
-    REAL(f8), ALLOCATABLE          :: HR_3D(:,:,:)
-
-    ! For logging
-    CHARACTER(len=512)     :: MSG
 
     !=======================================================================
     ! CHEM_CHUNK_RUN begins here
@@ -1427,49 +1406,47 @@ CONTAINS
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
     USE GEOM,                    ONLY : axyp, lat2d_dg, lon2d_dg
     USE CONSTANT,                ONLY : Pi
-    USE MODEL_COM,               ONLY : modelEclock, itime, ItimeI, DTsrc
+    USE MODEL_COM,               ONLY : DTsrc
     USE Dictionary_mod,          ONLY : sync_param
-    USE CHEM_COM
-    USE ERROR_MOD
+    USE CHEM_COM,                ONLY : SpcChmID_to_TrID, t_qlimit, TrFullName, TrID_to_SpcChmID
+    USE ERROR_MOD,               ONLY : Debug_Msg, Error_Stop, Init_Error
 
     USE GC_Environment_Mod,      ONLY : GC_Allocate_All
     USE State_Grid_Mod,          ONLY : Init_State_Grid
     USE Input_Opt_Mod,           ONLY : Set_Input_Opt
     USE Input_Mod,               ONLY : Read_Input_File
-    USE Time_Mod
-    USE TIMERS_MOD
+    USE Time_Mod,                ONLY : GET_NHMS, GET_NHMSb, GET_NYMD, GET_NYMDb, GET_TAU, &
+                                        GET_TAUb, SET_TIMESTEPS
+    USE TIMERS_MOD,              ONLY : Timer_End, Timer_Start
     USE grid_registry_mod,       ONLY : Init_Grid_Registry
     USE LINOZ_MOD,               ONLY : Linoz_Read
     USE HISTORY_MOD,             ONLY : History_Init
-    USE OLSON_LANDMAP_MOD
+    USE OLSON_LANDMAP_MOD,       ONLY : Compute_Olson_Landmap, Init_LandTypeFrac
 
     USE Emissions_Mod,           ONLY : Emissions_Init, Emissions_Run
-    USE GC_Environment_Mod
+    USE GC_Environment_Mod,      ONLY : GC_Init_StateObj, GC_Init_Extra, GC_Init_Grid
     USE GC_Grid_Mod,             ONLY : SetGridFromCtr
     USE Pressure_Mod,            ONLY : Init_Pressure, Accept_External_ApBp
     USE UCX_MOD,                 ONLY : Init_UCX
-    USE UnitConv_Mod
     USE PhysConstants,           ONLY : PI_180
     USE State_Chm_Mod,           ONLY : Ind_
 
-    USE LINEAR_CHEM_MOD       
-    USE Photolysis_Mod,  ONLY : Init_Photolysis
-    USE PBL_MIX_MOD           
-    USE Vdiff_Mod,          ONLY : Max_PblHt_for_Vdiff
-    
+    USE LINEAR_CHEM_MOD,         ONLY : Init_Linear_Chem
+    USE Photolysis_Mod,          ONLY : Init_Photolysis
+    USE Vdiff_Mod,               ONLY : Max_PblHt_for_Vdiff
+
     IMPLICIT NONE
 
     TYPE (DIST_GRID), INTENT(IN) :: grid
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
-    INTEGER   :: myPET, NPES, RC, previous_units
+    INTEGER   :: RC, previous_units
 
-    INTEGER   :: NYMD, NHMS, YEAR, MONTH, DAY, DOY, HOUR, MINUTE, SECOND
-    REAL*4    :: MINUTES, hElapsed, UTC
+    INTEGER   :: NYMD, NHMS
     REAL*8    :: DT
 
     INTEGER   :: I, J, L, N, NN, II, JJ, I_0H, I_1H
-    INTEGER   :: NYMDb, NHMSb, NYMDe, NHMSe
+    INTEGER   :: NYMDb, NHMSb, NHMSe
     INTEGER   :: NSP
     INTEGER   :: id_H2O, id_CH4, id_CLOCK
 
@@ -2128,10 +2105,10 @@ CONTAINS
     use domain_decomp_atm, only : grid, am_i_root
     use subdd_mod, only : subdd_groups,subdd_type,subdd_ngroups, &
          inc_subdd,find_groups, LmaxSUBDD
-    use geom, only : byaxyp
-    use atm_com, only : byma
+    ! use geom, only : byaxyp
+    ! use atm_com, only : byma
     USE UnitConv_Mod
-    
+
     implicit none
 
     integer :: igrp,ngroups,grpids(subdd_ngroups)
@@ -2142,7 +2119,7 @@ CONTAINS
     real*8, dimension(grid%i_strt_halo:grid%i_stop_halo, &
          grid%j_strt_halo:grid%j_stop_halo, &
          LM                               ) :: sddarr3d
-    real*8 :: convert
+    ! real*8 :: convert
     integer :: previous_units
     
 !    ! 3-D diagnostics of advected tracers on model levels
@@ -2268,8 +2245,8 @@ CONTAINS
 
   SUBROUTINE IO_CHEM( fid, action ) 
 
-    use ParallelIo_mod
-    use domain_decomp_atm, only : grid
+    USE ParallelIo_mod,    ONLY : doVar, ParallelIo
+    USE domain_decomp_atm, ONLY : grid
 
     implicit none
 
@@ -2295,7 +2272,6 @@ CONTAINS
     !
     USE CMN_SIZE_Mod,      ONLY : NDUST
     USE Error_Mod,         ONLY : Debug_Msg
-    USE HCO_State_GC_Mod,  ONLY : HcoState
     USE HCO_Utilities_GC_Mod, ONLY : HCO_GC_GetPtr
     USE PhysConstants,     ONLY : AIRMW
     USE Input_Opt_Mod,     ONLY : OptInput
@@ -2345,7 +2321,6 @@ CONTAINS
     REAL(fp)                  :: SMALL_NUM          ! small number threshold
 
     ! Temporary arrays and pointers
-    REAL*4,  TARGET           :: Temp2D(State_Grid%NX,State_Grid%NY)
     REAL*4,  TARGET           :: Temp3D(State_Grid%NX,State_Grid%NY, &
          State_Grid%NZ)
     REAL*4,  POINTER          :: Ptr2D(:,:  )
@@ -2353,9 +2328,6 @@ CONTAINS
 
     ! For Hg simulation
     CHARACTER(LEN=60)         :: HgSpc
-
-    ! Default background concentration
-    REAL(fp)                  :: Background_VV
 
     ! Objects
     TYPE(SpcConc),    POINTER :: Spc(:)
