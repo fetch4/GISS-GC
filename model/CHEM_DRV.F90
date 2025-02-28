@@ -2110,6 +2110,18 @@ CONTAINS
       fid = par_open( grid, trim( 'fort.2.nc' ), 'read' )
       CALL IO_CHEM(fid, 'read' )
       call par_close( grid, fid )
+      ! TODO: More logic from Get_GC_Restart?
+      DO N=1,NTM
+         DO L=1,LM
+            DO J=J_0,J_1
+               DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  State_Chm%Species(N)%Conc(II,JJ,L) = TrM( I, J, L, N )
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
     ENDIF
 
     ! Return success
