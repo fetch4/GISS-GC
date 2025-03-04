@@ -133,6 +133,7 @@ jobs:
     - name: Build GISS-GC
       run: |
         . /opt/spack-environment/activate.sh
+        set -eu
         # Environment variables for passing NetCDF-C and NetCDF-Fortran
         export NETCDF_HOME=$(nc-config --prefix)
         export NETCDF_F_HOME=$(nf-config --prefix)
