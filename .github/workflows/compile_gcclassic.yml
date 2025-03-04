@@ -78,6 +78,8 @@ jobs:
 
     - name: Setup GCClassic run directory
       run: |
+        set -eu
+        cp .dev/config/HISTORY.rc .github/
         cd .github
         ./set_gcclassic_rundir.sh
 
