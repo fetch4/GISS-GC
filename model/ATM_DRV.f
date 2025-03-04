@@ -799,7 +799,7 @@ C****
 
       end subroutine INPUT_atm
 
-      subroutine alloc_drv_atm(is_coldstart)
+      subroutine alloc_drv_atm(is_coldstart,kdisk_restart)
 #ifdef SCM
       use Dictionary_mod, only : sync_param
 #endif
@@ -837,6 +837,7 @@ c set-up for MPI implementation
 #endif
 
       LOGICAL, INTENT(IN) :: is_coldstart
+      INTEGER, INTENT(IN) :: kdisk_restart
 
 c initialize the atmospheric domain decomposition
 c for now, CREATE_CAP is only relevant to the cubed sphere grid
@@ -845,7 +846,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       call geom_atm
 
 #if defined( TRACERS_GC )
-      call init_chem( grid, is_coldstart )
+      call init_chem( grid, is_coldstart, kdisk_restart )
 #endif
       
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)

@@ -1406,7 +1406,7 @@ CONTAINS
 
   !==========================================================================================================
 
-  SUBROUTINE INIT_CHEM( grid, is_coldstart )
+  SUBROUTINE INIT_CHEM( grid, is_coldstart, kdisk_restart )
 
     USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator 
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
@@ -1446,7 +1446,8 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE (DIST_GRID), INTENT(IN) :: grid
-    LOGICAL, INTENT(IN)          :: is_coldstart
+    LOGICAL,          INTENT(IN) :: is_coldstart
+    INTEGER,          INTENT(IN) :: kdisk_restart
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
     INTEGER   :: RC, previous_units
@@ -2105,8 +2106,17 @@ CONTAINS
          ENDDO
       ENDDO
     ELSE
-      ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
-      fid = par_open( grid, trim( 'fort.2.nc' ), 'read' )
+      ! In the case of a non-cold-restart, initialise GEOS-Chem from the appropriate Model E
+      ! restart file
+      IF (kdisk_restart == 1) THEN
+        fid = par_open( grid, trim( 'fort.1.nc' ), 'read' )
+      ELSE IF (kdisk_restart == 2) THEN
+        fid = par_open( grid, trim( 'fort.2.nc' ), 'read' )
+      ELSE
+        ErrMsg = 'Invalid KDISK value!'
+        ThisLoc = ' -> at INIT_CHEM (in model/CHEM_DRV.F90)'
+        CALL Error_Stop( ErrMsg, ThisLoc )
+      END IF
       CALL IO_CHEM(fid, 'read_dist' )
       call par_close( grid, fid )
       DO N=1,NTM

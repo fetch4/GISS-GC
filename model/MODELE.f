@@ -236,7 +236,7 @@ C****
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
 
-      call initializeModelE(coldRestart)
+      call initializeModelE(coldRestart,ISTART-10)
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
@@ -546,7 +546,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       contains
 
-      subroutine initializeModelE(is_coldstart)
+      subroutine initializeModelE(is_coldstart,kdisk_restart)
       USE DOMAIN_DECOMP_1D, ONLY : init_app, am_i_root
       use Model_com, only: orbit, calendar, makeOrbit
       use Dictionary_mod
@@ -555,6 +555,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
       implicit none
 
       LOGICAL, INTENT(IN) :: is_coldstart
+      INTEGER, INTENT(IN) :: kdisk_restart
 
       call initializeSysTimers()
 
@@ -579,7 +580,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       if (am_i_root()) call calendar%print(2000)
 
-      call alloc_drv_atm(is_coldstart)
+      call alloc_drv_atm(is_coldstart,kdisk_restart)
       call alloc_drv_ocean()
 
       end subroutine initializeModelE
