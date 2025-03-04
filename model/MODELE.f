@@ -236,7 +236,7 @@ C****
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
 
-      call initializeModelE(coldRestart,ISTART-10)
+      call initializeModelE(coldRestart,KDISK)
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
