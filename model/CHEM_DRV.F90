@@ -2128,7 +2128,7 @@ CONTAINS
     ELSE
       ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
       fid = par_open( grid, trim( 'fort.2.nc' ), 'read' )
-      CALL IO_CHEM(fid, 'read' )
+      CALL IO_CHEM(fid, 'read_dist' )
       call par_close( grid, fid )
       ! TODO: More logic from Get_GC_Restart?
       DO N=1,NTM
