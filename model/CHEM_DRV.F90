@@ -677,7 +677,6 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-
     ! Set species units
     DO N=1, State_Chm%nSpecies
        State_Chm%Species(N)%Units = KG_SPECIES ! TrM is in kg
