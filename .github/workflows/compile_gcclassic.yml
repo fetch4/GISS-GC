@@ -90,7 +90,7 @@ jobs:
         # Build the model without GEOS-Chem support
         cp .dev/utils/build.sh .
         OPTS="--classic"
-        if [ "${{ matrix.mode }}" == "debug" ]; then
+        if [ "${{ matrix.mode }}" = "debug" ]; then
           OPTS="${OPTS} --debug"
         fi
         ./build.sh ${OPTS}

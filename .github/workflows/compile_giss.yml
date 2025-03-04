@@ -144,10 +144,10 @@ jobs:
         # Build the model with the provided configuration
         cp .dev/utils/build.sh .
         OPTS=""
-        if [ "${{ matrix.mode }}" == "debug" ]; then
+        if [ "${{ matrix.mode }}" = "debug" ]; then
           OPTS="${OPTS} --debug"
         fi
-        if [ "${{ matrix.model }}" == "giss-only" ]; then
+        if [ "${{ matrix.model }}" = "giss-only" ]; then
           OPTS="${OPTS} --giss-only"
         fi
         ./build.sh ${OPTS}
