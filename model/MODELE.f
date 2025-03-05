@@ -161,7 +161,8 @@
      &     , iowrite_single, isBeginningAccumPeriod
      &     , KCOPY,KRSF, NMONAV, IRAND, iowrite_mon, MDIAG, NDAY
      &     , rsf_file_name, iowrite, KDISK, dtSRC, MSURF
-     &     , calendar
+     &     , calendar, qcheck
+     &     , HOURI,DATEI,MONTHI,YEARI ,HOURE,DATEE,MONTHE,YEARE
       USE DOMAIN_DECOMP_1D, only: AM_I_ROOT,broadcast,sumxpe
       USE RANDOM
       USE GETTIME_MOD
@@ -196,6 +197,19 @@ C**** Command line options
 
       INTEGER K,M,MSTART,MNOW,months,ioerr,Ldate,istart
       INTEGER :: MDUM = 0
+      INTEGER :: TIMEE=-1,IHOURE=-1,IRANDI=0
+      INTEGER IhrX
+      INTEGER KDISK_restart   ! Name of fort.X.nc file from which we restarted
+      LOGICAL :: is_coldstart
+      CHARACTER NLREC*80,RLABEL*132
+
+      INTEGER :: IWRITE=0,JWRITE=0,ITWRITE=23
+      INTEGER, DIMENSION(13) :: KDIAG
+      NAMELIST/INPUTZ/ ISTART,IRANDI
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,KDIAG
+     *     ,IHOURE, TIMEE,HOURE,DATEE,MONTHE,YEARE,IYEAR1
+C****    List of parameters that are disregarded at restarts
+     *     ,        HOURI,DATEI,MONTHI,YEARI
 
       character(len=80) :: filenm
 
@@ -236,7 +250,13 @@ C****
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
 
-      call initializeModelE(coldRestart,KDISK)
+      if (coldRestart) then
+        call initializeModelE(coldRestart)
+      else
+        READ (iu_IFILE,NML=INPUTZ,ERR=890)
+        call initializeModelE(coldRestart,ISTART-10)
+      endif
+ 890  write (6,*) 'Error in NAMELIST parameters'
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
@@ -554,8 +574,8 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
       use AbstractOrbit_mod, only: AbstractOrbit
       implicit none
 
-      LOGICAL, INTENT(IN) :: is_coldstart
-      INTEGER, INTENT(IN) :: kdisk_restart
+      LOGICAL,           INTENT(IN) :: is_coldstart
+      INTEGER, OPTIONAL, INTENT(IN) :: kdisk_restart
 
       call initializeSysTimers()
 

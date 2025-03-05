@@ -1445,9 +1445,9 @@ CONTAINS
 
     IMPLICIT NONE
 
-    TYPE (DIST_GRID), INTENT(IN) :: grid
-    LOGICAL,          INTENT(IN) :: is_coldstart
-    INTEGER,          INTENT(IN) :: kdisk_restart
+    TYPE (DIST_GRID),  INTENT(IN) :: grid
+    LOGICAL,           INTENT(IN) :: is_coldstart
+    INTEGER, OPTIONAL, INTENT(IN) :: kdisk_restart
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
     INTEGER   :: RC, previous_units
@@ -2106,6 +2106,11 @@ CONTAINS
          ENDDO
       ENDDO
     ELSE
+      IF (.NOT. PRESENT(kdisk_restart)) THEN
+        ErrMsg = 'KDISK not present!'
+        ThisLoc = ' -> at INIT_CHEM (in model/CHEM_DRV.F90)'
+        CALL Error_Stop( ErrMsg, ThisLoc )
+      END IF
       ! In the case of a non-cold-restart, initialise GEOS-Chem from the appropriate Model E
       ! restart file
       IF (kdisk_restart == 1) THEN
