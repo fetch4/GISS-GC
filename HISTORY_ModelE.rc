@@ -30,7 +30,7 @@ EXPID:  ./OutputDir/ModelE
 #==============================================================================
 COLLECTIONS: 'Metrics',
              'SpeciesConc',
-             #'AdvFluxVert',
+             'AdvFluxVert',
              #'AerosolMass',
              #'Aerosols',
              ##'Budget',
