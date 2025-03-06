@@ -2109,8 +2109,10 @@ CONTAINS
       ! In the case of a non-cold-restart, initialise GEOS-Chem from the appropriate Model E
       ! restart file
       IF (kdisk_restart == 1) THEN
+        call Debug_Msg("### Loading restart from fort.1.nc")
         fid = par_open( grid, trim( 'fort.1.nc' ), 'read' )
       ELSE IF (kdisk_restart == 2) THEN
+        call Debug_Msg("### Loading restart from fort.2.nc")
         fid = par_open( grid, trim( 'fort.2.nc' ), 'read' )
       ELSE
         ErrMsg = 'Invalid KDISK value!'

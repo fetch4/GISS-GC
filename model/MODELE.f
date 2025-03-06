@@ -267,13 +267,10 @@ c****
 
       if (am_i_root()) call calendar%print(2000)
 
-      if (.not. coldRestart) then
-        ! FIXME: Set this automatically
-        KDISK_restart = 2
-      endif
-
-      call alloc_drv_atm(coldRestart,KDISK_restart)
-      call alloc_drv_ocean()
+      ! NOTE: The following calls have been moved into the INPUT
+      ! subroutine below
+      ! call alloc_drv_atm()
+      ! call alloc_drv_ocean()
 
 c****
 c**** END INLINED initializeModelE
@@ -977,6 +974,17 @@ C****
       if (istart.le.0) then
         call stop_model('pdE not supported',255)
       end if
+
+C****
+C**** Allocations for ATM_DRV and OCEAN_DRV
+C****
+      ! NOTE: Allocation for ATM_DRV has been moved here to capture the
+      ! correct value of KDISK_restart
+      KDISK_restart = 2 ! FIXME: Move lower to pick up the correct value
+      call alloc_drv_atm(coldRestart,KDISK_restart)
+      ! NOTE: Allocation of OCEAN_DRV has been moved here because it
+      ! must be called after alloc_drv_atm
+      call alloc_drv_ocean()
 
 C**** Get those parameters which are needed in this subroutine
       call get_param( "DTsrc", DTsrc )
