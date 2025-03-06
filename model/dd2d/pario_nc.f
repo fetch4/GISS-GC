@@ -776,10 +776,14 @@ c
 
       subroutine stoprc(rc,rc_ok)
       integer :: rc,rc_ok
-      integer :: mpi_err
 #ifndef SERIAL_MODE
-      call mpi_bcast(rc,1,MPI_INTEGER,0,MPI_COMM_WORLD,mpi_err)
+      integer :: mpi_err
+      integer :: rank
+      ! No need to broadcast error codes, just abort from the root MPI rank
+      call mpi_comm_rank(MPI_COMM_WORLD,rank,mpi_err)
+      if (rank == 0) then
       if(rc.ne.rc_ok) call mpi_abort(MPI_COMM_WORLD,1,mpi_err)
+      end if
 #else
       if(rc.ne.rc_ok) stop
 #endif
