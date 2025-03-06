@@ -242,8 +242,9 @@ C****
       if (coldRestart) then
         call initializeModelE(coldRestart)
       else
-        ! Use 3-KDISK_restart to get the other restart file than the one passed
-        call initializeModelE(coldRestart,3-KDISK_restart)
+        ! FIXME: Set this automatically
+        KDISK_restart = 2
+        call initializeModelE(coldRestart,KDISK_restart)
       endif
 #else
       call initializeModelE(coldRestart)
@@ -565,8 +566,8 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
       use AbstractOrbit_mod, only: AbstractOrbit
       implicit none
 
-      LOGICAL,           INTENT(IN) :: is_coldstart
-      INTEGER, OPTIONAL, INTENT(IN) :: kdisk_restart
+      LOGICAL, INTENT(IN) :: is_coldstart
+      INTEGER, INTENT(IN) :: kdisk_restart
 
       call initializeSysTimers()
 

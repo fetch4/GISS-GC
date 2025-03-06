@@ -836,8 +836,8 @@ c set-up for MPI implementation
       include 'mpif.h'      ! Needed for GLINT2
 #endif
 
-      LOGICAL,           INTENT(IN) :: is_coldstart
-      INTEGER, OPTIONAL, INTENT(IN) :: kdisk_restart
+      LOGICAL, INTENT(IN) :: is_coldstart
+      INTEGER, INTENT(IN) :: kdisk_restart
 
 c initialize the atmospheric domain decomposition
 c for now, CREATE_CAP is only relevant to the cubed sphere grid
