@@ -88,10 +88,6 @@ if [ -z ${GISS_HOME+x} ]; then
   echo "GISS_HOME is unset. Exiting."
   exit 0
 fi
-if [ -z ${ModelE_Support+x} ]; then
-  echo "ModelE_Support is unset. Exiting."
-  exit 0
-fi
 if [ "${CLASSIC}" = true ]; then
   if [ -z ${GCCLASSIC_RUNDIR+x} ]; then
     echo "GCCLASSIC_RUNDIR is unset. Exiting."
@@ -99,6 +95,11 @@ if [ "${CLASSIC}" = true ]; then
   fi
   if [ -z ${F90FLAGS+x} ]; then
     echo "F90FLAGS is unset. Exiting."
+    exit 0
+  fi
+else
+  if [ -z ${ModelE_Support+x} ]; then
+    echo "ModelE_Support is unset. Exiting."
     exit 0
   fi
 fi

@@ -63,7 +63,7 @@ I = I
 EXTERNAL_CPP = NO
 # assume that C compiler understands basic gcc flags
 ifeq ($(TYPE),Debug)
-CFLAGS = -O0
+CFLAGS = -g -O0
 else
 CFLAGS = -O2
 endif
