@@ -162,7 +162,7 @@
      &     , KCOPY,KRSF, NMONAV, IRAND, iowrite_mon, MDIAG, NDAY
      &     , rsf_file_name, iowrite, KDISK, dtSRC, MSURF
      &     , calendar
-      USE DOMAIN_DECOMP_1D, only: AM_I_ROOT,broadcast,sumxpe
+      USE DOMAIN_DECOMP_1D, only: AM_I_ROOT,broadcast,sumxpe,init_app
       USE RANDOM
       USE GETTIME_MOD
       USE MDIAG_COM, only : monacc,acc_period
@@ -187,6 +187,8 @@
       USE SUBDD_MOD, only : write_monthly_files,write_daily_files,
      &     days_per_file,write_one_file
 #endif
+      USE MODEL_COM, only : master_yr
+      use Model_com, only: orbit, calendar, makeOrbit
       implicit none
 C**** Command line options
       logical, intent(in) :: qcRestart
@@ -238,17 +240,44 @@ C****
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
 
-#ifdef TRACERS_GC
-      if (coldRestart) then
-        call initializeModelE(coldRestart)
+c****
+c**** BEGIN INLINED initializeModelE
+c****
+
+      call initializeSysTimers()
+
+#ifdef USE_MPP
+      call fms_init( )
+#endif
+      call initializeConstants()
+      call init_app()
+      call initializeDefaultTimers()
+
+      if (is_set_param("master_yr")) then
+        call get_param( "master_yr", master_yr )
       else
+        call stop_model('Please define master_yr in the rundeck.',255)
+      endif
+
+      allocate(orbit, source=makeOrbit())
+      call orbit%setVerbose(am_I_root())
+
+      allocate(calendar, source=orbit%makeCalendar())
+      call calendar%setVerbose(am_I_root())
+
+      if (am_i_root()) call calendar%print(2000)
+
+      if (.not. coldRestart) then
         ! FIXME: Set this automatically
         KDISK_restart = 2
-        call initializeModelE(coldRestart,KDISK_restart)
       endif
-#else
-      call initializeModelE(coldRestart)
-#endif
+
+      call alloc_drv_atm(coldRestart,KDISK_restart)
+      call alloc_drv_ocean()
+
+c****
+c**** END INLINED initializeModelE
+c****
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
@@ -557,45 +586,6 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 #endif
 
       contains
-
-      subroutine initializeModelE(is_coldstart,kdisk_restart)
-      USE DOMAIN_DECOMP_1D, ONLY : init_app, am_i_root
-      use Model_com, only: orbit, calendar, makeOrbit
-      use Dictionary_mod
-      USE MODEL_COM, only : master_yr
-      use AbstractOrbit_mod, only: AbstractOrbit
-      implicit none
-
-      LOGICAL, INTENT(IN) :: is_coldstart
-      INTEGER, INTENT(IN) :: kdisk_restart
-
-      call initializeSysTimers()
-
-#ifdef USE_MPP
-      call fms_init( )
-#endif
-      call initializeConstants()
-      call init_app()
-      call initializeDefaultTimers()
-
-      if (is_set_param("master_yr")) then
-        call get_param( "master_yr", master_yr )
-      else
-        call stop_model('Please define master_yr in the rundeck.',255)
-      endif
-
-      allocate(orbit, source=makeOrbit())
-      call orbit%setVerbose(am_I_root())
-
-      allocate(calendar, source=orbit%makeCalendar())
-      call calendar%setVerbose(am_I_root())
-
-      if (am_i_root()) call calendar%print(2000)
-
-      call alloc_drv_atm(is_coldstart,kdisk_restart)
-      call alloc_drv_ocean()
-
-      end subroutine initializeModelE
 
       subroutine startNewDay()
       use model_com, only: modelEclock, calendar
