@@ -1432,7 +1432,7 @@ CONTAINS
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
     USE GEOM,                    ONLY : axyp, lat2d_dg, lon2d_dg
     USE CONSTANT,                ONLY : Pi
-    USE MODEL_COM,               ONLY : DTsrc
+    USE MODEL_COM,               ONLY : DTsrc, rsf_file_name
     USE Dictionary_mod,          ONLY : sync_param
     USE CHEM_COM,                ONLY : SpcChmID_to_TrID, t_qlimit, TrFullName, TrID_to_SpcChmID, NSP, SpName
     USE ERROR_MOD,               ONLY : Debug_Msg, Error_Stop, Init_Error
@@ -1481,6 +1481,7 @@ CONTAINS
     INTEGER   :: TAU, TAUb
 
     INTEGER   :: fid
+    INTEGER   :: KDISK
 
     CHARACTER(LEN=255)       :: ThisLoc, historyConfigFile
     CHARACTER(LEN=512)       :: ErrMsg, Instr
@@ -2125,9 +2126,10 @@ CONTAINS
          ENDDO
       ENDDO
     ELSE
+      call find_later_rsf(KDISK)
       ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
-      fid = par_open( grid, trim( 'fort.2.nc' ), 'read' )
-      CALL IO_CHEM(fid, 'read_dist' )
+      fid = par_open( grid, trim(rsf_file_name(KDISK))//'.nc', 'read' )
+      CALL IO_CHEM( fid, 'read_dist' )
       call par_close( grid, fid )
       DO N=1,NTM
          DO L=1,LM
