@@ -681,10 +681,6 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-    ! Set species units
-    DO N=1, State_Chm%nSpecies
-       State_Chm%Species(N)%Units = KG_SPECIES ! TrM is in kg
-    ENDDO
 
     ! Convert to v/v dry
     CALL Convert_Spc_Units(                                                  &
@@ -692,7 +688,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
+         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
@@ -713,7 +709,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    = KG_SPECIES,                                            &
+         new_units  = KG_SPECIES,                                            &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
