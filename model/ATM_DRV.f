@@ -990,7 +990,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       subroutine new_io_atmvars(fid,iorw)
       use model_com, only: ioread, iowrite
 #ifdef TRACERS_GC
-      use CHEM_DRV, only : init_chem, io_chem
+      use CHEM_DRV, only : io_chem
 #endif
       implicit none
       integer, intent(in) :: fid,iorw

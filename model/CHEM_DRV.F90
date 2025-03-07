@@ -622,7 +622,7 @@ CONTAINS
             new_units  = KG_SPECIES,                                            &
             RC         = RC                                                    )
        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
-       
+
        ! Put State_Chm back in TrM
        DO N=1,NTM
           DO L=1,LM
@@ -640,13 +640,23 @@ CONTAINS
           ENDDO
        ENDDO
 
+       ! Convert to v/v dry
+       CALL Convert_Spc_Units(                                                 &
+            Input_Opt  = Input_Opt,                                            &
+            State_Chm  = State_Chm,                                            &
+            State_Grid = State_Grid,                                           &
+            State_Met  = State_Met,                                            &
+            new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                      &
+            RC         = RC                                                   )
+       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
+
        ! Initialize PBL quantities from the initial met fields
        CALL Compute_Pbl_Height( Input_Opt, State_Grid, State_Met, RC )
        IF ( RC /= GC_SUCCESS ) THEN
           ErrMsg = 'Error encountered in "COMPUTE_PBL_HEIGHT" at initialization!'
           CALL Error_Stop( ErrMsg, ThisLoc )
        ENDIF
-       
+
        ! Once the initial met fields have been read in, we need to find
        ! the maximum PBL level for the non-local mixing algorithm.
        CALL Max_PblHt_For_Vdiff( Input_Opt, State_Grid, State_Met, RC )
@@ -654,7 +664,7 @@ CONTAINS
           ErrMsg = 'Error encountered in "Max_PblHt_for_Vdiff"!'
           CALL Error_Stop( ErrMsg, ThisLoc )
        ENDIF
-       
+
        ! Initialize photolysis, including reading files for optical properties
        IF ( Input_Opt%ITS_A_FULLCHEM_SIM .or. &
             Input_Opt%ITS_AN_AEROSOL_SIM .or. &
@@ -665,10 +675,20 @@ CONTAINS
              CALL Error_Stop( ErrMsg, ThisLoc )
           ENDIF
        ENDIF
-       
+
        FIRST_CHEM = .FALSE.
     ENDIF
-    
+
+    ! Convert to kg
+    CALL Convert_Spc_Units(                                                    &
+         Input_Opt  = Input_Opt,                                               &
+         State_Chm  = State_Chm,                                               &
+         State_Grid = State_Grid,                                              &
+         State_Met  = State_Met,                                               &
+         new_units  = KG_SPECIES,                                              &
+         RC         = RC                                                    )
+    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
+
     ! Copy TrM into State_Chm
     DO N=1,NTM
        DO L=1,LM
@@ -730,9 +750,19 @@ CONTAINS
        ENDDO
     ENDDO
 
-    !IF ( AM_I_ROOT() ) THEN
-    !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    !ENDIF
+    ! Convert to v/v dry
+    CALL Convert_Spc_Units(                                                  &
+         Input_Opt  = Input_Opt,                                             &
+         State_Chm  = State_Chm,                                             &
+         State_Grid = State_Grid,                                            &
+         State_Met  = State_Met,                                             &
+         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
+         RC         = RC                                                    )
+    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
+
+    ! IF ( AM_I_ROOT() ) THEN
+    !    WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+    ! ENDIF
     
     !IF ( AM_I_ROOT() ) THEN
     !   WRITE(6,*) ""
@@ -1458,6 +1488,8 @@ CONTAINS
     USE Vdiff_Mod,               ONLY : Max_PblHt_for_Vdiff
 
     USE pario,                   ONLY : par_open, par_close
+    USE UnitConv_Mod,            ONLY : Convert_Spc_Units, KG_SPECIES, &
+                                        MOLES_SPECIES_PER_MOLES_DRY_AIR
 
     IMPLICIT NONE
 
@@ -2111,9 +2143,19 @@ CONTAINS
     TrMom  = 0d0
     IF (is_coldstart) THEN
       !------------------------------------------------------------------------
-      ! In the case of a cold restart, copy State_Chm into TrM as kg kg-1 for
-      ! now (State_Met is not populated so we can't convert to kg)
+      ! In the case of a cold restart, copy State_Chm into TrM with the
+      ! appropriate units
       !------------------------------------------------------------------------
+
+      ! Convert to kg
+      CALL Convert_Spc_Units(                                                  &
+          Input_Opt  = Input_Opt,                                              &
+          State_Chm  = State_Chm,                                              &
+          State_Grid = State_Grid,                                             &
+          State_Met  = State_Met,                                              &
+          new_units  = KG_SPECIES,                                             &
+          RC         = RC                                                    )
+      IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
       DO N=1,NTM
          DO L=1,LM
             DO J=J_0,J_1
@@ -2139,8 +2181,10 @@ CONTAINS
       CALL IO_CHEM( fid, 'read_dist' )
       call par_close( grid, fid )
 
-      ! The restart file has units mol mol-1 so the units are inconsistent with
-      ! the cold restart case above
+      ! Species are read from restart file in units of mol mol-1
+      DO N=1, State_Chm%nSpecies
+        State_Chm%Species(N)%Units = MOLES_SPECIES_PER_MOLES_DRY_AIR
+      ENDDO
       DO N=1,NTM
          DO L=1,LM
             DO J=J_0,J_1
@@ -2152,11 +2196,42 @@ CONTAINS
             ENDDO
          ENDDO
       ENDDO
+
+      ! Convert to kg
+      CALL Convert_Spc_Units(                                                  &
+          Input_Opt  = Input_Opt,                                              &
+          State_Chm  = State_Chm,                                              &
+          State_Grid = State_Grid,                                             &
+          State_Met  = State_Met,                                              &
+          new_units  = KG_SPECIES,                                             &
+          RC         = RC                                                    )
+      IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
+      DO N=1,NTM
+         DO L=1,LM
+            DO J=J_0,J_1
+               DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
     ENDIF
+
+    ! Convert to v/v dry
+    CALL Convert_Spc_Units(                                                    &
+         Input_Opt  = Input_Opt,                                               &
+         State_Chm  = State_Chm,                                               &
+         State_Grid = State_Grid,                                              &
+         State_Met  = State_Met,                                               &
+         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                         &
+         RC         = RC                                                    )
+    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
     ! Return success
     RC = GC_SUCCESS
-    
+
     RETURN
   END SUBROUTINE INIT_CHEM
 
