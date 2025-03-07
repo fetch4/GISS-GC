@@ -970,12 +970,10 @@ CONTAINS
     DoWetDep = DoGCWetDep                        ! dynamic time step
     DoRad    = .false.
 
-!    DoConv   = .false.
-!    DoDryDep = .false.
-!    DoEmis   = .false.
-!    DoTurb   = .false.
-!    DoChem   = .false.
-!    DoWetDep = .false.
+    IF ( Input_Opt%ITS_A_CARBON_SIM ) THEN
+       DoDryDep = .false.
+       DoWetDep = .false.
+    ENDIF
     
     IF ( Input_Opt%AmIRoot .and. NCALLS < 10 ) THEN
        write(6,*) 'DoConv   : ', DoConv
