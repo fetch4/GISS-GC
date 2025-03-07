@@ -1823,13 +1823,13 @@ CONTAINS
     ! diagnostic collection for computing emission totals.
     State_Met%Area_M2 = State_Grid%Area_M2
 
-    CALL sync_param( "DTsrc", DTsrc )
-    CALL sync_param( "DT",    DT    )         
-    Input_Opt%TS_CHEM = INT( DTsrc  )   ! Chemistry timestep [sec]
-    Input_Opt%TS_EMIS = INT( DTsrc  )   ! Chemistry timestep [sec]
-    Input_Opt%TS_DYN  = INT( DT     )   ! Dynamic   timestep [sec]
-    Input_Opt%TS_CONV = INT( DT     )   ! Dynamic   timestep [sec]
-    Input_Opt%TS_RAD  = INT( DT     )
+    CALL sync_param( "DTsrc", DTsrc )   ! GISS chemistry timestep [sec]
+    CALL sync_param( "DT",    DT    )   ! GISS dynamic timestep [sec]
+    Input_Opt%TS_CHEM = INT( DTsrc  )   
+    Input_Opt%TS_EMIS = INT( DTsrc  )   
+    Input_Opt%TS_DYN  = INT( DTsrc  )   
+    Input_Opt%TS_CONV = INT( DTsrc  )   
+    Input_Opt%TS_RAD  = INT( DTsrc  )
 
     ! Set start and finish time from rundeck
     Input_Opt%NYMDb   = 20141201 ! nymdB
