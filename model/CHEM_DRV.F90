@@ -2105,11 +2105,15 @@ CONTAINS
     ENDDO
     t_qlimit(:) = .true.
 
-    ! In the case of a cold restart, copy State_Chm into TrM as kg kg-1 for now
-    ! State_Met is not populated so we can't convert to kg
+    !-----------------------------------------------------------------------------
+
     TrM    = 0d0
     TrMom  = 0d0
     IF (is_coldstart) THEN
+      !------------------------------------------------------------------------
+      ! In the case of a cold restart, copy State_Chm into TrM as kg kg-1 for
+      ! now (State_Met is not populated so we can't convert to kg)
+      !------------------------------------------------------------------------
       DO N=1,NTM
          DO L=1,LM
             DO J=J_0,J_1
@@ -2122,11 +2126,21 @@ CONTAINS
          ENDDO
       ENDDO
     ELSE
+      !------------------------------------------------------------------------
+      ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model
+      ! E restart file
+      !------------------------------------------------------------------------
+
+      ! Determine which was the latest restart file to be written to
       call find_later_rsf(KDISK)
-      ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model E restart file
+
+      ! Read the TrM and TrMom values from the restart file in parallel
       fid = par_open( grid, trim(rsf_file_name(KDISK))//'.nc', 'read' )
       CALL IO_CHEM( fid, 'read_dist' )
       call par_close( grid, fid )
+
+      ! The restart file has units mol mol-1 so the units are inconsistent with
+      ! the cold restart case above
       DO N=1,NTM
          DO L=1,LM
             DO J=J_0,J_1
