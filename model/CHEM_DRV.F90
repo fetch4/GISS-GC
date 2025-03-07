@@ -145,7 +145,7 @@ CONTAINS
 
     INTEGER   :: NYMD,    NHMS,     YEAR,    MONTH,    DAY
     INTEGER   :: DOY,     HOUR,     MINUTE,  SECOND
-    INTEGER   :: I,       J,        L,       K,        N
+    INTEGER   :: I,       J,        L,       K,        N,       M
     INTEGER   :: II,      JJ,       III,     JJJ,      RC
     REAL*4    :: MINUTES, hElapsed, UTC
     REAL*8    :: sElapsed
@@ -628,6 +628,10 @@ CONTAINS
                 ENDDO
              ENDDO
           ENDDO
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
        ENDDO
 
        ! Initialize PBL quantities from the initial met fields
@@ -718,11 +722,15 @@ CONTAINS
              ENDDO
           ENDDO
        ENDDO
+       CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
+       DO M=1,NMOM
+          CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+       ENDDO
     ENDDO
 
-    IF ( AM_I_ROOT() ) THEN
-       WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ENDIF
+    !IF ( AM_I_ROOT() ) THEN
+    !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+    !ENDIF
     
     !IF ( AM_I_ROOT() ) THEN
     !   WRITE(6,*) ""
@@ -740,12 +748,12 @@ CONTAINS
 
   SUBROUTINE TrDYNAM
 
-    USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT
+    USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT, GRID, HALO_UPDATE
     USE TRACER_ADV,        ONLY : AADVQ, sfbm, sfcm
 
     IMPLICIT NONE
 
-    INTEGER N
+    INTEGER N, M
 
     IF ( .not. ALLOCATED( sfbm ) ) THEN 
        WRITE(6,*) 'Not allocated yet'
@@ -755,9 +763,23 @@ CONTAINS
 
     ! Uses the fluxes MUs,MVs,MWs from DYNAM and QDYNAM
     DO N=1,NTM
+
        IF ( IsAdvected(N) ) THEN
+          
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,n) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
+          
           CALL AADVQ( TrM(:,:,:,n), TrMom(:,:,:,:,n), .true., TrName(n) )
+       
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,n) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
+
        ENDIF
+          
     ENDDO
 
     RETURN
@@ -1986,9 +2008,9 @@ CONTAINS
     CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, &
          State_Met, RC )    
 
-    IF ( AM_I_ROOT() ) THEN
-       WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ENDIF
+    !IF ( AM_I_ROOT() ) THEN
+    !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+    !ENDIF
  
     ! Trap potential errors
     IF ( RC /= GC_SUCCESS ) THEN
