@@ -145,7 +145,7 @@ CONTAINS
 
     INTEGER   :: NYMD,    NHMS,     YEAR,    MONTH,    DAY
     INTEGER   :: DOY,     HOUR,     MINUTE,  SECOND
-    INTEGER   :: I,       J,        L,       K,        N
+    INTEGER   :: I,       J,        L,       K,        N,       M
     INTEGER   :: II,      JJ,       III,     JJJ,      RC
     REAL*4    :: MINUTES, hElapsed, UTC
     REAL*8    :: sElapsed
@@ -628,6 +628,10 @@ CONTAINS
                 ENDDO
              ENDDO
           ENDDO
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
        ENDDO
 
        ! Initialize PBL quantities from the initial met fields
@@ -718,11 +722,15 @@ CONTAINS
              ENDDO
           ENDDO
        ENDDO
+       CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
+       DO M=1,NMOM
+          CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+       ENDDO
     ENDDO
 
-    IF ( AM_I_ROOT() ) THEN
-       WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ENDIF
+    !IF ( AM_I_ROOT() ) THEN
+    !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+    !ENDIF
     
     !IF ( AM_I_ROOT() ) THEN
     !   WRITE(6,*) ""
@@ -740,12 +748,12 @@ CONTAINS
 
   SUBROUTINE TrDYNAM
 
-    USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT
+    USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT, GRID, HALO_UPDATE
     USE TRACER_ADV,        ONLY : AADVQ, sfbm, sfcm
 
     IMPLICIT NONE
 
-    INTEGER N
+    INTEGER N, M
 
     IF ( .not. ALLOCATED( sfbm ) ) THEN 
        WRITE(6,*) 'Not allocated yet'
@@ -755,9 +763,23 @@ CONTAINS
 
     ! Uses the fluxes MUs,MVs,MWs from DYNAM and QDYNAM
     DO N=1,NTM
+
        IF ( IsAdvected(N) ) THEN
+          
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,n) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
+          
           CALL AADVQ( TrM(:,:,:,n), TrMom(:,:,:,:,n), .true., TrName(n) )
+       
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,n) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
+
        ENDIF
+          
     ENDDO
 
     RETURN
@@ -970,12 +992,10 @@ CONTAINS
     DoWetDep = DoGCWetDep                        ! dynamic time step
     DoRad    = .false.
 
-!    DoConv   = .false.
-!    DoDryDep = .false.
-!    DoEmis   = .false.
-!    DoTurb   = .false.
-!    DoChem   = .false.
-!    DoWetDep = .false.
+    IF ( Input_Opt%ITS_A_CARBON_SIM ) THEN
+       DoDryDep = .false.
+       DoWetDep = .false.
+    ENDIF
     
     IF ( Input_Opt%AmIRoot .and. NCALLS < 10 ) THEN
        write(6,*) 'DoConv   : ', DoConv
@@ -1408,7 +1428,7 @@ CONTAINS
     USE CONSTANT,                ONLY : Pi
     USE MODEL_COM,               ONLY : DTsrc
     USE Dictionary_mod,          ONLY : sync_param
-    USE CHEM_COM,                ONLY : SpcChmID_to_TrID, t_qlimit, TrFullName, TrID_to_SpcChmID
+    USE CHEM_COM,                ONLY : SpcChmID_to_TrID, t_qlimit, TrFullName, TrID_to_SpcChmID, NSP, SpName
     USE ERROR_MOD,               ONLY : Debug_Msg, Error_Stop, Init_Error
 
     USE GC_Environment_Mod,      ONLY : GC_Allocate_All
@@ -1447,7 +1467,6 @@ CONTAINS
 
     INTEGER   :: I, J, L, N, NN, II, JJ, I_0H, I_1H
     INTEGER   :: NYMDb, NHMSb, NHMSe
-    INTEGER   :: NSP
     INTEGER   :: id_H2O, id_CH4, id_CLOCK
 
     INTEGER   :: TAU, TAUb
@@ -1824,13 +1843,13 @@ CONTAINS
     ! diagnostic collection for computing emission totals.
     State_Met%Area_M2 = State_Grid%Area_M2
 
-    CALL sync_param( "DTsrc", DTsrc )
-    CALL sync_param( "DT",    DT    )         
-    Input_Opt%TS_CHEM = INT( DTsrc  )   ! Chemistry timestep [sec]
-    Input_Opt%TS_EMIS = INT( DTsrc  )   ! Chemistry timestep [sec]
-    Input_Opt%TS_DYN  = INT( DT     )   ! Dynamic   timestep [sec]
-    Input_Opt%TS_CONV = INT( DT     )   ! Dynamic   timestep [sec]
-    Input_Opt%TS_RAD  = INT( DT     )
+    CALL sync_param( "DTsrc", DTsrc )   ! GISS chemistry timestep [sec]
+    CALL sync_param( "DT",    DT    )   ! GISS dynamic timestep [sec]
+    Input_Opt%TS_CHEM = INT( DTsrc  )   
+    Input_Opt%TS_EMIS = INT( DTsrc  )   
+    Input_Opt%TS_DYN  = INT( DTsrc  )   
+    Input_Opt%TS_CONV = INT( DTsrc  )   
+    Input_Opt%TS_RAD  = INT( DTsrc  )
 
     ! Set start and finish time from rundeck
     Input_Opt%NYMDb   = 20141201 ! nymdB
@@ -1989,9 +2008,9 @@ CONTAINS
     CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, &
          State_Met, RC )    
 
-    IF ( AM_I_ROOT() ) THEN
-       WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ENDIF
+    !IF ( AM_I_ROOT() ) THEN
+    !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+    !ENDIF
  
     ! Trap potential errors
     IF ( RC /= GC_SUCCESS ) THEN
@@ -2042,13 +2061,14 @@ CONTAINS
     !-----------------------------------------------------------------------------
     
     NSP = State_Chm%nSpecies
-    NTM = State_Chm%nAdvect + 1
-
+    NTM = State_Chm%nAdvect
+    
     ALLOCATE( TrID_to_SpcChmID(NTM) )
     ALLOCATE( SpcChmID_to_TrID(NSP) )
     TrID_to_SpcChmID = 0
     SpcChmID_to_TrID = 0
 
+    ALLOCATE( SpName(NSP) )
     ALLOCATE( TrName(NTM) )
     ALLOCATE( TrFullName(NTM) )
     ALLOCATE( IsAdvected(NTM) )
@@ -2058,8 +2078,8 @@ CONTAINS
 
     NN=1
     DO N = 1, NSP
-       IF ( State_Chm%SpcData(N)%Info%Is_Advected .or. &
-            TRIM( State_Chm%SpcData(N)%Info%Name ) .eq. "OH" ) THEN
+       SpName(N) = TRIM( State_Chm%SpcData(N)%Info%Name )
+       IF ( State_Chm%SpcData(N)%Info%Is_Advected ) THEN
  
           TrName(NN) =     TRIM( State_Chm%SpcData(N)%Info%Name )
           TrFullName(NN) = TRIM( State_Chm%SpcData(N)%Info%FullName ) // " (" // &
@@ -2090,10 +2110,10 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-
+    
     ! Return success
     RC = GC_SUCCESS
-
+    
     RETURN
   END SUBROUTINE INIT_CHEM
 
@@ -2999,35 +3019,23 @@ SUBROUTINE tijlh_defs(arr,nmax,decl_count)
 use subdd_mod, only : info_type
 ! info_type_ is a homemade structure constructor for older compilers
 use subdd_mod, only : info_type_
-use chem_com, only : ntm, trname
+use chem_com, only : ntm, trname, nsp, spname
 implicit none
 integer :: nmax,decl_count
 integer :: n
-character*80 :: unitString
 type(info_type) :: arr(nmax)
 
 decl_count = 0
 
 ! First, diagnostics available for all tracers:
-do n=1,ntm
+do n=1,nsp
    ! 3D mixing ratios (SUBDD string is just tracer name):
-  unitString='mol mol-1'
-  arr(next()) = info_type_(                      &
-       sname = trim(trname(n)),                  &
-       lname = trim(trname(n))//' mixing ratio', &
-       units = trim(unitString)                  &
+   arr(next()) = info_type_(                      &
+       sname = trim(spname(n)),                  &
+       lname = trim(spname(n))//' mixing ratio', &
+       units = 'mol mol-1'                       &
        )
 end do ! tracers loop
-
-!do n=1,State_Chm%nSpecies
-!   ! 3D mixing ratios (SUBDD string is just tracer name):
-!   unitString='mol mol-1'
-!   arr(next()) = info_type_(                                           &
-!        sname = trim(State_Chm%SpcData(N)%Info%Name),                  &
-!        lname = trim(State_Chm%SpcData(N)%Info%Name)//' mixing ratio', &
-!        units = trim(unitString)                  &
-!        )
-!end do ! tracers loop
 
 return
 contains
