@@ -2176,6 +2176,11 @@ CONTAINS
       ! Determine which was the latest restart file to be written to
       call find_later_rsf(KDISK)
 
+      ! NOTE: Tried reading with io_rsf rather than the manual code below but it gave an MPI abort
+      ! USE MODEL_COM, only : ioread, Itime
+      ! INTEGER :: ioerr
+      ! call io_rsf(rsf_file_name(KDISK),Itime,ioread,ioerr)
+
       ! Read the TrM and TrMom values from the restart file in parallel
       fid = par_open( grid, trim(rsf_file_name(KDISK))//'.nc', 'read' )
       CALL IO_CHEM( fid, 'read_dist' )
