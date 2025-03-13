@@ -136,7 +136,7 @@ CONTAINS
     USE PBL_Mix_Mod,       ONLY : Compute_PBL_Height
     USE VDIFF_Mod,         ONLY : Max_PblHt_For_Vdiff
     USE ERROR_MOD,         ONLY : Safe_Div, IT_IS_NAN, ERROR_STOP
-    USE UnitConv_Mod,      ONLY : Convert_Spc_Units, KG_SPECIES, KG_SPECIES_PER_KG_DRY_AIR, &
+    USE UnitConv_Mod,      ONLY : Convert_Spc_Units, KG_SPECIES, &
                                   MOLES_SPECIES_PER_MOLES_DRY_AIR
 
     USE Photolysis_Mod,  ONLY : Init_Photolysis
@@ -1123,7 +1123,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    = KG_SPECIES_PER_KG_DRY_AIR,                           &
+         new_units  = KG_SPECIES_PER_KG_DRY_AIR,                             &
          previous_units   = previous_units,                                  &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
@@ -2237,7 +2237,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    =  MOLES_SPECIES_PER_MOLES_DRY_AIR,                    &
+         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
          previous_units   = previous_units,                                  &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
@@ -2583,8 +2583,8 @@ CONTAINS
             State_Chm  = State_Chm,                                           &
             State_Grid = State_Grid,                                          &
             State_Met  = State_Met,                                           &
-            new_units    = MOLECULES_SPECIES_PER_CM3,                         &
-            previous_units   = previous_units,                                &
+            new_units  = MOLECULES_SPECIES_PER_CM3,                           &
+            previous_units = previous_units,                                  &
             RC         = RC                                                  )
 
        ! Trap error
