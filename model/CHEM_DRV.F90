@@ -604,24 +604,10 @@ CONTAINS
 
     IF ( FIRST_CHEM ) THEN
 
-       ! Set species units to kg kg-1
+       ! Set species units to kg to be put into TrM
        DO N=1, State_Chm%nSpecies
-         State_Chm%Species(N)%Units = KG_SPECIES_PER_KG_DRY_AIR
+         State_Chm%Species(N)%Units = KG_SPECIES
        ENDDO
-
-       ! Species_Chm has initial conditions in kg kg-1 at the moment.
-       ! Now that we have meteorology in State_Met, we need to convert it to kg
-       ! put into TrM
-
-       ! Convert to kg
-       CALL Convert_Spc_Units(                                                  &
-            Input_Opt  = Input_Opt,                                             &
-            State_Chm  = State_Chm,                                             &
-            State_Grid = State_Grid,                                            &
-            State_Met  = State_Met,                                             &
-            new_units  = KG_SPECIES,                                            &
-            RC         = RC                                                    )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
        ! Put State_Chm back in TrM
        DO N=1,NTM
@@ -639,16 +625,6 @@ CONTAINS
              CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
           ENDDO
        ENDDO
-
-       ! Convert to v/v dry
-       CALL Convert_Spc_Units(                                                 &
-            Input_Opt  = Input_Opt,                                            &
-            State_Chm  = State_Chm,                                            &
-            State_Grid = State_Grid,                                           &
-            State_Met  = State_Met,                                            &
-            new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                      &
-            RC         = RC                                                   )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
        ! Initialize PBL quantities from the initial met fields
        CALL Compute_Pbl_Height( Input_Opt, State_Grid, State_Met, RC )
@@ -677,17 +653,17 @@ CONTAINS
        ENDIF
 
        FIRST_CHEM = .FALSE.
+    ELSE
+      ! Convert to kg
+      CALL Convert_Spc_Units(                                                  &
+          Input_Opt  = Input_Opt,                                              &
+          State_Chm  = State_Chm,                                              &
+          State_Grid = State_Grid,                                             &
+          State_Met  = State_Met,                                              &
+          new_units  = KG_SPECIES,                                             &
+          RC         = RC                                                    )
+      IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
     ENDIF
-
-    ! Convert to kg
-    CALL Convert_Spc_Units(                                                    &
-         Input_Opt  = Input_Opt,                                               &
-         State_Chm  = State_Chm,                                               &
-         State_Grid = State_Grid,                                              &
-         State_Met  = State_Met,                                               &
-         new_units  = KG_SPECIES,                                              &
-         RC         = RC                                                    )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
     ! Copy TrM into State_Chm
     DO N=1,NTM
@@ -749,16 +725,6 @@ CONTAINS
           CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
        ENDDO
     ENDDO
-
-    ! Convert to v/v dry
-    CALL Convert_Spc_Units(                                                  &
-         Input_Opt  = Input_Opt,                                             &
-         State_Chm  = State_Chm,                                             &
-         State_Grid = State_Grid,                                            &
-         State_Met  = State_Met,                                             &
-         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
-         RC         = RC                                                    )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
     ! IF ( AM_I_ROOT() ) THEN
     !    WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
@@ -2146,16 +2112,6 @@ CONTAINS
       ! In the case of a cold restart, copy State_Chm into TrM with the
       ! appropriate units
       !------------------------------------------------------------------------
-
-      ! Convert to kg
-      CALL Convert_Spc_Units(                                                  &
-          Input_Opt  = Input_Opt,                                              &
-          State_Chm  = State_Chm,                                              &
-          State_Grid = State_Grid,                                             &
-          State_Met  = State_Met,                                              &
-          new_units  = KG_SPECIES,                                             &
-          RC         = RC                                                    )
-      IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
       DO N=1,NTM
          DO L=1,LM
             DO J=J_0,J_1
@@ -2223,16 +2179,6 @@ CONTAINS
          ENDDO
       ENDDO
     ENDIF
-
-    ! Convert to v/v dry
-    CALL Convert_Spc_Units(                                                    &
-         Input_Opt  = Input_Opt,                                               &
-         State_Chm  = State_Chm,                                               &
-         State_Grid = State_Grid,                                              &
-         State_Met  = State_Met,                                               &
-         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                         &
-         RC         = RC                                                    )
-    IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
     ! Return success
     RC = GC_SUCCESS
