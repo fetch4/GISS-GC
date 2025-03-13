@@ -799,7 +799,7 @@ C****
 
       end subroutine INPUT_atm
 
-      subroutine alloc_drv_atm()
+      subroutine alloc_drv_atm(is_coldstart)
 #ifdef SCM
       use Dictionary_mod, only : sync_param
 #endif
@@ -836,6 +836,8 @@ c set-up for MPI implementation
       include 'mpif.h'      ! Needed for GLINT2
 #endif
 
+      LOGICAL, INTENT(IN) :: is_coldstart
+
 c initialize the atmospheric domain decomposition
 c for now, CREATE_CAP is only relevant to the cubed sphere grid
       call init_grid(grid, im, jm, lm, CREATE_CAP=.true.)
@@ -843,7 +845,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       call geom_atm
 
 #if defined( TRACERS_GC )
-      call init_chem( grid )
+      call init_chem( grid, is_coldstart )
 #endif
       
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
@@ -988,7 +990,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       subroutine new_io_atmvars(fid,iorw)
       use model_com, only: ioread, iowrite
 #ifdef TRACERS_GC
-      use CHEM_DRV, only : init_chem, io_chem
+      use CHEM_DRV, only : io_chem
 #endif
       implicit none
       integer, intent(in) :: fid,iorw
