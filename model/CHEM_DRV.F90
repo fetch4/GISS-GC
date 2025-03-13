@@ -2142,9 +2142,9 @@ CONTAINS
       CALL IO_CHEM( fid, 'read_dist' )
       call par_close( grid, fid )
 
-      ! Species are read from restart file in units of mol mol-1
+      ! Species are read from restart file in units of kg
       DO N=1, State_Chm%nSpecies
-        State_Chm%Species(N)%Units = MOLES_SPECIES_PER_MOLES_DRY_AIR
+        State_Chm%Species(N)%Units = KG_SPECIES
       ENDDO
       DO N=1,NTM
          DO L=1,LM
@@ -2153,27 +2153,6 @@ CONTAINS
                   II = I - I_0 + 1
                   JJ = J - J_0 + 1
                   State_Chm%Species(N)%Conc(II,JJ,L) = TrM( I, J, L, N )
-               ENDDO
-            ENDDO
-         ENDDO
-      ENDDO
-
-      ! Convert to kg
-      CALL Convert_Spc_Units(                                                  &
-          Input_Opt  = Input_Opt,                                              &
-          State_Chm  = State_Chm,                                              &
-          State_Grid = State_Grid,                                             &
-          State_Met  = State_Met,                                              &
-          new_units  = KG_SPECIES,                                             &
-          RC         = RC                                                    )
-      IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
-      DO N=1,NTM
-         DO L=1,LM
-            DO J=J_0,J_1
-               DO I=I_0,I_1
-                  II = I - I_0 + 1
-                  JJ = J - J_0 + 1
-                  TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
                ENDDO
             ENDDO
          ENDDO
