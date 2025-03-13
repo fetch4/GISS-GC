@@ -3054,6 +3054,36 @@ decl_count = 0
 !do n=1,1
 
   arr(next()) = info_type_(                      &
+       sname = 'StateMet_AD',                    &
+       lname = 'StateMet_AD',                    &
+       units = 'kg'                              &
+       )
+  
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_AIRDEN',                &
+       lname = 'StateMet_AIRDEN',                &
+       units = 'kg m-3'                          &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_AIRVOL',                &
+       lname = 'StateMet_AIRVOL',                &
+       units = 'm3'                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_ALBD',                  &
+       lname = 'StateMet_ALBD',                  &
+       units = '1'                               & 
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_AREAM2',                &
+       lname = 'StateMet_AREAM2',                &
+       units = 'm2'                              &
+       )
+
+  arr(next()) = info_type_(                      &
        sname = 'StateMet_SUNCOSmid',             &
        lname = 'StateMet_SUNCOSmid',             &
        units = '1'                               &
