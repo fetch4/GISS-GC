@@ -233,7 +233,6 @@ cloud_rad_forc=1 ! turn on cloud radiative forcing diagnostics
 
 ! diagnostics
 SUBDD='OH:4 NO:4 O3:4 NO2:4 CO:4 CH4:4 PS:4'
-! SUBDD=''
 NSUBDD=1         ! saving sub-daily diags every NSUBDD-th physics timestep
 DAYS_PER_FILE=1
 KCOPY=1          ! save accumulated diagnostics files
