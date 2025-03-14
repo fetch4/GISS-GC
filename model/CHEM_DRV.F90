@@ -209,6 +209,15 @@ CONTAINS
           ! Surface fields
           !----------------------------------------------------------------------
 
+          ! TODO: Which array?
+          ! State_Met%AD          (II,JJ) = ???
+
+          ! TODO: Which array?
+          ! State_Met%AIRDEN      (II,JJ) = ???
+
+          ! TODO: Which array?
+          ! State_Met%AIRVOL      (II,JJ) = ???
+
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Visible surface albedo [1]
           State_Met%ALBD        (II,JJ) = save_alb(i,j)
@@ -2260,6 +2269,10 @@ CONTAINS
     do igrp=1,ngroups
        subdd => subdd_groups(grpids(igrp))
        do k=1,subdd%ndiags
+
+          ! TODO: AD
+          ! TODO: AIRDEN
+          ! TODO: AIRVOL
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           if ( trim(subdd%name(k)) == "StateMet_ALBD" ) then
