@@ -2459,6 +2459,18 @@ CONTAINS
              ENDDO
           endif
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          if ( trim(subdd%name(k)) == "StateMet_LAI" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%LAI(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -3422,6 +3434,14 @@ decl_count = 0
        lname = 'StateMet_HFLUX',                 &
        units = 'W m-2',                          &
        )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_LAI',                   &
+       lname = 'StateMet_LAI',                   &
+       units = 'm2 m-2',                         &
+       )
+#endif
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_SUNCOSmid',             &
