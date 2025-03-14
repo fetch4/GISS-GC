@@ -2521,7 +2521,15 @@ CONTAINS
              ENDDO
           endif
 
-          ! TODO: State_Met%PRECCON
+          if ( trim(subdd%name(k)) == "StateMet_PRECCON" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PRECCON(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
           ! TODO: State_Met%PRECTOT
 
@@ -3572,6 +3580,12 @@ decl_count = 0
        sname = 'StateMet_PRECANV',               &
        lname = 'StateMet_PRECANV',               &
        units = 'kg m-2 s-1'                      &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PRECCON',               &
+       lname = 'StateMet_PRECCON',               &
+       units = 'mm day-1'                        &
        )
 
   arr(next()) = info_type_(                      &
