@@ -438,10 +438,19 @@ CONTAINS
              if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
              if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
 
+             ! Dry air mass [kg]
              ! TODO: State_Met%AD          (II,JJ,K) = ???
+
+             ! Dry air density [kg m-3]
              ! TODO: State_Met%AIRDEN      (II,JJ,K) = ???
+
+             ! Volume of grid box [m3]
              ! TODO: State_Met%AIRVOL      (II,JJ,K) = ???
+
+             ! Water vapor mixing ratio (w/r/t dry air)
              ! TODO: State_Met%AVGW        (II,JJ,K) = ???
+
+             ! Grid box height [m]
              ! TODO: State_Met%BXHEIGHT    (II,JJ,K) = ???
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
@@ -453,7 +462,10 @@ CONTAINS
 
 #endif
 
+             ! Delta-pressure across grid box(wet air) [hPa]
              ! TODO: State_Met%DELP        (II,JJ,K) = ???
+
+             ! Delta-pressure across grid box (dry air) [hPa]
              ! TODO: State_Met%DELPDRY     (II,JJ,K) = ???
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
@@ -529,6 +541,7 @@ CONTAINS
              ! Temperature [K]
              State_Met%T           (II,JJ,K) = t(i,j,k)*pk(k,i,j)
 
+             ! Potential temperature [K]
              ! TODO: State_Met%THETA       (II,JJ,K) = ???
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
