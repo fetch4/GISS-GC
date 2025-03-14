@@ -314,11 +314,11 @@ CONTAINS
           ! Conv  precip @ ground [kg/m2/s] -> mm/d
           State_Met%PRECCON     (II,JJ) = 86400d0*max(0.,prec(i,j)-precss(i,j))/dtsrc               
 
-          ! Total precip @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECTOT     (II,JJ) = 86400d0*prec(i,j)/dtsrc                                   
-
           ! LS precip @ ground [kg/m2/s] -> mm/d
           State_Met%PRECLSC     (II,JJ) = 86400d0*precss(i,j)/dtsrc                                 
+
+          ! Total precip @ ground [kg/m2/s] -> mm/d
+          State_Met%PRECTOT     (II,JJ) = 86400d0*prec(i,j)/dtsrc                                   
 
           ! Wet surface pressure at start of timestep [hPa]
           State_Met%PS1_WET     (II,JJ) = pedn(1,i,j)                                               
@@ -2531,6 +2531,16 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_PRECLSC" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PRECLSC(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "StateMet_PRECTOT" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2540,8 +2550,6 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-
-          ! TODO: State_Met%PRECLSC
 
           ! TODO: State_Met%PS1_WET
 
@@ -3594,6 +3602,12 @@ decl_count = 0
        sname = 'StateMet_PRECCON',               &
        lname = 'StateMet_PRECCON',               &
        units = 'mm day-1'                        &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PRECLSC',               &
+       lname = 'StateMet_PRECLSC',               &
+       units = 'kg m-2 s-1'                      &
        )
 
   arr(next()) = info_type_(                      &
