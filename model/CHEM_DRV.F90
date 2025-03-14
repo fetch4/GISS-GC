@@ -283,9 +283,9 @@ CONTAINS
           ! Top soil moisture [1] (assume same as GWETROOT for now)
           State_Met%GWETTOP     (II,JJ) = 0.0                                                   
           if ( fearth(i,j) .gt. 0 ) then
-             State_Met%GWETROOT  (II,JJ) = (wearth(i,j)+aiearth(i,j))/(wfcs(i,j)+1e-20)
+             State_Met%GWETTOP  (II,JJ) = (wearth(i,j)+aiearth(i,j))/(wfcs(i,j)+1e-20)
           else
-             State_Met%GWETROOT  (II,JJ) = 1 ! Set to 1 over oceans to match MERRA-2
+             State_Met%GWETTOP  (II,JJ) = 1 ! Set to 1 over oceans to match MERRA-2
           end if
 
           ! Sensible heat flux [W/m2]
@@ -2439,6 +2439,16 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_GWETTOP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%GWETTOP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -3388,6 +3398,12 @@ decl_count = 0
   arr(next()) = info_type_(                      &
        sname = 'StateMet_GWETROOT',              &
        lname = 'StateMet_GWETROOT',              &
+       units = '1',                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_GWETTOP',               &
+       lname = 'StateMet_GWETTOP',               &
        units = '1',                              &
        )
 
