@@ -2139,6 +2139,9 @@ CONTAINS
     real*8, dimension(grid%i_strt_halo:grid%i_stop_halo, &
          grid%j_strt_halo:grid%j_stop_halo, &
          LM                               ) :: sddarr3d
+    real*8, dimension(grid%i_strt_halo:grid%i_stop_halo, &
+         grid%j_strt_halo:grid%j_stop_halo, &
+         LM+1                             ) :: sddarr3de
     ! real*8 :: convert
     integer :: previous_units
     
@@ -2196,7 +2199,7 @@ CONTAINS
           end do ntm_loop
        enddo ! k
     enddo ! igroup
-
+        
     ! Convert back to kg species
     CALL Convert_Spc_Units(                                                  &
          Input_Opt  = Input_Opt,                                             &
@@ -2206,7 +2209,26 @@ CONTAINS
          new_units    = previous_units,                                      &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
-        
+
+    call find_groups('taijleh',grpids,ngroups)
+    do igrp=1,ngroups
+       subdd => subdd_groups(grpids(igrp))
+       do k=1,subdd%ndiags
+          if ( trim(subdd%name(k)) == "pedge" ) then
+             DO L=1,LM+1
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3de(I,J,L) = State_Met%PEDGE(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          call inc_subdd(subdd,k,sddarr3de)
+       enddo ! k
+    enddo ! igroup
+    
     ! 2-D diagnostics
     call find_groups('taijh',grpids,ngroups)
     do igrp=1,ngroups
@@ -3044,6 +3066,34 @@ integer function next()
  next = decl_count
 end function next
 END SUBROUTINE tijlh_defs
+
+SUBROUTINE tijleh_defs(arr,nmax,decl_count)
+  ! Needs to be outside the module to prevent circular dependencies with SUBDD
+  ! 3D tracer outputs (model horizontal grid and layers).
+use subdd_mod, only : info_type
+! info_type_ is a homemade structure constructor for older compilers
+use subdd_mod, only : info_type_
+use chem_com, only : ntm, trname, nsp, spname
+implicit none
+integer :: nmax,decl_count
+integer :: n
+type(info_type) :: arr(nmax)
+
+decl_count = 0
+
+arr(next()) = info_type_(                         &
+     sname = 'pedge'         ,                    &
+     lname = 'Pressure at model level interface', &
+     units = 'hPa'                                &
+     )
+
+return
+contains
+integer function next()
+ decl_count = decl_count + 1
+ next = decl_count
+end function next
+END SUBROUTINE tijleh_defs
 
 SUBROUTINE tijh_defs(arr,nmax,decl_count)
   ! Needs to be outside the module to prevent circular dependencies with SUBDD
