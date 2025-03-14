@@ -3710,11 +3710,13 @@ decl_count = 0
        units = 'level'                           &
        )
 
+#ifdef MODEL_GEOS
   arr(next()) = info_type_(                      &
        sname = 'StateMet_CNVFRC',                &
        lname = 'StateMet_CNVFRC',                &
        units = '1'                               &
        )
+#endif
 
   ! TODO: CONVDEPTH
   ! TODO: DELP
