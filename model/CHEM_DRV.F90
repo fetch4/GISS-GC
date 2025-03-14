@@ -3724,6 +3724,12 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
+       sname = 'StateMet_CLDFRC',                &
+       lname = 'StateMet_CLDFRC',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
        sname = 'StateMet_CLDTOPS',               &
        lname = 'StateMet_CLDTOPS',               &
        units = 'level'                           &
