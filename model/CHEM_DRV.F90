@@ -234,7 +234,7 @@ CONTAINS
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Max cloud top height [levels]
-          State_Met%CLDTOPS(II,JJ) = 1                   
+          State_Met%CLDTOPS(II,JJ) = 1
           DO K = LM, 1, -1
              IF ( State_Met%CMFMC(II,JJ,K) > 0d0 ) THEN
                 State_Met%CLDTOPS(II,JJ) = K + 1
@@ -243,29 +243,34 @@ CONTAINS
           ENDDO
 #endif
 
+#ifdef MODEL_GEOS
+          ! Convective fraction [1] (only used by GEOS)
+          State_Met%CNV_FRC     (II,JJ) = 0.0
+#endif
+
           ! Latent heat flux [W/m2]
-          State_Met%EFLUX       (II,JJ) = -atmsrf%latht(i,j)/dtsrc    
+          State_Met%EFLUX       (II,JJ) = -atmsrf%latht(i,j)/dtsrc
 
           ! Olson land fraction [1]
-          State_Met%FRCLND      (II,JJ) = fland(i,j)                  
+          State_Met%FRCLND      (II,JJ) = fland(i,j)
 
           ! Fraction of lake [1]
-          State_Met%FRLAKE      (II,JJ) = flake(i,j)                  
+          State_Met%FRLAKE      (II,JJ) = flake(i,j)
 
           ! Fraction of land [1]
-          State_Met%FRLAND      (II,JJ) = fland(i,j)                  
+          State_Met%FRLAND      (II,JJ) = fland(i,j)
 
           ! Fraction of land ice [1]
-          State_Met%FRLANDICE   (II,JJ) = flice(i,j)                  
+          State_Met%FRLANDICE   (II,JJ) = flice(i,j)
 
           ! Fraction of ocean [1]
-          State_Met%FROCEAN     (II,JJ) = focean(i,j)                 
+          State_Met%FROCEAN     (II,JJ) = focean(i,j)
 
           ! Sfc sea ice fraction [1]
-          State_Met%FRSEAICE    (II,JJ) = si_atm%RSI(i,j)*focean(i,j) 
+          State_Met%FRSEAICE    (II,JJ) = si_atm%RSI(i,j)*focean(i,j)
 
           ! Surface snow fraction [1]
-          State_Met%FRSNOW       (II,JJ) = 0.0                         
+          State_Met%FRSNOW       (II,JJ) = 0.0
           if ( si_ocn%snowi(i,j) > 0. ) &
                State_Met%FRSNOW(II,JJ) = si_atm%rsi(i,j)*flake(i,j)
           if ( atmlnd%SNOWE(i,j) > 0. ) &
@@ -273,7 +278,7 @@ CONTAINS
           State_Met%FRSNOW(II,JJ) = min( 1.0, State_Met%FRSNOW(II,JJ) )
 
           ! Root soil wetness [1]
-          State_Met%GWETROOT    (II,JJ) = 0.0                                                      
+          State_Met%GWETROOT    (II,JJ) = 0.0
           if ( fearth(i,j) .gt. 0 ) then
              State_Met%GWETROOT  (II,JJ) = (wearth(i,j)+aiearth(i,j))/(wfcs(i,j)+1e-20)
           else
@@ -281,7 +286,7 @@ CONTAINS
           end if
 
           ! Top soil moisture [1] (assume same as GWETROOT for now)
-          State_Met%GWETTOP     (II,JJ) = 0.0                                                   
+          State_Met%GWETTOP     (II,JJ) = 0.0
           if ( fearth(i,j) .gt. 0 ) then
              State_Met%GWETTOP  (II,JJ) = (wearth(i,j)+aiearth(i,j))/(wfcs(i,j)+1e-20)
           else
@@ -289,95 +294,92 @@ CONTAINS
           end if
 
           ! Sensible heat flux [W/m2]
-          State_Met%HFLUX       (II,JJ) = -atmsrf%sensht(i,j)/dtsrc   
+          State_Met%HFLUX       (II,JJ) = -atmsrf%sensht(i,j)/dtsrc
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Leaf area index [m2/m2] (online)
           State_Met%LAI         (II,JJ) = lai_save(i,j)
 #endif
 
-          ! Diffuse photsynthetically active radiation [W/m2]
-          State_Met%PARDF       (II,JJ) = 0.82*srvissurf(i,j)*(1d0-fsrdir(i,j))*cosz1(i,j)          
-
           ! Direct photsynthetically active radiation [W/m2]
-          State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)              
+          State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)
+
+          ! Diffuse photsynthetically active radiation [W/m2]
+          State_Met%PARDF       (II,JJ) = 0.82*srvissurf(i,j)*(1d0-fsrdir(i,j))*cosz1(i,j)
 
           ! PBL height [m] PBL top layer [1]
-          State_Met%PBLH        (II,JJ) = atmsrf%dblavg(i,j)                                        
+          State_Met%PBLH        (II,JJ) = atmsrf%dblavg(i,j)
 
           ! Surface geopotential height [m]
-          State_Met%PHIS        (II,JJ) = zatmo(i,j)                                                
+          State_Met%PHIS        (II,JJ) = zatmo(i,j)
 
           ! Anvil previp @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECANV     (II,JJ) = 0.0                                                       
+          State_Met%PRECANV     (II,JJ) = 0.0
 
           ! Conv  precip @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECCON     (II,JJ) = 86400d0*max(0.,prec(i,j)-precss(i,j))/dtsrc               
+          State_Met%PRECCON     (II,JJ) = 86400d0*max(0.,prec(i,j)-precss(i,j))/dtsrc
 
           ! LS precip @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECLSC     (II,JJ) = 86400d0*precss(i,j)/dtsrc                                 
+          State_Met%PRECLSC     (II,JJ) = 86400d0*precss(i,j)/dtsrc
 
           ! Total precip @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECTOT     (II,JJ) = 86400d0*prec(i,j)/dtsrc                                   
+          State_Met%PRECTOT     (II,JJ) = 86400d0*prec(i,j)/dtsrc
 
           ! Wet surface pressure at start of timestep [hPa]
-          State_Met%PS1_WET     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS1_WET     (II,JJ) = pedn(1,i,j)
 
           ! Wet surface pressure at end of timestep [hPa]
-          State_Met%PS2_WET     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS2_WET     (II,JJ) = pedn(1,i,j)
 
           ! Wet interpolated surface pressure [hPa]
-          State_Met%PSC2_WET    (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PSC2_WET    (II,JJ) = pedn(1,i,j)
 
           ! Dry surface pressure at start of timestep [hPa]
-          State_Met%PS1_DRY     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS1_DRY     (II,JJ) = pedn(1,i,j)
 
           ! Dry surface pressure at end of timestep [hPa]
-          State_Met%PS2_DRY     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS2_DRY     (II,JJ) = pedn(1,i,j)
 
           ! Dry interpolated surface pressure [hPa]
-          State_Met%PSC2_DRY    (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PSC2_DRY    (II,JJ) = pedn(1,i,j)
 
           ! Sea ice coverage 00-10% to 90-100% (only used by Hg)
           State_Met%SEAICE00    (II,JJ) = 0.0
-          State_Met%SEAICE10    (II,JJ) = 0.0                                                       
-          State_Met%SEAICE20    (II,JJ) = 0.0                                                       
-          State_Met%SEAICE30    (II,JJ) = 0.0                                                      
+          State_Met%SEAICE10    (II,JJ) = 0.0
+          State_Met%SEAICE20    (II,JJ) = 0.0
+          State_Met%SEAICE30    (II,JJ) = 0.0
           State_Met%SEAICE40    (II,JJ) = 0.0
-          State_Met%SEAICE50    (II,JJ) = 0.0    
-          State_Met%SEAICE60    (II,JJ) = 0.0    
-          State_Met%SEAICE70    (II,JJ) = 0.0    
-          State_Met%SEAICE80    (II,JJ) = 0.0    
+          State_Met%SEAICE50    (II,JJ) = 0.0
+          State_Met%SEAICE60    (II,JJ) = 0.0
+          State_Met%SEAICE70    (II,JJ) = 0.0
+          State_Met%SEAICE80    (II,JJ) = 0.0
           State_Met%SEAICE90    (II,JJ) = 0.0
 
           ! Sea level pressure [hPa]
           State_Met%SLP         (II,JJ) = slp(pedn(1,i,j),atmsrf%tsavg(i,j),bygrav*zatmo(i,j))*100.
 
           ! Snow depth [m]
-          State_Met%SNODP       (II,JJ) = atmsrf%SNOWDP(i,j) * ( 1d0 - flice(i,j) )                 
+          State_Met%SNODP       (II,JJ) = atmsrf%SNOWDP(i,j) * ( 1d0 - flice(i,j) )
 
           ! Snow mass [kg/m2]
-          State_Met%SNOMAS      (II,JJ) = atmsrf%SNOW(i,j)                                          
+          State_Met%SNOMAS      (II,JJ) = atmsrf%SNOW(i,j)
 
           ! COS(solar zenith angle) at current time
-          State_Met%SUNCOS      (II,JJ) = cosz1(i,j)                                                
+          State_Met%SUNCOS      (II,JJ) = cosz1(i,j)
 
           ! COS(solar zenith angle) at midpoint of chem timestep
-          State_Met%SUNCOSmid   (II,JJ) = save_cosz2(i,j)                                           
+          State_Met%SUNCOSmid   (II,JJ) = save_cosz2(i,j)
 
           ! Incident radiation @ ground [W/m2]
-          State_Met%SWGDN       (II,JJ) = srdn(i,j)*save_cosz2(i,j)                                 
+          State_Met%SWGDN       (II,JJ) = srdn(i,j)*save_cosz2(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Total overhead O3 column [DU]
-          State_Met%TO3         (II,JJ) = save_to3(i,j)                                             
+          State_Met%TO3         (II,JJ) = save_to3(i,j)
 #endif
 
-          ! Tropopause pressure [hPa]     
-          State_Met%TROPP       (II,JJ) = ptropo(i,j)                                               
-
           ! Tropopause level [1]
-          State_Met%TropLev(II,JJ) = 1                   
+          State_Met%TropLev(II,JJ) = 1
           DO K = LM, 1, -1
              IF ( pedn(k,i,j) >= ptropo(i,j) ) THEN
                 State_Met%TropLev(II,JJ) = K
@@ -386,53 +388,43 @@ CONTAINS
           ENDDO
 
           ! Tropopause height [km]
-          State_Met%TropHt      (II,JJ) = 0                                             
+          State_Met%TropHt      (II,JJ) = 0
           DO K = 1, State_Met%TropLev(II,JJ)-1
              State_Met%TropHt(II,JJ) = State_Met%TropHt(II,JJ) + State_Met%BXHEIGHT(II,JJ,K) * 1d-3
           ENDDO
           State_Met%TropHt(II,JJ) = State_Met%TropHt(II,JJ) + &
                State_Met%BXHEIGHT(II,JJ,State_Met%TropLev(II,JJ)) * 0.5d-3
 
+          ! Tropopause pressure [hPa]
+          State_Met%TROPP       (II,JJ) = ptropo(i,j)
+
           ! Surface temperature [K]
-          State_Met%TS          (II,JJ) = atmsrf%tsavg(i,j) - tf + 273.15                               
+          State_Met%TS          (II,JJ) = atmsrf%tsavg(i,j) - tf + 273.15
 
           ! Surface skin temperature [K]
-          State_Met%TSKIN       (II,JJ) = atmsrf%gtempr(i,j)                                        
+          State_Met%TSKIN       (II,JJ) = atmsrf%gtempr(i,j)
 
           ! E/W wind speed @ 10m ht [m/s]
-          State_Met%U10M        (II,JJ) = atmsrf%usavg(i,j)                                         
+          State_Met%U10M        (II,JJ) = atmsrf%usavg(i,j)
 
           ! Friction velocity [m/s]
-          State_Met%USTAR       (II,JJ) = atmsrf%ustar_pbl(i,j)                                     
+          State_Met%USTAR       (II,JJ) = atmsrf%ustar_pbl(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! UV surface albedo [1]
-          State_Met%UVALBEDO    (II,JJ) = save_alb(i,j)                                             
+          State_Met%UVALBEDO    (II,JJ) = save_alb(i,j)
 #endif
 
           ! N/S wind speed @ 10m ht [m/s]
-          State_Met%V10M        (II,JJ) = atmsrf%vsavg(i,j)                                         
+          State_Met%V10M        (II,JJ) = atmsrf%vsavg(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Surface roughness height [m]
           State_Met%Z0          (II,JJ) = z0m_save(i,j)
 #endif
 
-#ifdef MODEL_GEOS
-          ! Convective fraction [1] (only used by GEOS)
-          State_Met%CNV_FRC     (II,JJ) = 0.0
-#endif
-
        ENDDO
     ENDDO
-
-!    DO J = State_Grid%NY,1,-1
-!       WRITE(6,'(144F5.2)') State_Met%SUNCOSmid(:,J) 
-!    ENDDO
-!    CALL FLUSH(6)
-!    STOP
-
-    !IF ( am_I_Root() ) WRITE(6,*) "SUNCOSmid", State_Met%SUNCOSmid(:,40)
 
     DO K=1,LM
        DO JJJ=J_0,J_1
@@ -2483,22 +2475,22 @@ CONTAINS
           endif
 #endif
 
-          if ( trim(subdd%name(k)) == "StateMet_PARDF" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%PARDF(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-
           if ( trim(subdd%name(k)) == "StateMet_PARDR" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr2d(I,J) = State_Met%PARDR(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PARDF" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PARDF(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -2563,32 +2555,12 @@ CONTAINS
              ENDDO
           endif
 
-          if ( trim(subdd%name(k)) == "StateMet_PS1DRY" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%PS1_DRY(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-
           if ( trim(subdd%name(k)) == "StateMet_PS1WET" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr2d(I,J) = State_Met%PS1_WET(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-
-          if ( trim(subdd%name(k)) == "StateMet_PS2DRY" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%PS2_DRY(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -2609,6 +2581,26 @@ CONTAINS
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr2d(I,J) = State_Met%PSC2_WET(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PS1DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS1_DRY(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PS2DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS2_DRY(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -2756,7 +2748,7 @@ CONTAINS
              ENDDO
           endif
 
-          if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
+          if ( trim(subdd%name(k)) == "StateMet_SUNCOSMID" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
                 II = I - I_0 + 1
@@ -2789,16 +2781,6 @@ CONTAINS
           endif
 #endif
 
-          if ( trim(subdd%name(k)) == "StateMet_TROPP" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%TROPP(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-
           if ( trim(subdd%name(k)) == "StateMet_TropLev" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2815,6 +2797,16 @@ CONTAINS
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr2d(I,J) = State_Met%TropHt(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TROPP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TROPP(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -3712,23 +3704,26 @@ decl_count = 0
 
 !do n=1,1
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_AD',                    &
-       lname = 'StateMet_AD',                    &
-       units = 'kg'                              &
-       )
+  ! TODO: AD
+  ! arr(next()) = info_type_(                      &
+  !      sname = 'StateMet_AD',                    &
+  !      lname = 'StateMet_AD',                    &
+  !      units = 'kg'                              &
+  !      )
   
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_AIRDEN',                &
-       lname = 'StateMet_AIRDEN',                &
-       units = 'kg m-3'                          &
-       )
+  ! TODO: AIRDEN
+  ! arr(next()) = info_type_(                      &
+  !      sname = 'StateMet_AIRDEN',                &
+  !      lname = 'StateMet_AIRDEN',                &
+  !      units = 'kg m-3'                          &
+  !      )
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_AIRVOL',                &
-       lname = 'StateMet_AIRVOL',                &
-       units = 'm3'                              &
-       )
+  ! TODO: AIRVOL
+  ! arr(next()) = info_type_(                      &
+  !      sname = 'StateMet_AIRVOL',                &
+  !      lname = 'StateMet_AIRVOL',                &
+  !      units = 'm3'                              &
+  !      )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
   arr(next()) = info_type_(                      &
@@ -3843,14 +3838,14 @@ decl_count = 0
 #endif
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_PARDF',                 &
-       lname = 'StateMet_PARDF',                 &
+       sname = 'StateMet_PARDR',                 &
+       lname = 'StateMet_PARDR',                 &
        units = 'W m-2'                           &
        )
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_PARDR',                 &
-       lname = 'StateMet_PARDR',                 &
+       sname = 'StateMet_PARDF',                 &
+       lname = 'StateMet_PARDF',                 &
        units = 'W m-2'                           &
        )
 
@@ -3891,20 +3886,8 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_PS1DRY',                &
-       lname = 'StateMet_PS1DRY',                &
-       units = 'hPa'                             &
-       )
-
-  arr(next()) = info_type_(                      &
        sname = 'StateMet_PS1WET',                &
        lname = 'StateMet_PS1WET',                &
-       units = 'hPa'                             &
-       )
-
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_PS2DRY',                &
-       lname = 'StateMet_PS2DRY',                &
        units = 'hPa'                             &
        )
 
@@ -3917,6 +3900,18 @@ decl_count = 0
   arr(next()) = info_type_(                      &
        sname = 'StateMet_PSC2WET',               &
        lname = 'StateMet_PSC2WET',               &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS1DRY',                &
+       lname = 'StateMet_PS1DRY',                &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS2DRY',                &
+       lname = 'StateMet_PS2DRY',                &
        units = 'hPa'                             &
        )
 
@@ -4005,8 +4000,8 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_SUNCOSmid',             &
-       lname = 'StateMet_SUNCOSmid',             &
+       sname = 'StateMet_SUNCOSMID',             &
+       lname = 'StateMet_SUNCOSMID',             &
        units = '1'                               &
        )
 
@@ -4023,12 +4018,6 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_TROPP',                 &
-       lname = 'StateMet_TROPP',                 &
-       units = 'hPa'                             &
-       )
-
-  arr(next()) = info_type_(                      &
        sname = 'StateMet_TROPLEV',               &
        lname = 'StateMet_TROPLEV',               &
        units = '1'                               &
@@ -4038,6 +4027,12 @@ decl_count = 0
        sname = 'StateMet_TROPHT',                &
        lname = 'StateMet_TROPHT',                &
        units = 'km'                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TROPP',                 &
+       lname = 'StateMet_TROPP',                 &
+       units = 'hPa'                             &
        )
 
   arr(next()) = info_type_(                      &
