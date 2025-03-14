@@ -2581,30 +2581,168 @@ CONTAINS
              ENDDO
           endif
 
-          ! TODO: State_Met%PS1_DRY
+          if ( trim(subdd%name(k)) == "StateMet_PS1DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS1_DRY(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%PS2_DRY
+          if ( trim(subdd%name(k)) == "StateMet_PS2DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS2_DRY(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%PSC2_DRY
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE00" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE00(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%SEAICE00
-          ! TODO: State_Met%SEAICE10
-          ! TODO: State_Met%SEAICE20
-          ! TODO: State_Met%SEAICE30
-          ! TODO: State_Met%SEAICE40
-          ! TODO: State_Met%SEAICE50
-          ! TODO: State_Met%SEAICE60
-          ! TODO: State_Met%SEAICE70
-          ! TODO: State_Met%SEAICE80
-          ! TODO: State_Met%SEAICE90
+          
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE10" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE10(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+         
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE20" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE20(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE30" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE30(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE40" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE40(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+         
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE50" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE50(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+         
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE60" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE60(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE70" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE70(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE80" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE80(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE90" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE90(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%SLP
+  
+          if ( trim(subdd%name(k)) == "StateMet_SLP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SLP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%SNODP
+        
+          if ( trim(subdd%name(k)) == "StateMet_SNODP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SNODP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%SNOMAS
+          if ( trim(subdd%name(k)) == "StateMet_SNOMAS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SNOMAS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%SUNCOS
+          if ( trim(subdd%name(k)) == "StateMet_SUNCOS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SUNCOS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
@@ -2616,38 +2754,144 @@ CONTAINS
              ENDDO
           endif
 
-          ! TODO: State_Met%SWGDN
+          if ( trim(subdd%name(k)) == "StateMet_SWGDN" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SWGDN(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
-          ! TODO: State_Met%TO3
+
+          if ( trim(subdd%name(k)) == "StateMet_TO3" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TO3(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 #endif
 
-          ! TODO: State_Met%TROPP
+          if ( trim(subdd%name(k)) == "StateMet_TROPP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TROPP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%TropLev
+          if ( trim(subdd%name(k)) == "StateMet_TropLev" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TropLev(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%TropHt
+          if ( trim(subdd%name(k)) == "StateMet_TropHt" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TropHt(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%TS
+          if ( trim(subdd%name(k)) == "StateMet_TS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%TSKIN
+          if ( trim(subdd%name(k)) == "StateMet_TSKIN" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TSKIN(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%U10M
+          if ( trim(subdd%name(k)) == "StateMet_U10M" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%U10M(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
-          ! TODO: State_Met%USTAR
+          if ( trim(subdd%name(k)) == "StateMet_USTAR" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%USTAR(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
-          ! TODO: State_Met%UVALBEDO
+
+          if ( trim(subdd%name(k)) == "StateMet_UVALBEDO" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%UVALBEDO(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 #endif
 
-          ! TODO: State_Met%V10M
+          if ( trim(subdd%name(k)) == "StateMet_V10M" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%V10M(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
-          ! TODO: State_Met%Z0
+          if ( trim(subdd%name(k)) == "StateMet_Z0" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%Z0(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 #endif
 
 #ifdef MODEL_GEOS
-          ! TODO: State_Met%CNV_FRC
+          if ( trim(subdd%name(k)) == "StateMet_CNV_FRC" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CNV_FRC(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 #endif
 
           if ( trim(subdd%name(k)) == "lat2d" ) then
