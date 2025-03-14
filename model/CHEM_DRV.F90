@@ -2328,6 +2328,18 @@ CONTAINS
           endif
 #endif
 
+#ifdef MODEL_GEOS
+          if ( trim(subdd%name(k)) == "StateMet_CNVFRC" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CNV_FRC(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
           if ( trim(subdd%name(k)) == "StateMet_EFLUX" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2530,12 +2542,32 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_PS1DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS1_DRY(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "StateMet_PS1WET" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr2d(I,J) = State_Met%PS1_WET(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PS2DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS2_DRY(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -2556,26 +2588,6 @@ CONTAINS
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr2d(I,J) = State_Met%PSC2_WET(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-
-          if ( trim(subdd%name(k)) == "StateMet_PS1DRY" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%PS1_DRY(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-
-          if ( trim(subdd%name(k)) == "StateMet_PS2DRY" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%PS2_DRY(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -2856,18 +2868,6 @@ CONTAINS
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr2d(I,J) = State_Met%Z0(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-#endif
-
-#ifdef MODEL_GEOS
-          if ( trim(subdd%name(k)) == "StateMet_CNV_FRC" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%CNV_FRC(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -3710,6 +3710,12 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
+       sname = 'StateMet_CNVFRC',                &
+       lname = 'StateMet_CNVFRC',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
        sname = 'StateMet_EFLUX',                 &
        lname = 'StateMet_EFLUX',                 &
        units = 'W m-2'                           &
@@ -3832,8 +3838,20 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS1DRY',                &
+       lname = 'StateMet_PS1DRY',                &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
        sname = 'StateMet_PS1WET',                &
        lname = 'StateMet_PS1WET',                &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS2DRY',                &
+       lname = 'StateMet_PS2DRY',                &
        units = 'hPa'                             &
        )
 
@@ -3850,9 +3868,165 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE00',              &
+       lname = 'StateMet_SEAICE00',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE10',              &
+       lname = 'StateMet_SEAICE10',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE20',              &
+       lname = 'StateMet_SEAICE20',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE30',              &
+       lname = 'StateMet_SEAICE30',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE40',              &
+       lname = 'StateMet_SEAICE40',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE50',              &
+       lname = 'StateMet_SEAICE50',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE60',              &
+       lname = 'StateMet_SEAICE60',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE70',              &
+       lname = 'StateMet_SEAICE70',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE80',              &
+       lname = 'StateMet_SEAICE80',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE90',              &
+       lname = 'StateMet_SEAICE90',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SLP',                   &
+       lname = 'StateMet_SLP',                   &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SNODP',                 &
+       lname = 'StateMet_SNODP',                 &
+       units = 'm'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SNOMAS',                &
+       lname = 'StateMet_SNOMAS',                &
+       units = 'kg m-2'                          &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SUNCOS',                &
+       lname = 'StateMet_SUNCOS',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
        sname = 'StateMet_SUNCOSmid',             &
        lname = 'StateMet_SUNCOSmid',             &
        units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SWGDN',                 &
+       lname = 'StateMet_SWGDN',                 &
+       units = 'W m-2'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TO3',                   &
+       lname = 'StateMet_TO3',                   &
+       units = 'dobsons'                         &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TROPP',                 &
+       lname = 'StateMet_TROPP',                 &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TROPLEV',               &
+       lname = 'StateMet_TROPLEV',               &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TROPHT',                &
+       lname = 'StateMet_TROPHT',                &
+       units = 'km'                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TS',                    &
+       lname = 'StateMet_TS',                    &
+       units = 'K'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TSKIN',                 &
+       lname = 'StateMet_TSKIN',                 &
+       units = 'K'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_U10M',                  &
+       lname = 'StateMet_U10M',                  &
+       units = 'm s-1'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_USTART',                &
+       lname = 'StateMet_USTART',                &
+       units = 'm s-1'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_UVALBEDO',              &
+       lname = 'StateMet_UVALBEDO',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_V10M',                  &
+       lname = 'StateMet_V10M',                  &
+       units = 'm s-1'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_Z0',                    &
+       lname = 'StateMet_Z0',                    &
+       units = 'm'                               &
        )
 
   arr(next()) = info_type_(                      &
