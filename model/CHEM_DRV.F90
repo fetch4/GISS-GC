@@ -2241,10 +2241,32 @@ CONTAINS
                 ENDDO
                 ENDDO
                 ENDDO
-                call inc_subdd(subdd,k,sddarr3d)
                 exit ntm_loop
              end if
           end do ntm_loop
+          if ( trim(subdd%name(k)) == "d13CCH4" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%d13CCH4(II,JJ,L)         
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          if ( trim(subdd%name(k)) == "d2HCH4" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%d2HCH4(II,JJ,L)         
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          call inc_subdd(subdd,k,sddarr3d)
        enddo ! k
     enddo ! igroup
         
@@ -3106,6 +3128,18 @@ do n=1,nsp
        units = 'mol mol-1'                       &
        )
 end do ! tracers loop
+
+arr(next()) = info_type_(                      &
+     sname = 'd13CCH4'       ,                 &
+     lname = 'd13C of methane',                &
+     units = 'permil'                          &
+     )
+
+arr(next()) = info_type_(                      &
+     sname = 'd2HCH4'       ,                  &
+     lname = 'd2H of methane',                 &
+     units = 'permil'                          &
+     )
 
 return
 contains
