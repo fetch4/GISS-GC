@@ -2511,6 +2511,45 @@ CONTAINS
              ENDDO
           endif
 
+          ! TODO: State_Met%PRECANV
+
+          ! TODO: State_Met%PRECCON
+
+          ! TODO: State_Met%PRECTOT
+
+          ! TODO: State_Met%PRECLSC
+
+          ! TODO: State_Met%PS1_WET
+
+          ! TODO: State_Met%PS2_WET
+
+          ! TODO: State_Met%PSC2_WET
+
+          ! TODO: State_Met%PS1_DRY
+
+          ! TODO: State_Met%PS2_DRY
+
+          ! TODO: State_Met%PSC2_DRY
+
+          ! TODO: State_Met%SEAICE00
+          ! TODO: State_Met%SEAICE10
+          ! TODO: State_Met%SEAICE20
+          ! TODO: State_Met%SEAICE30
+          ! TODO: State_Met%SEAICE40
+          ! TODO: State_Met%SEAICE50
+          ! TODO: State_Met%SEAICE60
+          ! TODO: State_Met%SEAICE70
+          ! TODO: State_Met%SEAICE80
+          ! TODO: State_Met%SEAICE90
+
+          ! TODO: State_Met%SLP
+
+          ! TODO: State_Met%SNODP
+
+          ! TODO: State_Met%SNOMAS
+
+          ! TODO: State_Met%SUNCOS
+
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2520,6 +2559,40 @@ CONTAINS
              ENDDO
              ENDDO
           endif
+
+          ! TODO: State_Met%SWGDN
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          ! TODO: State_Met%TO3
+#endif
+
+          ! TODO: State_Met%TROPP
+
+          ! TODO: State_Met%TropLev
+
+          ! TODO: State_Met%TropHt
+
+          ! TODO: State_Met%TS
+
+          ! TODO: State_Met%TSKIN
+
+          ! TODO: State_Met%U10M
+
+          ! TODO: State_Met%USTAR
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          ! TODO: State_Met%UVALBEDO
+#endif
+
+          ! TODO: State_Met%V10M
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          ! TODO: State_Met%Z0
+#endif
+
+#ifdef MODEL_GEOS
+          ! TODO: State_Met%CNV_FRC
+#endif
 
           if ( trim(subdd%name(k)) == "lat2d" ) then
              DO J=J_0,J_1
