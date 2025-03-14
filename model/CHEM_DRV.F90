@@ -122,11 +122,12 @@ CONTAINS
     USE RAD_COM,           ONLY : cfrac, srdn, fsrdir, srvissurf, cosz1, save_cosz2
     USE SEAICE_COM,        ONLY : si_atm, si_ocn
     USE CONSTANT,          ONLY : bygrav, lhe, tf, teeny
+    USE LIGHTNING,         ONLY : cth_save, flash_dens
 
     ! GEOS-Chem modules
     USE HCO_Interface_Common, ONLY : SetHcoTime
     USE Time_Mod,          ONLY : Accept_External_Date_Time
-    USE Emissions_Mod,     ONLY : Emissions_Run         
+    USE Emissions_Mod,     ONLY : Emissions_Run
     USE State_Chm_Mod,     ONLY : Ind_
     USE Calc_Met_Mod,      ONLY : AirQnt
     USE Pressure_Mod,      ONLY : Set_Floating_Pressures
@@ -239,12 +240,14 @@ CONTAINS
           State_Met%CNV_FRC     (II,JJ) = 0.0
 #endif
 
-          ! TODO: State_Met%CONVDEPTH   (II,JJ) = ???
+          ! Convective cloud depth [m]
+          State_Met%CONV_DEPTH  (II,JJ) = cth_save(i,j)
 
           ! Latent heat flux [W/m2]
           State_Met%EFLUX       (II,JJ) = -atmsrf%latht(i,j)/dtsrc
 
-          ! TODO: State_Met%FLASHDENS   (II,JJ) = ???
+          ! Lightning flash density [km-2 s-1]
+          State_Met%FLASH_DENS  (II,JJ) = flash_dens(i,j)
 
           ! Olson land fraction [1]
           State_Met%FRCLND      (II,JJ) = fland(i,j)
@@ -2345,7 +2348,15 @@ CONTAINS
           endif
 #endif
 
-          ! TODO: CONVDEPTH
+          if ( trim(subdd%name(k)) == "StateMet_CONVDEPTH" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CONV_DEPTH(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
           if ( trim(subdd%name(k)) == "StateMet_EFLUX" ) then
              DO J=J_0,J_1
@@ -2357,7 +2368,15 @@ CONTAINS
              ENDDO
           endif
 
-          ! TODO: FLASHDENS
+          if ( trim(subdd%name(k)) == "StateMet_FLASHDENS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FLASH_DENS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
           if ( trim(subdd%name(k)) == "StateMet_FRCLND" ) then
              DO J=J_0,J_1
@@ -3739,12 +3758,11 @@ decl_count = 0
        )
 #endif
 
-  ! TODO: CONVDEPTH
-  ! TODO: DELP
-  ! TODO: DELPDRY
-  ! TODO: DQRCU
-  ! TODO: DQRLSAN
-  ! TODO: DTRAIN
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CONVDEPTH',             &
+       lname = 'StateMet_CONVDEPTH',             &
+       units = 'm'                               &
+       )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_EFLUX',                 &
@@ -3752,7 +3770,11 @@ decl_count = 0
        units = 'W m-2'                           &
        )
 
-  ! TODO: FLASHDENS
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FLASHDENS',             &
+       lname = 'StateMet_FLASHDENS',             &
+       units = 'km-2 s-1'                        &
+       )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRCLND',                &
