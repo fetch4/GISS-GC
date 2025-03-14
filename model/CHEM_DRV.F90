@@ -2369,6 +2369,16 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_FRLAKE" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRLAKE(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -3276,6 +3286,12 @@ decl_count = 0
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRCLND',                &
        lname = 'StateMet_FRCLND',                &
+       units = '1',                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRLAKE',                &
+       lname = 'StateMet_FRLAKE',                &
        units = '1',                              &
        )
 
