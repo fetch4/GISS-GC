@@ -296,11 +296,11 @@ CONTAINS
           State_Met%LAI         (II,JJ) = lai_save(i,j)
 #endif
 
-          ! Direct photsynthetically active radiation [W/m2]
-          State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)              
-
           ! Diffuse photsynthetically active radiation [W/m2]
           State_Met%PARDF       (II,JJ) = 0.82*srvissurf(i,j)*(1d0-fsrdir(i,j))*cosz1(i,j)          
+
+          ! Direct photsynthetically active radiation [W/m2]
+          State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)              
 
           ! PBL height [m] PBL top layer [1]
           State_Met%PBLH        (II,JJ) = atmsrf%dblavg(i,j)                                        
@@ -2471,16 +2471,6 @@ CONTAINS
           endif
 #endif
 
-          if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
-             DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%SUNCOSmid(II,JJ)
-             ENDDO
-             ENDDO
-          endif
-
           if ( trim(subdd%name(k)) == "StateMet_PARDF" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2500,7 +2490,17 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-                  
+
+          if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SUNCOSmid(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "lat2d" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2510,7 +2510,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-          
+
           call inc_subdd(subdd,k,sddarr2d)
        enddo ! k
     enddo ! igroup
@@ -3444,12 +3444,6 @@ decl_count = 0
 #endif
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_SUNCOSmid',             &
-       lname = 'StateMet_SUNCOSmid',             &
-       units = '1'                               &
-       )
-
-  arr(next()) = info_type_(                      &
        sname = 'StateMet_PARDF',                 &
        lname = 'StateMet_PARDF',                 &
        units = 'W m-2'                           &
@@ -3459,6 +3453,12 @@ decl_count = 0
        sname = 'StateMet_PARDR',                 &
        lname = 'StateMet_PARDR',                 &
        units = 'W m-2'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SUNCOSmid',             &
+       lname = 'StateMet_SUNCOSmid',             &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
