@@ -2359,6 +2359,16 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_FRCLND" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRCLND(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -3261,6 +3271,12 @@ decl_count = 0
        sname = 'StateMet_EFLUX',                 &
        lname = 'StateMet_EFLUX',                 &
        units = 'W m-2',                          &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRCLND',                &
+       lname = 'StateMet_FRCLND',                &
+       units = '1',                              &
        )
 
   arr(next()) = info_type_(                      &
