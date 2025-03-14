@@ -211,11 +211,11 @@ CONTAINS
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Visible surface albedo [1]
-          State_Met%ALBD        (II,JJ) = save_alb(i,j)  
+          State_Met%ALBD        (II,JJ) = save_alb(i,j)
 #endif
 
           ! Grid box surface area [cm2]
-          State_Met%AREA_M2     (II,JJ) = axyp(i,j)      
+          State_Met%AREA_M2     (II,JJ) = axyp(i,j)
 
           ! Chemistry grid level [1]
           State_Met%ChemGridLev (II,JJ) = LM             
@@ -2260,6 +2260,28 @@ CONTAINS
     do igrp=1,ngroups
        subdd => subdd_groups(grpids(igrp))
        do k=1,subdd%ndiags
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          if ( trim(subdd%name(k)) == "StateMet_ALBD" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%ALBD(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_AREAM2" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%AREA_M2(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
