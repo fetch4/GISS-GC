@@ -136,7 +136,7 @@ CONTAINS
     USE PBL_Mix_Mod,       ONLY : Compute_PBL_Height
     USE VDIFF_Mod,         ONLY : Max_PblHt_For_Vdiff
     USE ERROR_MOD,         ONLY : Safe_Div, IT_IS_NAN, ERROR_STOP
-    USE UnitConv_Mod,      ONLY : Convert_Spc_Units, KG_SPECIES, KG_SPECIES_PER_KG_DRY_AIR, &
+    USE UnitConv_Mod,      ONLY : Convert_Spc_Units, KG_SPECIES, &
                                   MOLES_SPECIES_PER_MOLES_DRY_AIR
 
     USE Photolysis_Mod,  ONLY : Init_Photolysis
@@ -145,7 +145,7 @@ CONTAINS
 
     INTEGER   :: NYMD,    NHMS,     YEAR,    MONTH,    DAY
     INTEGER   :: DOY,     HOUR,     MINUTE,  SECOND
-    INTEGER   :: I,       J,        L,       K,        N
+    INTEGER   :: I,       J,        L,       K,        N,       M
     INTEGER   :: II,      JJ,       III,     JJJ,      RC
     REAL*4    :: MINUTES, hElapsed, UTC
     REAL*8    :: sElapsed
@@ -260,7 +260,7 @@ CONTAINS
           if ( si_ocn%snowi(i,j) > 0. ) &
                State_Met%FRSNOW(II,JJ) = si_atm%rsi(i,j)*flake(i,j)
           if ( atmlnd%SNOWE(i,j) > 0. ) &
-               State_Met%FRSNOW(II,JJ) = State_Met%FRSNOW(I,J) + atmlnd%snowfr(i,j)*fearth(i,j)
+               State_Met%FRSNOW(II,JJ) = State_Met%FRSNOW(II,JJ) + atmlnd%snowfr(i,j)*fearth(i,j)
           State_Met%FRSNOW(II,JJ) = min( 1.0, State_Met%FRSNOW(II,JJ) )
 
           ! Root soil wetness [1]
@@ -603,20 +603,12 @@ CONTAINS
     ENDIF
 
     IF ( FIRST_CHEM ) THEN
-       ! Species_Chm has initial conditions in kg kg-1 at the moment.
-       ! Now that we have meteorology in State_Met, we need to convert it to kg
-       ! put into TrM
 
-       ! Convert to kg
-       CALL Convert_Spc_Units(                                                  &
-            Input_Opt  = Input_Opt,                                             &
-            State_Chm  = State_Chm,                                             &
-            State_Grid = State_Grid,                                            &
-            State_Met  = State_Met,                                             &
-            new_units  = KG_SPECIES,                                            &
-            RC         = RC                                                    )
-       IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
-       
+       ! Set species units to kg to be put into TrM
+       DO N=1, State_Chm%nSpecies
+         State_Chm%Species(N)%Units = KG_SPECIES
+       ENDDO
+
        ! Put State_Chm back in TrM
        DO N=1,NTM
           DO L=1,LM
@@ -628,6 +620,10 @@ CONTAINS
                 ENDDO
              ENDDO
           ENDDO
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
        ENDDO
 
        ! Initialize PBL quantities from the initial met fields
@@ -636,7 +632,7 @@ CONTAINS
           ErrMsg = 'Error encountered in "COMPUTE_PBL_HEIGHT" at initialization!'
           CALL Error_Stop( ErrMsg, ThisLoc )
        ENDIF
-       
+
        ! Once the initial met fields have been read in, we need to find
        ! the maximum PBL level for the non-local mixing algorithm.
        CALL Max_PblHt_For_Vdiff( Input_Opt, State_Grid, State_Met, RC )
@@ -644,7 +640,7 @@ CONTAINS
           ErrMsg = 'Error encountered in "Max_PblHt_for_Vdiff"!'
           CALL Error_Stop( ErrMsg, ThisLoc )
        ENDIF
-       
+
        ! Initialize photolysis, including reading files for optical properties
        IF ( Input_Opt%ITS_A_FULLCHEM_SIM .or. &
             Input_Opt%ITS_AN_AEROSOL_SIM .or. &
@@ -655,10 +651,20 @@ CONTAINS
              CALL Error_Stop( ErrMsg, ThisLoc )
           ENDIF
        ENDIF
-       
+
        FIRST_CHEM = .FALSE.
+    ELSE
+      ! Convert to kg
+      CALL Convert_Spc_Units(                                                  &
+          Input_Opt  = Input_Opt,                                              &
+          State_Chm  = State_Chm,                                              &
+          State_Grid = State_Grid,                                             &
+          State_Met  = State_Met,                                              &
+          new_units  = KG_SPECIES,                                             &
+          RC         = RC                                                    )
+      IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
     ENDIF
-    
+
     ! Copy TrM into State_Chm
     DO N=1,NTM
        DO L=1,LM
@@ -671,10 +677,6 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-    ! Set species units
-    DO N=1, State_Chm%nSpecies
-       State_Chm%Species(N)%Units = KG_SPECIES ! TrM is in kg
-    ENDDO
 
     ! Convert to v/v dry
     CALL Convert_Spc_Units(                                                  &
@@ -682,7 +684,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
+         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
@@ -703,7 +705,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    = KG_SPECIES,                                            &
+         new_units  = KG_SPECIES,                                            &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
 
@@ -718,11 +720,15 @@ CONTAINS
              ENDDO
           ENDDO
        ENDDO
+       CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
+       DO M=1,NMOM
+          CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+       ENDDO
     ENDDO
 
-    IF ( AM_I_ROOT() ) THEN
-       WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ENDIF
+    ! IF ( AM_I_ROOT() ) THEN
+    !    WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+    ! ENDIF
     
     !IF ( AM_I_ROOT() ) THEN
     !   WRITE(6,*) ""
@@ -740,12 +746,12 @@ CONTAINS
 
   SUBROUTINE TrDYNAM
 
-    USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT
+    USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT, GRID, HALO_UPDATE
     USE TRACER_ADV,        ONLY : AADVQ, sfbm, sfcm
 
     IMPLICIT NONE
 
-    INTEGER N
+    INTEGER N, M
 
     IF ( .not. ALLOCATED( sfbm ) ) THEN 
        WRITE(6,*) 'Not allocated yet'
@@ -755,9 +761,23 @@ CONTAINS
 
     ! Uses the fluxes MUs,MVs,MWs from DYNAM and QDYNAM
     DO N=1,NTM
+
        IF ( IsAdvected(N) ) THEN
+          
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,n) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
+          
           CALL AADVQ( TrM(:,:,:,n), TrMom(:,:,:,:,n), .true., TrName(n) )
+       
+          CALL HALO_UPDATE( GRID, TrM(:,:,:,n) )
+          DO M=1,NMOM
+             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+          ENDDO
+
        ENDIF
+          
     ENDDO
 
     RETURN
@@ -970,12 +990,10 @@ CONTAINS
     DoWetDep = DoGCWetDep                        ! dynamic time step
     DoRad    = .false.
 
-!    DoConv   = .false.
-!    DoDryDep = .false.
-!    DoEmis   = .false.
-!    DoTurb   = .false.
-!    DoChem   = .false.
-!    DoWetDep = .false.
+    IF ( Input_Opt%ITS_A_CARBON_SIM ) THEN
+       DoDryDep = .false.
+       DoWetDep = .false.
+    ENDIF
     
     IF ( Input_Opt%AmIRoot .and. NCALLS < 10 ) THEN
        write(6,*) 'DoConv   : ', DoConv
@@ -1105,7 +1123,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    = KG_SPECIES_PER_KG_DRY_AIR,                           &
+         new_units  = KG_SPECIES_PER_KG_DRY_AIR,                             &
          previous_units   = previous_units,                                  &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
@@ -1400,15 +1418,15 @@ CONTAINS
 
   !==========================================================================================================
 
-  SUBROUTINE INIT_CHEM( grid )
+  SUBROUTINE INIT_CHEM( grid, is_coldstart )
 
     USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator 
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
     USE GEOM,                    ONLY : axyp, lat2d_dg, lon2d_dg
     USE CONSTANT,                ONLY : Pi
-    USE MODEL_COM,               ONLY : DTsrc
+    USE MODEL_COM,               ONLY : DTsrc, rsf_file_name
     USE Dictionary_mod,          ONLY : sync_param
-    USE CHEM_COM,                ONLY : SpcChmID_to_TrID, t_qlimit, TrFullName, TrID_to_SpcChmID
+    USE CHEM_COM,                ONLY : SpcChmID_to_TrID, t_qlimit, TrFullName, TrID_to_SpcChmID, NSP, SpName
     USE ERROR_MOD,               ONLY : Debug_Msg, Error_Stop, Init_Error
 
     USE GC_Environment_Mod,      ONLY : GC_Allocate_All
@@ -1435,9 +1453,14 @@ CONTAINS
     USE Photolysis_Mod,          ONLY : Init_Photolysis
     USE Vdiff_Mod,               ONLY : Max_PblHt_for_Vdiff
 
+    USE pario,                   ONLY : par_open, par_close
+    USE UnitConv_Mod,            ONLY : Convert_Spc_Units, KG_SPECIES, &
+                                        MOLES_SPECIES_PER_MOLES_DRY_AIR
+
     IMPLICIT NONE
 
     TYPE (DIST_GRID), INTENT(IN) :: grid
+    LOGICAL, INTENT(IN)          :: is_coldstart
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
     INTEGER   :: RC, previous_units
@@ -1447,10 +1470,12 @@ CONTAINS
 
     INTEGER   :: I, J, L, N, NN, II, JJ, I_0H, I_1H
     INTEGER   :: NYMDb, NHMSb, NHMSe
-    INTEGER   :: NSP
     INTEGER   :: id_H2O, id_CH4, id_CLOCK
 
     INTEGER   :: TAU, TAUb
+
+    INTEGER   :: fid
+    INTEGER   :: KDISK
 
     CHARACTER(LEN=255)       :: ThisLoc, historyConfigFile
     CHARACTER(LEN=512)       :: ErrMsg, Instr
@@ -1512,8 +1537,8 @@ CONTAINS
 
     State_Grid%DX           = 2.5e+0_fp
     State_Grid%DY           = 2.0e+0_fp
-    State_Grid%XMin         = lon2d_dg(i_0,1)
-    State_Grid%XMax         = lon2d_dg(i_1,1)
+    State_Grid%XMin         = lon2d_dg(i_0,lbound(lon2d_dg,dim=2))
+    State_Grid%XMax         = lon2d_dg(i_1,lbound(lon2d_dg,dim=2))
     State_Grid%YMin         = max( lat2d_dg(1,j_0), -89.0_fp )
     State_Grid%YMax         = min( lat2d_dg(1,j_1),  89.0_fp )
 
@@ -1824,13 +1849,13 @@ CONTAINS
     ! diagnostic collection for computing emission totals.
     State_Met%Area_M2 = State_Grid%Area_M2
 
-    CALL sync_param( "DTsrc", DTsrc )
-    CALL sync_param( "DT",    DT    )         
-    Input_Opt%TS_CHEM = INT( DTsrc  )   ! Chemistry timestep [sec]
-    Input_Opt%TS_EMIS = INT( DTsrc  )   ! Chemistry timestep [sec]
-    Input_Opt%TS_DYN  = INT( DT     )   ! Dynamic   timestep [sec]
-    Input_Opt%TS_CONV = INT( DT     )   ! Dynamic   timestep [sec]
-    Input_Opt%TS_RAD  = INT( DT     )
+    CALL sync_param( "DTsrc", DTsrc )   ! GISS chemistry timestep [sec]
+    CALL sync_param( "DT",    DT    )   ! GISS dynamic timestep [sec]
+    Input_Opt%TS_CHEM = INT( DTsrc  )   
+    Input_Opt%TS_EMIS = INT( DTsrc  )   
+    Input_Opt%TS_DYN  = INT( DTsrc  )   
+    Input_Opt%TS_CONV = INT( DTsrc  )   
+    Input_Opt%TS_RAD  = INT( DTsrc  )
 
     ! Set start and finish time from rundeck
     Input_Opt%NYMDb   = 20141201 ! nymdB
@@ -1986,18 +2011,20 @@ CONTAINS
        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
     ENDIF
 
-    CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, &
-         State_Met, RC )    
+    ! In the case of a cold restart, initialise GEOS-Chem from its restart file
+    IF (is_coldstart) THEN
+      CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
 
-    IF ( AM_I_ROOT() ) THEN
-       WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-    ENDIF
- 
-    ! Trap potential errors
-    IF ( RC /= GC_SUCCESS ) THEN
-       ErrMsg = 'Error encountered in "Get_GC_Restart"'
-       Instr  = ''
-       CALL Error_Stop( ErrMsg, ThisLoc, Instr )
+      ! IF ( AM_I_ROOT() ) THEN
+      !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
+      ! ENDIF
+  
+      ! Trap potential errors
+      IF ( RC /= GC_SUCCESS ) THEN
+        ErrMsg = 'Error encountered in "Get_GC_Restart"'
+        Instr  = ''
+        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
+      ENDIF
     ENDIF
 
     IF ( Input_Opt%useTimers ) THEN
@@ -2042,13 +2069,14 @@ CONTAINS
     !-----------------------------------------------------------------------------
     
     NSP = State_Chm%nSpecies
-    NTM = State_Chm%nAdvect + 1
-
+    NTM = State_Chm%nAdvect
+    
     ALLOCATE( TrID_to_SpcChmID(NTM) )
     ALLOCATE( SpcChmID_to_TrID(NSP) )
     TrID_to_SpcChmID = 0
     SpcChmID_to_TrID = 0
 
+    ALLOCATE( SpName(NSP) )
     ALLOCATE( TrName(NTM) )
     ALLOCATE( TrFullName(NTM) )
     ALLOCATE( IsAdvected(NTM) )
@@ -2058,8 +2086,8 @@ CONTAINS
 
     NN=1
     DO N = 1, NSP
-       IF ( State_Chm%SpcData(N)%Info%Is_Advected .or. &
-            TRIM( State_Chm%SpcData(N)%Info%Name ) .eq. "OH" ) THEN
+       SpName(N) = TRIM( State_Chm%SpcData(N)%Info%Name )
+       IF ( State_Chm%SpcData(N)%Info%Is_Advected ) THEN
  
           TrName(NN) =     TRIM( State_Chm%SpcData(N)%Info%Name )
           TrFullName(NN) = TRIM( State_Chm%SpcData(N)%Info%FullName ) // " (" // &
@@ -2074,22 +2102,83 @@ CONTAINS
        ENDIF
     ENDDO
     t_qlimit(:) = .true.
+
+    !-----------------------------------------------------------------------------
+
     TrM    = 0d0
     TrMom  = 0d0
-    
-    ! Copy State_Chm into TrM as kg kg-1 for now
-    ! State_Met is not populated so we can't convert to kg
-    DO N=1,NTM
-       DO L=1,LM
-          DO J=J_0,J_1
-             DO I=I_0,I_1
-                II = I - I_0 + 1
-                JJ = J - J_0 + 1
-                TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
+    IF (is_coldstart) THEN
+      !------------------------------------------------------------------------
+      ! In the case of a cold restart, copy State_Chm into TrM with the
+      ! appropriate units
+      !------------------------------------------------------------------------
+      DO N=1,NTM
+         DO L=1,LM
+            DO J=J_0,J_1
+               DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
+    ELSE
+      !------------------------------------------------------------------------
+      ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model
+      ! E restart file
+      !------------------------------------------------------------------------
+
+      ! Determine which was the latest restart file to be written to
+      call find_later_rsf(KDISK)
+
+      ! NOTE: Tried reading with io_rsf rather than the manual code below but it gave an MPI abort
+      ! USE MODEL_COM, only : ioread, Itime
+      ! INTEGER :: ioerr
+      ! call io_rsf(rsf_file_name(KDISK),Itime,ioread,ioerr)
+
+      ! Read the TrM and TrMom values from the restart file in parallel
+      fid = par_open( grid, trim(rsf_file_name(KDISK))//'.nc', 'read' )
+      CALL IO_CHEM( fid, 'read_dist' )
+      call par_close( grid, fid )
+
+      ! Species are read from restart file in units of mol mol-1
+      DO N=1, State_Chm%nSpecies
+        State_Chm%Species(N)%Units = MOLES_SPECIES_PER_MOLES_DRY_AIR
+      ENDDO
+      DO N=1,NTM
+         DO L=1,LM
+            DO J=J_0,J_1
+               DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  State_Chm%Species(N)%Conc(II,JJ,L) = TrM( I, J, L, N )
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
+
+      ! Convert to kg
+      CALL Convert_Spc_Units(                                                  &
+          Input_Opt  = Input_Opt,                                              &
+          State_Chm  = State_Chm,                                              &
+          State_Grid = State_Grid,                                             &
+          State_Met  = State_Met,                                              &
+          new_units  = KG_SPECIES,                                             &
+          RC         = RC                                                    )
+      IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
+      DO N=1,NTM
+         DO L=1,LM
+            DO J=J_0,J_1
+               DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
+    ENDIF
 
     ! Return success
     RC = GC_SUCCESS
@@ -2148,7 +2237,7 @@ CONTAINS
          State_Chm  = State_Chm,                                             &
          State_Grid = State_Grid,                                            &
          State_Met  = State_Met,                                             &
-         new_units    =  MOLES_SPECIES_PER_MOLES_DRY_AIR,                    &
+         new_units  = MOLES_SPECIES_PER_MOLES_DRY_AIR,                       &
          previous_units   = previous_units,                                  &
          RC         = RC                                                    )
     IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "CONVERT_SPC_UNITS", 255 )
@@ -2346,7 +2435,7 @@ CONTAINS
     SpcInfo     => NULL()
 
     ! Name of this routine
-    LOC = ' -> at Get_GC_Restart (in GeosCore/hco_utilities_gc_mod.F90)'
+    LOC = ' -> at Get_GC_Restart (in model/CHEM_DRV.F90)'
 
     ! Set minimum value threshold for [mol/mol]
     SMALL_NUM = 1.0e-30_fp
@@ -2494,8 +2583,8 @@ CONTAINS
             State_Chm  = State_Chm,                                           &
             State_Grid = State_Grid,                                          &
             State_Met  = State_Met,                                           &
-            new_units    = MOLECULES_SPECIES_PER_CM3,                         &
-            previous_units   = previous_units,                                &
+            new_units  = MOLECULES_SPECIES_PER_CM3,                           &
+            previous_units = previous_units,                                  &
             RC         = RC                                                  )
 
        ! Trap error
@@ -2999,35 +3088,23 @@ SUBROUTINE tijlh_defs(arr,nmax,decl_count)
 use subdd_mod, only : info_type
 ! info_type_ is a homemade structure constructor for older compilers
 use subdd_mod, only : info_type_
-use chem_com, only : ntm, trname
+use chem_com, only : ntm, trname, nsp, spname
 implicit none
 integer :: nmax,decl_count
 integer :: n
-character*80 :: unitString
 type(info_type) :: arr(nmax)
 
 decl_count = 0
 
 ! First, diagnostics available for all tracers:
-do n=1,ntm
+do n=1,nsp
    ! 3D mixing ratios (SUBDD string is just tracer name):
-  unitString='mol mol-1'
-  arr(next()) = info_type_(                      &
-       sname = trim(trname(n)),                  &
-       lname = trim(trname(n))//' mixing ratio', &
-       units = trim(unitString)                  &
+   arr(next()) = info_type_(                      &
+       sname = trim(spname(n)),                  &
+       lname = trim(spname(n))//' mixing ratio', &
+       units = 'mol mol-1'                       &
        )
 end do ! tracers loop
-
-!do n=1,State_Chm%nSpecies
-!   ! 3D mixing ratios (SUBDD string is just tracer name):
-!   unitString='mol mol-1'
-!   arr(next()) = info_type_(                                           &
-!        sname = trim(State_Chm%SpcData(N)%Info%Name),                  &
-!        lname = trim(State_Chm%SpcData(N)%Info%Name)//' mixing ratio', &
-!        units = trim(unitString)                  &
-!        )
-!end do ! tracers loop
 
 return
 contains

@@ -14,11 +14,13 @@ module CHEM_COM
 
   !PUBLIC :: Init_Chem_Diagnostics
 
+  INTEGER, PUBLIC                                       :: NSP        ! Number of chemical species
   INTEGER, PUBLIC                                       :: NTM        ! Number of tracers to advect
   REAL*8,  PUBLIC, ALLOCATABLE, DIMENSION(:,:,:,:)      :: TrM        ! Tracer array (kg)
   REAL*8,  PUBLIC, ALLOCATABLE, DIMENSION(:,:,:,:,:)    :: TrMom      ! Second order moments for tracers (kg)
 
-  CHARACTER(LEN=8), PUBLIC, ALLOCATABLE, DIMENSION(:)   :: TrName     ! Species name
+  CHARACTER(LEN=12), PUBLIC, ALLOCATABLE, DIMENSION(:)  :: SpName     ! Species name
+  CHARACTER(LEN=8), PUBLIC, ALLOCATABLE, DIMENSION(:)   :: TrName     ! Advected species name
   CHARACTER(LEN=163), PUBLIC, ALLOCATABLE, DIMENSION(:) :: TrFullName ! Full name
   LOGICAL, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: IsAdvected ! Advect this tracer?
   LOGICAL, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: t_qlimit   ! Limit fluxes in QUS?    
