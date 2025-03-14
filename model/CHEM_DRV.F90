@@ -2263,67 +2263,371 @@ CONTAINS
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-                ! TODO: State_Met%CLDF
-                ! TODO: State_Met%CMFMC
-                ! TODO: State_Met%DQRCU
-                ! TODO: State_Met%DQRLSAN
-                ! TODO: State_Met%DTRAIN
+          
+          if ( trim(subdd%name(k)) == "StateMet_CLDF" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%CLDF(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_CMFMC" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%CMFMC(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_DQRCU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DQRCU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_DQRLSAN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DQRLSAN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_DTRAIN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DTRAIN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #endif
 
-                ! TODO: State_Met%OMEGA
+               
+          if ( trim(subdd%name(k)) == "StateMet_OMEGA" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%OMEGA(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-                ! TODO: State_Met%OPTD
+                
+          if ( trim(subdd%name(k)) == "StateMet_OPTD" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%OPTD(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #endif
 
-                ! TODO: State_Met%PEDGE
+               
+          if ( trim(subdd%name(k)) == "StateMet_PEDGE" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PEDGE(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-                ! TODO: State_Met%PFICU
-                ! TODO: State_Met%PFILSAN
-                ! TODO: State_Met%PFLCU
-                ! TODO: State_Met%PFLLSAN
+               
+          if ( trim(subdd%name(k)) == "StateMet_PFICU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFICU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_PFILSAN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFILSAN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_PFLCU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFLCU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_PFLLSAN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFLLSAN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #endif
 
-                ! TODO: State_Met%QI
-                ! TODO: State_Met%QL
+           
+          if ( trim(subdd%name(k)) == "StateMet_QI" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%QI(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_QL" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%QL(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-                ! TODO: State_Met%REEVAPCN
-                ! TODO: State_Met%REEVAPLS
+          if ( trim(subdd%name(k)) == "StateMet_REEVAPCN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%REEVAPCN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_REEVAPLS" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%REEVAPLS(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #endif
 
-                ! TODO: State_Met%RH
-                ! TODO: State_Met%SPHU
-                ! TODO: State_Met%SPHU1
-                ! TODO: State_Met%SPHU2
-                ! TODO: State_Met%T
+          if ( trim(subdd%name(k)) == "StateMet_RH" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%RH(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_SPHU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%SPHU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_SPHU1" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%SPHU1(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+               
+          if ( trim(subdd%name(k)) == "StateMet_SPHU2" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%SPHU2(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_T" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%T(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-                ! TODO: State_Met%TAUCLI
-                ! TODO: State_Met%TAUCLW
+           
+          if ( trim(subdd%name(k)) == "StateMet_TAUCLI" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TAUCLI(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+                
+          if ( trim(subdd%name(k)) == "StateMet_TAUCLW" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TAUCLW(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #endif
 
-                ! TODO: State_Met%TMPU1
-                ! TODO: State_Met%TMPU2
-                ! TODO: State_Met%U
+                
+          if ( trim(subdd%name(k)) == "StateMet_TMPU1" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TMPU1(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+               
+          if ( trim(subdd%name(k)) == "StateMet_TMPU2" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TMPU2(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+               
+          if ( trim(subdd%name(k)) == "StateMet_U" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%U(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #ifdef MODEL_GEOS
 
-                ! TODO: State_Met%UPDVVEL
+          if ( trim(subdd%name(k)) == "StateMet_UPDVVEL" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%UPDVVEL(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
 #endif
 
-                ! TODO: State_Met%V
+          if ( trim(subdd%name(k)) == "StateMet_V" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%V(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
                 call inc_subdd(subdd,k,sddarr3d)
                 exit ntm_loop
@@ -3743,72 +4047,204 @@ do n=1,nsp
        lname = trim(spname(n))//' mixing ratio', &
        units = 'mol mol-1'                       &
        )
+end do ! tracers loop
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-       ! TODO: State_Met%CLDF
-       ! TODO: State_Met%CMFMC
-       ! TODO: State_Met%DQRCU
-       ! TODO: State_Met%DQRLSAN
-       ! TODO: State_Met%DTRAIN
+  arr(next()) = info_type_(                     &
+       sname = 'StateMet_CLDF',                 &
+       lname = 'StateMet_CLDF',                 &
+       units = '1'                              &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CMFMC',                &
+       lname = 'StateMet_CMFMC',                &
+       units = ''                              &
+       )
+      
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_DQRCU',                 &
+       lname = 'StateMet_DQRCU',                 &
+       units = 'kg / kg / s'                     &
+       )
+  
+arr(next()) = info_type_(                        &
+       sname = 'StateMet_DQRLSAN',               &
+       lname = 'StateMet_DQRLSAN',               &
+       units = ''                                &
+       )
+      
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_DTRAIN',                &
+       lname = 'StateMet_DTRAIN',                &
+       units = 'kg / m2 / s'                     &
+       )
 
 #endif
 
-       ! TODO: State_Met%OMEGA
+      
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_OMEGA',                 &
+       lname = 'StateMet_OMEGA',                 &
+       units = 'Pa s-1'                          &
+       )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-       ! TODO: State_Met%OPTD
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_OPTD',                  &
+       lname = 'StateMet_OPTD',                  &
+       units = '1'                               &
+       )
 
 #endif
 
-       ! TODO: State_Met%PEDGE
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PEDGE',                &
+       lname = 'StateMet_PEDGE',                &
+       units = ''                              &
+       )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-       ! TODO: State_Met%PFICU
-       ! TODO: State_Met%PFILSAN
-       ! TODO: State_Met%PFLCU
-       ! TODO: State_Met%PFLLSAN
+      
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PFICU',                &
+       lname = 'StateMet_PFICU',                &
+       units = ''                              &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PFILSAN',                &
+       lname = 'StateMet_PFILSAN',                &
+       units = ''                              &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PFLCU',                &
+       lname = 'StateMet_PFLCU',                &
+       units = ''                              &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PFLLSAN',                &
+       lname = 'StateMet_PFLLSAN',                &
+       units = ''                              &
+       )
 
 #endif
 
-       ! TODO: State_Met%QI
-       ! TODO: State_Met%QL
+  arr(next()) = info_type_(                       &
+       sname = 'StateMet_QI',                     &
+       lname = 'StateMet_QI',                     &
+       units = 'kg / kg'                          &     
+       )
+       
+  arr(next()) = info_type_(                       &
+       sname = 'StateMet_QL',                     &
+       lname = 'StateMet_QL',                     &
+       units = 'kg / kg'                          &
+       )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-       ! TODO: State_Met%REEVAPCN
-       ! TODO: State_Met%REEVAPLS
+  arr(next()) = info_type_(                       &
+       sname = 'StateMet_REEVAPCN',               &
+       lname = 'StateMet_REEVAPCN',               &
+       units = 'kg / kg / s'                      &
+       )
+       
+  arr(next()) = info_type_(                       &
+       sname = 'StateMet_REEVAPLS',               &
+       lname = 'StateMet_REEVAPLS',               &
+       units = 'kg / kg / s'                      &
+       )
 
 #endif
 
-       ! TODO: State_Met%RH
-       ! TODO: State_Met%SPHU
-       ! TODO: State_Met%SPHU1
-       ! TODO: State_Met%SPHU2
-       ! TODO: State_Met%T
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_RH',                &
+       lname = 'StateMet_RH',                &
+       units = ''                              &
+       )
+      
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SPHU',                  &
+       lname = 'StateMet_SPHU',                  &
+       units = 'g H2O / kg air'                  &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SPHU1',                 &
+       lname = 'StateMet_SPHU1',                 &
+       units = 'kg / kg'                         &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SPHU2',                 &
+       lname = 'StateMet_SPHU2',                 &
+       units = 'kg / kg'                         &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_T',                     &
+       lname = 'StateMet_T',                     &
+       units = 'K'                               &
+       )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-       ! TODO: State_Met%TAUCLI
-       ! TODO: State_Met%TAUCLW
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TAUCLI',                &
+       lname = 'StateMet_TAUCLI',                &
+       units = '1'                               &
+       )
+      
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TAUCLW',                &
+       lname = 'StateMet_TAUCLW',                &
+       units = '1'                               &
+       )
 
 #endif
 
-       ! TODO: State_Met%TMPU1
-       ! TODO: State_Met%TMPU2
-       ! TODO: State_Met%U
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TMPU1',                 &
+       lname = 'StateMet_TMPU1',                 &
+       units = 'K'                               &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TMPU2',                 &
+       lname = 'StateMet_TMPU2',                 &
+       units = 'K'                               &
+       )
+       
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_U',                     &
+       lname = 'StateMet_U',                     &
+       units = 'm / s'                           &
+       )
 
 #ifdef MODEL_GEOS
 
-       ! TODO: State_Met%UPDVVEL
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_UPDVVEL',                &
+       lname = 'StateMet_UPDVVEL',                &
+       units = ''                              &
+       )
 
 #endif
 
-       ! TODO: State_Met%V
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_V',                     &
+       lname = 'StateMet_V',                     &
+       units = 'm / s'                           &
+       )
 
-end do ! tracers loop
+
 
 return
 contains
