@@ -209,15 +209,6 @@ CONTAINS
           ! Surface fields
           !----------------------------------------------------------------------
 
-          ! TODO: Which array?
-          ! State_Met%AD          (II,JJ) = ???
-
-          ! TODO: Which array?
-          ! State_Met%AIRDEN      (II,JJ) = ???
-
-          ! TODO: Which array?
-          ! State_Met%AIRVOL      (II,JJ) = ???
-
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Visible surface albedo [1]
           State_Met%ALBD        (II,JJ) = save_alb(i,j)
@@ -248,8 +239,12 @@ CONTAINS
           State_Met%CNV_FRC     (II,JJ) = 0.0
 #endif
 
+          ! TODO: State_Met%CONVDEPTH   (II,JJ) = ???
+
           ! Latent heat flux [W/m2]
           State_Met%EFLUX       (II,JJ) = -atmsrf%latht(i,j)/dtsrc
+
+          ! TODO: State_Met%FLASHDENS   (II,JJ) = ???
 
           ! Olson land fraction [1]
           State_Met%FRCLND      (II,JJ) = fland(i,j)
@@ -2283,10 +2278,6 @@ CONTAINS
        subdd => subdd_groups(grpids(igrp))
        do k=1,subdd%ndiags
 
-          ! TODO: AD
-          ! TODO: AIRDEN
-          ! TODO: AIRVOL
-
 #ifdef CALC_MERRA2_LIKE_DIAGS
           if ( trim(subdd%name(k)) == "StateMet_ALBD" ) then
              DO J=J_0,J_1
@@ -2299,6 +2290,7 @@ CONTAINS
           endif
 #endif
 
+          ! NOTE: Not in HISTORY file
           if ( trim(subdd%name(k)) == "StateMet_AREAM2" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2353,6 +2345,8 @@ CONTAINS
           endif
 #endif
 
+          ! TODO: CONVDEPTH
+
           if ( trim(subdd%name(k)) == "StateMet_EFLUX" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2362,6 +2356,8 @@ CONTAINS
              ENDDO
              ENDDO
           endif
+
+          ! TODO: FLASHDENS
 
           if ( trim(subdd%name(k)) == "StateMet_FRCLND" ) then
              DO J=J_0,J_1
@@ -2393,6 +2389,7 @@ CONTAINS
              ENDDO
           endif
 
+          ! NOTE: FRLANDIC in HISTORY file
           if ( trim(subdd%name(k)) == "StateMet_FRLANDICE" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2423,6 +2420,7 @@ CONTAINS
              ENDDO
           endif
 
+          ! NOTE: FRSNO in HISTORY file
           if ( trim(subdd%name(k)) == "StateMet_FRSNOW" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2615,7 +2613,6 @@ CONTAINS
              ENDDO
           endif
 
-          
           if ( trim(subdd%name(k)) == "StateMet_SEAICE10" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2625,7 +2622,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-         
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE20" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2635,7 +2632,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-          
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE30" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2645,7 +2642,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-          
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE40" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2655,7 +2652,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-         
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE50" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2665,7 +2662,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-         
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE60" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2675,7 +2672,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-          
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE70" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2685,7 +2682,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-          
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE80" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2695,7 +2692,7 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-          
+
           if ( trim(subdd%name(k)) == "StateMet_SEAICE90" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2706,7 +2703,6 @@ CONTAINS
              ENDDO
           endif
 
-  
           if ( trim(subdd%name(k)) == "StateMet_SLP" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2717,7 +2713,6 @@ CONTAINS
              ENDDO
           endif
 
-        
           if ( trim(subdd%name(k)) == "StateMet_SNODP" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2748,7 +2743,7 @@ CONTAINS
              ENDDO
           endif
 
-          if ( trim(subdd%name(k)) == "StateMet_SUNCOSMID" ) then
+          if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
                 II = I - I_0 + 1
@@ -3704,27 +3699,6 @@ decl_count = 0
 
 !do n=1,1
 
-  ! TODO: AD
-  ! arr(next()) = info_type_(                      &
-  !      sname = 'StateMet_AD',                    &
-  !      lname = 'StateMet_AD',                    &
-  !      units = 'kg'                              &
-  !      )
-  
-  ! TODO: AIRDEN
-  ! arr(next()) = info_type_(                      &
-  !      sname = 'StateMet_AIRDEN',                &
-  !      lname = 'StateMet_AIRDEN',                &
-  !      units = 'kg m-3'                          &
-  !      )
-
-  ! TODO: AIRVOL
-  ! arr(next()) = info_type_(                      &
-  !      sname = 'StateMet_AIRVOL',                &
-  !      lname = 'StateMet_AIRVOL',                &
-  !      units = 'm3'                              &
-  !      )
-
 #ifdef CALC_MERRA2_LIKE_DIAGS
   arr(next()) = info_type_(                      &
        sname = 'StateMet_ALBD',                  &
@@ -3763,11 +3737,20 @@ decl_count = 0
        units = '1'                               &
        )
 
+  ! TODO: CONVDEPTH
+  ! TODO: DELP
+  ! TODO: DELPDRY
+  ! TODO: DQRCU
+  ! TODO: DQRLSAN
+  ! TODO: DTRAIN
+
   arr(next()) = info_type_(                      &
        sname = 'StateMet_EFLUX',                 &
        lname = 'StateMet_EFLUX',                 &
        units = 'W m-2'                           &
        )
+
+  ! TODO: FLASHDENS
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRCLND',                &
@@ -4000,8 +3983,8 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_SUNCOSMID',             &
-       lname = 'StateMet_SUNCOSMID',             &
+       sname = 'StateMet_SUNCOSmid',             &
+       lname = 'StateMet_SUNCOSmid',             &
        units = '1'                               &
        )
 
