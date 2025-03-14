@@ -2237,6 +2237,71 @@ CONTAINS
                 ENDDO
                 ENDDO
                 ENDDO
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+                ! TODO: State_Met%CLDF
+                ! TODO: State_Met%CMFMC
+                ! TODO: State_Met%DQRCU
+                ! TODO: State_Met%DQRLSAN
+                ! TODO: State_Met%DTRAIN
+
+#endif
+
+                ! TODO: State_Met%OMEGA
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+                ! TODO: State_Met%OPTD
+
+#endif
+
+                ! TODO: State_Met%PEDGE
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+                ! TODO: State_Met%PFICU
+                ! TODO: State_Met%PFILSAN
+                ! TODO: State_Met%PFLCU
+                ! TODO: State_Met%PFLLSAN
+
+#endif
+
+                ! TODO: State_Met%QI
+                ! TODO: State_Met%QL
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+                ! TODO: State_Met%REEVAPCN
+                ! TODO: State_Met%REEVAPLS
+
+#endif
+
+                ! TODO: State_Met%RH
+                ! TODO: State_Met%SPHU
+                ! TODO: State_Met%SPHU1
+                ! TODO: State_Met%SPHU2
+                ! TODO: State_Met%T
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+                ! TODO: State_Met%TAUCLI
+                ! TODO: State_Met%TAUCLW
+
+#endif
+
+                ! TODO: State_Met%TMPU1
+                ! TODO: State_Met%TMPU2
+                ! TODO: State_Met%U
+
+#ifdef MODEL_GEOS
+
+                ! TODO: State_Met%UPDVVEL
+
+#endif
+
+                ! TODO: State_Met%V
+
                 call inc_subdd(subdd,k,sddarr3d)
                 exit ntm_loop
              end if
@@ -2892,7 +2957,7 @@ CONTAINS
           call inc_subdd(subdd,k,sddarr2d)
        enddo ! k
     enddo ! igroup
-        
+
   END SUBROUTINE accumGCsubdd
 
 #endif
@@ -3671,6 +3736,71 @@ do n=1,nsp
        lname = trim(spname(n))//' mixing ratio', &
        units = 'mol mol-1'                       &
        )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+       ! TODO: State_Met%CLDF
+       ! TODO: State_Met%CMFMC
+       ! TODO: State_Met%DQRCU
+       ! TODO: State_Met%DQRLSAN
+       ! TODO: State_Met%DTRAIN
+
+#endif
+
+       ! TODO: State_Met%OMEGA
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+       ! TODO: State_Met%OPTD
+
+#endif
+
+       ! TODO: State_Met%PEDGE
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+       ! TODO: State_Met%PFICU
+       ! TODO: State_Met%PFILSAN
+       ! TODO: State_Met%PFLCU
+       ! TODO: State_Met%PFLLSAN
+
+#endif
+
+       ! TODO: State_Met%QI
+       ! TODO: State_Met%QL
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+       ! TODO: State_Met%REEVAPCN
+       ! TODO: State_Met%REEVAPLS
+
+#endif
+
+       ! TODO: State_Met%RH
+       ! TODO: State_Met%SPHU
+       ! TODO: State_Met%SPHU1
+       ! TODO: State_Met%SPHU2
+       ! TODO: State_Met%T
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+       ! TODO: State_Met%TAUCLI
+       ! TODO: State_Met%TAUCLW
+
+#endif
+
+       ! TODO: State_Met%TMPU1
+       ! TODO: State_Met%TMPU2
+       ! TODO: State_Met%U
+
+#ifdef MODEL_GEOS
+
+       ! TODO: State_Met%UPDVVEL
+
+#endif
+
+       ! TODO: State_Met%V
+
 end do ! tracers loop
 
 return
