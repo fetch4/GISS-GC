@@ -2419,6 +2419,16 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_FRSNOW" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRSNOW(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -3356,6 +3366,12 @@ decl_count = 0
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRSEAICE',              &
        lname = 'StateMet_FRSEAICE',              &
+       units = '1',                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRSNOW',                &
+       lname = 'StateMet_FRSNOW',                &
        units = '1',                              &
        )
 
