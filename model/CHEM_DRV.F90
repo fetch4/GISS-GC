@@ -3372,74 +3372,74 @@ decl_count = 0
   arr(next()) = info_type_(                      &
        sname = 'StateMet_EFLUX',                 &
        lname = 'StateMet_EFLUX',                 &
-       units = 'W m-2',                          &
+       units = 'W m-2'                           &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRCLND',                &
        lname = 'StateMet_FRCLND',                &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRLAKE',                &
        lname = 'StateMet_FRLAKE',                &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRLAND',                &
        lname = 'StateMet_FRLAND',                &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRLANDICE',             &
        lname = 'StateMet_FRLANDICE',             &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FROCEAN',               &
        lname = 'StateMet_FROCEAN',               &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRSEAICE',              &
        lname = 'StateMet_FRSEAICE',              &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FRSNOW',                &
        lname = 'StateMet_FRSNOW',                &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_GWETROOT',              &
        lname = 'StateMet_GWETROOT',              &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_GWETTOP',               &
        lname = 'StateMet_GWETTOP',               &
-       units = '1',                              &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_HFLUX',                 &
        lname = 'StateMet_HFLUX',                 &
-       units = 'W m-2',                          &
+       units = 'W m-2'                           &
        )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
   arr(next()) = info_type_(                      &
        sname = 'StateMet_LAI',                   &
        lname = 'StateMet_LAI',                   &
-       units = 'm2 m-2',                         &
+       units = 'm2 m-2'                          &
        )
 #endif
 
