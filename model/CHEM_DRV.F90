@@ -2551,7 +2551,15 @@ CONTAINS
              ENDDO
           endif
 
-          ! TODO: State_Met%PS1_WET
+          if ( trim(subdd%name(k)) == "StateMet_PS1WET" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS1_WET(II,JJ)
+             ENDDO
+             ENDDO
+          endif
 
           ! TODO: State_Met%PS2_WET
 
@@ -3614,6 +3622,12 @@ decl_count = 0
        sname = 'StateMet_PRECTOT',               &
        lname = 'StateMet_PRECTOT',               &
        units = 'mm day-1'                        &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS1WET',                &
+       lname = 'StateMet_PS1WET',                &
+       units = 'hPa'                             &
        )
 
   arr(next()) = info_type_(                      &
