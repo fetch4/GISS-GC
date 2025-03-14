@@ -4039,8 +4039,8 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_USTART',                &
-       lname = 'StateMet_USTART',                &
+       sname = 'StateMet_USTAR',                 &
+       lname = 'StateMet_USTAR',                 &
        units = 'm s-1'                           &
        )
 
