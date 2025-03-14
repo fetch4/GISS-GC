@@ -2243,22 +2243,76 @@ CONTAINS
        do k=1,subdd%ndiags
           ntm_loop: do n=1,State_Chm%nSpecies
              ! tracer 3D mixing ratios (SUBDD names are just tracer name):
-             if( trim( State_Chm%SpcData(N)%Info%Name ) .eq. trim(subdd%name(k)) ) then                
+             if( trim( State_Chm%SpcData(N)%Info%Name ) .eq. trim(subdd%name(k)) ) then
                 DO L=1,LmaxSUBDD
                 DO J=J_0,J_1
                 DO I=I_0,I_1
                    II = I - I_0 + 1
                    JJ = J - J_0 + 1
-                   sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)         
+                   sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)
                 ENDDO
                 ENDDO
                 ENDDO
 
-                ! TODO: State_Met%AD
-                ! TODO: State_Met%AIRDEN
-                ! TODO: State_Met%AIRVOL
-                ! TODO: State_Met%AVGW
-                ! TODO: State_Met%BXHEIGHT
+                if ( trim(subdd%name(k)) == "StateMet_AD" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%AD(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
+
+                if ( trim(subdd%name(k)) == "StateMet_AIRDEN" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%AIRDEN(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
+
+                if ( trim(subdd%name(k)) == "StateMet_AIRVOL" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%AIRVOL(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
+
+                if ( trim(subdd%name(k)) == "StateMet_AVGW" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%AVGW(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
+
+                if ( trim(subdd%name(k)) == "StateMet_BXHEIGHT" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%BXHEIGHT(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -2287,8 +2341,30 @@ CONTAINS
           endif
 
 #endif
-                ! TODO: State_Met%DELP
-                ! TODO: State_Met%DELPDRY
+
+                if ( trim(subdd%name(k)) == "StateMet_DELP" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%DELP(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
+
+                if ( trim(subdd%name(k)) == "StateMet_DELPDRY" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%DELP_DRY(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -2534,7 +2610,17 @@ CONTAINS
              ENDDO
           endif
 
-                ! TODO: State_Met%THETA
+                if ( trim(subdd%name(k)) == "StateMet_THETA" ) then
+                  DO L=1,LmaxSUBDD
+                  DO J=J_0,J_1
+                  DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      sddarr3d(I,J,L) = State_Met%THETA(II,JJ,L)
+                  ENDDO
+                  ENDDO
+                  ENDDO
+                endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -4062,14 +4148,37 @@ do n=1,nsp
        lname = trim(spname(n))//' mixing ratio', &
        units = 'mol mol-1'                       &
        )
-
 end do ! tracers loop
 
-       ! TODO: State_Met%AD
-       ! TODO: State_Met%AIRDEN
-       ! TODO: State_Met%AIRVOL
-       ! TODO: State_Met%AVGW
-       ! TODO: State_Met%BXHEIGHT
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AD',                       &
+    lname = 'StateMet_AD',                       &
+    units = 'kg'                                 &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AIRDEN',                   &
+    lname = 'StateMet_AIRDEN',                   &
+    units = 'kg m-3'                             &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AIRVOL',                   &
+    lname = 'StateMet_AIRVOL',                   &
+    units = 'm3'                                 &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AVGW',                     &
+    lname = 'StateMet_AVGW',                     &
+    units = 'vol vol-1'                          &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_BXHEIGHT',                 &
+    lname = 'StateMet_BXHEIGHT',                 &
+    units = 'm'                                  &
+    )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -4087,8 +4196,17 @@ end do ! tracers loop
 
 #endif
 
-       ! TODO: State_Met%DELP
-       ! TODO: State_Met%DELPDRY
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_DELP',                     &
+    lname = 'StateMet_DELP',                     &
+    units = 'hPa'                                &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_DELPDRY',                  &
+    lname = 'StateMet_DELPDRY',                  &
+    units = 'hPa'                                &
+    )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -4220,7 +4338,11 @@ end do ! tracers loop
        units = 'K'                               &
        )
 
-       ! TODO: State_Met%THETA
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_THETA',                    &
+    lname = 'StateMet_THETA',                    &
+    units = 'K'                                  &
+    )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
