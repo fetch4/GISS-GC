@@ -227,10 +227,10 @@ CONTAINS
           State_Met%AREA_M2     (II,JJ) = axyp(i,j)
 
           ! Chemistry grid level [1]
-          State_Met%ChemGridLev (II,JJ) = LM             
+          State_Met%ChemGridLev (II,JJ) = LM
 
           ! Column cloud fraction [1]
-          State_Met%CLDFRC      (II,JJ) = cfrac(i,j)     
+          State_Met%CLDFRC      (II,JJ) = cfrac(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Max cloud top height [levels]
@@ -2317,6 +2317,26 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_ChemGridLev" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%ChemGridLev(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_CLDFRC" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CLDFRC(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
           if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -3195,6 +3215,18 @@ decl_count = 0
        sname = 'StateMet_AREAM2',                &
        lname = 'StateMet_AREAM2',                &
        units = 'm2'                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_ChemGridLev',           &
+       lname = 'StateMet_ChemGridLev',           &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CLDFRC',                &
+       lname = 'StateMet_CLDFRC',                &
+       units = '1'                               &
        )
 
   arr(next()) = info_type_(                      &
