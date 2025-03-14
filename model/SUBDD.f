@@ -1826,6 +1826,11 @@ c add (calls to) the analogs of ijh_defs et al.
       call tijlh_defs(diaglists(1,k),nmax_possible,diaglens(k))
 
       k = k + 1
+      catshapes(k) = 'aijleh'; categories(k) = 'taijleh'
+      input_sizes3(k) = lm+1
+      call tijleh_defs(diaglists(1,k),nmax_possible,diaglens(k))
+      
+      k = k + 1
       catshapes(k) = 'aijh'; categories(k) = 'taijh'
       input_sizes3(k) = 0
       call tijh_defs(diaglists(1,k),nmax_possible,diaglens(k))
