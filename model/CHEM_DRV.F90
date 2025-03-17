@@ -4222,17 +4222,17 @@ arr(next()) = info_type_(                        &
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_CLDF',                  &
-       lname = 'StateMet_CLDF',                  &
-       units = '1'                               &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_CLDF',                    &
+     lname = 'StateMet_CLDF',                    &
+     units = '1'                                 &
+     )
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_CMFMC',                 &
-       lname = 'StateMet_CMFMC',                 &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_CMFMC',                   &
+     lname = 'StateMet_CMFMC',                   &
+     units = ''                                  &
+     ) ! TODO: Units?
 
 #endif
 
@@ -4250,133 +4250,133 @@ arr(next()) = info_type_(                        &
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_DQRCU',                 &
-       lname = 'StateMet_DQRCU',                 &
-       units = 'kg / kg / s'                     &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_DQRCU',                   &
+     lname = 'StateMet_DQRCU',                   &
+     units = 'kg / kg / s'                       &
+     )
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_DQRLSAN',               &
-       lname = 'StateMet_DQRLSAN',               &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_DQRLSAN',                 &
+     lname = 'StateMet_DQRLSAN',                 &
+     units = ''                                  &
+     ) ! TODO: Units?
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_DTRAIN',                &
-       lname = 'StateMet_DTRAIN',                &
-       units = 'kg / m2 / s'                     &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_DTRAIN',                  &
+     lname = 'StateMet_DTRAIN',                  &
+     units = 'kg / m2 / s'                       &
+     )
 
 #endif
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_OMEGA',                 &
-       lname = 'StateMet_OMEGA',                 &
-       units = 'Pa s-1'                          &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_OMEGA',                   &
+     lname = 'StateMet_OMEGA',                   &
+     units = 'Pa s-1'                            &
+     )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_OPTD',                  &
-       lname = 'StateMet_OPTD',                  &
-       units = '1'                               &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_OPTD',                    &
+     lname = 'StateMet_OPTD',                    &
+     units = '1'                                 &
+     )
 
 #endif
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_PEDGE',                 &
-       lname = 'StateMet_PEDGE',                 &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PEDGE',                   &
+     lname = 'StateMet_PEDGE',                   &
+     units = ''                                  &
+     ) ! TODO: Units?
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_PFICU',                 &
-       lname = 'StateMet_PFICU',                 &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFICU',                   &
+     lname = 'StateMet_PFICU',                   &
+     units = ''                                  &
+     ) ! TODO: Units?
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_PFILSAN',               &
-       lname = 'StateMet_PFILSAN',               &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFILSAN',                 &
+     lname = 'StateMet_PFILSAN',                 &
+     units = ''                                  &
+     ) ! TODO: Units?
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_PFLCU',                 &
-       lname = 'StateMet_PFLCU',                 &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFLCU',                   &
+     lname = 'StateMet_PFLCU',                   &
+     units = ''                                  &
+     ) ! TODO: Units?
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_PFLLSAN',               &
-       lname = 'StateMet_PFLLSAN',               &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFLLSAN',                 &
+     lname = 'StateMet_PFLLSAN',                 &
+     units = ''                                  &
+     ) ! TODO: Units?
 
 #endif
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_QI',                     &
-       lname = 'StateMet_QI',                     &
-       units = 'kg / kg'                          &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_QI',                      &
+     lname = 'StateMet_QI',                      &
+     units = 'kg / kg'                           &
+     )
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_QL',                     &
-       lname = 'StateMet_QL',                     &
-       units = 'kg / kg'                          &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_QL',                      &
+     lname = 'StateMet_QL',                      &
+     units = 'kg / kg'                           &
+     )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_REEVAPCN',               &
-       lname = 'StateMet_REEVAPCN',               &
-       units = 'kg / kg / s'                      &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_REEVAPCN',                &
+     lname = 'StateMet_REEVAPCN',                &
+     units = 'kg / kg / s'                       &
+     )
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_REEVAPLS',               &
-       lname = 'StateMet_REEVAPLS',               &
-       units = 'kg / kg / s'                      &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_REEVAPLS',                &
+     lname = 'StateMet_REEVAPLS',                &
+     units = 'kg / kg / s'                       &
+     )
 
 #endif
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_RH',                     &
-       lname = 'StateMet_RH',                     &
-       units = ''                                 &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_RH',                      &
+     lname = 'StateMet_RH',                      &
+     units = ''                                  &
+     )
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_SPHU',                   &
-       lname = 'StateMet_SPHU',                   &
-       units = 'g H2O / kg air'                   &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_SPHU',                    &
+     lname = 'StateMet_SPHU',                    &
+     units = 'g H2O / kg air'                    &
+     )
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_SPHU1',                  &
-       lname = 'StateMet_SPHU1',                  &
-       units = 'kg / kg'                          &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_SPHU1',                   &
+     lname = 'StateMet_SPHU1',                   &
+     units = 'kg / kg'                           &
+     )
 
-  arr(next()) = info_type_(                       &
-       sname = 'StateMet_SPHU2',                  &
-       lname = 'StateMet_SPHU2',                  &
-       units = 'kg / kg'                          &
-       )
-       
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_T',                     &
-       lname = 'StateMet_T',                     &
-       units = 'K'                               &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_SPHU2',                   &
+     lname = 'StateMet_SPHU2',                   &
+     units = 'kg / kg'                           &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_T',                       &
+     lname = 'StateMet_T',                       &
+     units = 'K'                                 &
+     )
 
 arr(next()) = info_type_(                        &
     sname = 'StateMet_THETA',                    &
@@ -4386,53 +4386,53 @@ arr(next()) = info_type_(                        &
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_TAUCLI',                &
-       lname = 'StateMet_TAUCLI',                &
-       units = '1'                               &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TAUCLI',                  &
+     lname = 'StateMet_TAUCLI',                  &
+     units = '1'                                 &
+     )
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_TAUCLW',                &
-       lname = 'StateMet_TAUCLW',                &
-       units = '1'                               &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TAUCLW',                  &
+     lname = 'StateMet_TAUCLW',                  &
+     units = '1'                                 &
+     )
 
 #endif
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_TMPU1',                 &
-       lname = 'StateMet_TMPU1',                 &
-       units = 'K'                               &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TMPU1',                   &
+     lname = 'StateMet_TMPU1',                   &
+     units = 'K'                                 &
+     )
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_TMPU2',                 &
-       lname = 'StateMet_TMPU2',                 &
-       units = 'K'                               &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TMPU2',                   &
+     lname = 'StateMet_TMPU2',                   &
+     units = 'K'                                 &
+     )
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_U',                     &
-       lname = 'StateMet_U',                     &
-       units = 'm / s'                           &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_U',                       &
+     lname = 'StateMet_U',                       &
+     units = 'm / s'                             &
+     )
 
 #ifdef MODEL_GEOS
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_UPDVVEL',               &
-       lname = 'StateMet_UPDVVEL',               &
-       units = ''                                &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_UPDVVEL',                 &
+     lname = 'StateMet_UPDVVEL',                 &
+     units = ''                                  &
+     ) ! TODO: Units?
 
 #endif
 
-  arr(next()) = info_type_(                      &
-       sname = 'StateMet_V',                     &
-       lname = 'StateMet_V',                     &
-       units = 'm / s'                           &
-       )
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_V',                       &
+     lname = 'StateMet_V',                       &
+     units = 'm / s'                             &
+     )
 
 return
 contains
