@@ -4210,8 +4210,8 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_CMFMC',                   &
      lname = 'StateMet_CMFMC',                   &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'kg m-2 s-1'                        &
+     )
 
 #endif
 
@@ -4232,14 +4232,14 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_DQRCU',                   &
      lname = 'StateMet_DQRCU',                   &
-     units = 'kg / kg / s'                       &
+     units = 'kg kg-1 s-1'                       &
      )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_DQRLSAN',                 &
      lname = 'StateMet_DQRLSAN',                 &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'kg kg-1 s-1'                       &
+     )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_DTRAIN',                  &
@@ -4268,47 +4268,47 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_PEDGE',                   &
      lname = 'StateMet_PEDGE',                   &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'hPa'                               &
+     )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_PFICU',                   &
      lname = 'StateMet_PFICU',                   &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'kg m-2 s-1'                        &
+     )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_PFILSAN',                 &
      lname = 'StateMet_PFILSAN',                 &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'kg m-2 s-1'                        &
+     )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_PFLCU',                   &
      lname = 'StateMet_PFLCU',                   &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'kg m-2 s-1'                        &
+     )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_PFLLSAN',                 &
      lname = 'StateMet_PFLLSAN',                 &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'kg m-2 s-1'                        &
+     )
 
 #endif
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_QI',                      &
      lname = 'StateMet_QI',                      &
-     units = 'kg / kg'                           &
+     units = 'kg kg-1'                           &
      )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_QL',                      &
      lname = 'StateMet_QL',                      &
-     units = 'kg / kg'                           &
+     units = 'kg kg-1'                           &
      )
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
@@ -4316,13 +4316,14 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_REEVAPCN',                &
      lname = 'StateMet_REEVAPCN',                &
-     units = 'kg / kg / s'                       &
+     units = 'kg kg-1 s-1'                       &
      )
 
+! NOTE: In GEOS-Chem/Header/state_met_mod.F90 the units are 'kg '. Typo?
 arr(next()) = info_type_(                        &
      sname = 'StateMet_REEVAPLS',                &
      lname = 'StateMet_REEVAPLS',                &
-     units = 'kg / kg / s'                       &
+     units = 'kg kg-1 s-1'                       &
      )
 
 #endif
@@ -4330,25 +4331,25 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_RH',                      &
      lname = 'StateMet_RH',                      &
-     units = ''                                  &
+     units = '%'                                 &
      )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_SPHU',                    &
      lname = 'StateMet_SPHU',                    &
-     units = 'g H2O / kg air'                    &
+     units = 'g kg-1'                            &
      )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_SPHU1',                   &
      lname = 'StateMet_SPHU1',                   &
-     units = 'kg / kg'                           &
+     units = 'g kg-1'                            &
      )
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_SPHU2',                   &
      lname = 'StateMet_SPHU2',                   &
-     units = 'kg / kg'                           &
+     units = 'g kg-1'                            &
      )
 
 arr(next()) = info_type_(                        &
@@ -4394,7 +4395,7 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_U',                       &
      lname = 'StateMet_U',                       &
-     units = 'm / s'                             &
+     units = 'm s-1'                             &
      )
 
 #ifdef MODEL_GEOS
@@ -4402,15 +4403,15 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_UPDVVEL',                 &
      lname = 'StateMet_UPDVVEL',                 &
-     units = ''                                  &
-     ) ! TODO: Units?
+     units = 'hPa s-1'                           &
+     )
 
 #endif
 
 arr(next()) = info_type_(                        &
      sname = 'StateMet_V',                       &
      lname = 'StateMet_V',                       &
-     units = 'm / s'                             &
+     units = 'm s-1'                             &
      )
 
 return
