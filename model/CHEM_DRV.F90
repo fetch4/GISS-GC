@@ -2266,66 +2266,75 @@ CONTAINS
                 ENDDO
                 ENDDO
                 ENDDO
+                call inc_subdd(subdd,k,sddarr3d)
+                exit ntm_loop
+             end if
+          end do ntm_loop
+       enddo ! k
+    enddo ! igroup
 
-                if ( trim(subdd%name(k)) == "StateMet_AD" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%AD(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+    do igrp=1,ngroups
+       subdd => subdd_groups(grpids(igrp))
+       do k=1,subdd%ndiags
+          if ( trim(subdd%name(k)) == "StateMet_AD" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AD(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
-                if ( trim(subdd%name(k)) == "StateMet_AIRDEN" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%AIRDEN(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+          if ( trim(subdd%name(k)) == "StateMet_AIRDEN" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AIRDEN(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
-                if ( trim(subdd%name(k)) == "StateMet_AIRVOL" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%AIRVOL(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+          if ( trim(subdd%name(k)) == "StateMet_AIRVOL" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AIRVOL(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
-                if ( trim(subdd%name(k)) == "StateMet_AVGW" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%AVGW(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+          if ( trim(subdd%name(k)) == "StateMet_AVGW" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AVGW(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
-                if ( trim(subdd%name(k)) == "StateMet_BXHEIGHT" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%BXHEIGHT(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+          if ( trim(subdd%name(k)) == "StateMet_BXHEIGHT" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%BXHEIGHT(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -2355,29 +2364,29 @@ CONTAINS
 
 #endif
 
-                if ( trim(subdd%name(k)) == "StateMet_DELP" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%DELP(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+          if ( trim(subdd%name(k)) == "StateMet_DELP" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DELP(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
-                if ( trim(subdd%name(k)) == "StateMet_DELPDRY" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%DELP_DRY(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+          if ( trim(subdd%name(k)) == "StateMet_DELPDRY" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DELP_DRY(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -2623,17 +2632,17 @@ CONTAINS
              ENDDO
           endif
 
-                if ( trim(subdd%name(k)) == "StateMet_THETA" ) then
-                  DO L=1,LmaxSUBDD
-                  DO J=J_0,J_1
-                  DO I=I_0,I_1
-                      II = I - I_0 + 1
-                      JJ = J - J_0 + 1
-                      sddarr3d(I,J,L) = State_Met%THETA(II,JJ,L)
-                  ENDDO
-                  ENDDO
-                  ENDDO
-                endif
+          if ( trim(subdd%name(k)) == "StateMet_THETA" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%THETA(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -2727,10 +2736,7 @@ CONTAINS
              ENDDO
           endif
 
-                call inc_subdd(subdd,k,sddarr3d)
-                exit ntm_loop
-             end if
-          end do ntm_loop
+          call inc_subdd(subdd,k,sddarr3d)
        enddo ! k
     enddo ! igroup
 
