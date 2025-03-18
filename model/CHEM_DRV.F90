@@ -102,6 +102,7 @@ CONTAINS
     ! ModelE modules
     USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT, GRID, getDomainBounds, hasnorthpole, hassouthpole
     USE DOMAIN_DECOMP_1D,  ONLY : HALO_UPDATE, SOUTH, NORTH
+    USE DYNAMICS,          ONLY : SIGE
     USE MODEL_COM,         ONLY : modelEclock, itime, ItimeI, DTsrc
     USE ATM_COM,           ONLY : gz, mma, mws, pedn, pk, pmid, ptropo, q, qci, qcl, t, ualij, &
                                   valij, zatmo
@@ -155,7 +156,7 @@ CONTAINS
 
     CHARACTER(LEN=256)       :: ThisLoc
     CHARACTER(LEN=512)       :: ErrMsg
-    
+
     ! External functions (from shared/Utilities.F90)
     REAL*8 SLP
     REAL*8 QSAT
@@ -470,7 +471,12 @@ CONTAINS
 #endif
 
              ! Delta-pressure across grid box(wet air) [hPa]
-             ! TODO: State_Met%DELP        (II,JJ,K) = ???
+             ! NOTE: Based on EdgePressure_GISS and DeltPressure_GISS from model/FV_UTILS.f
+             ! NOTE: Some of the conditional logic related to the RESOLUTION module was dropped
+             !       here because we aren't using GISS grids.
+             ! NOTE: Surely the calculation is flawed at the top level?
+             ! NOTE: Uses PMID for pressure, which probably isn't right.
+             State_Met%DELP        (II,JJ,K) = (SIGE(K)*PMID(II,JJ,K) - SIGE(K+1)*PMID(II,JJ,K))
 
              ! Delta-pressure across grid box (dry air) [hPa]
              ! TODO: State_Met%DELPDRY     (II,JJ,K) = ???
