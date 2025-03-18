@@ -503,8 +503,11 @@ CONTAINS
                   cldmc(k,i,j)*TAUMC(k,i,j)  ) / ( cldss(k,i,j) + cldmc(k,i,j) + teeny )
 #endif
 
-             ! Wet air press @ level edges [hPa]
+             ! Pressure (w/r/t moist air) at level edges [hPa]
              State_Met%PEDGE       (II,JJ,K) = pedn(k,i,j)
+
+             ! Pressure (w/r/t dry air) at level edges [hPa]
+             ! TODO: State_Met%PEDGE_DRY   (II,JJ,K) = ???
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! Dwn flux ice prec:conv [kg/m2/s]
@@ -594,6 +597,7 @@ CONTAINS
           JJ = J - J_0 + 1
 
           State_Met%PEDGE       (II,JJ,LM+1) =  pedn(LM+1,i,j)
+          ! TODO: State_Met%PEDGE_DRY   (II,JJ,LM+1) =  ???
 #ifdef CALC_MERRA2_LIKE_DIAGS
           State_Met%CMFMC       (II,JJ,LM+1) =  cmfmc(i,j,LM+1)
           State_Met%PFICU       (II,JJ,LM+1) =  pficu(i,j,LM+1)
@@ -2481,6 +2485,18 @@ CONTAINS
              ENDDO
           endif
 
+          if ( trim(subdd%name(k)) == "StateMet_PEDGEDRY" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PEDGEDRY(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
           if ( trim(subdd%name(k)) == "StateMet_PFICU" ) then
@@ -4281,6 +4297,12 @@ arr(next()) = info_type_(                        &
 arr(next()) = info_type_(                        &
      sname = 'StateMet_PEDGE',                   &
      lname = 'StateMet_PEDGE',                   &
+     units = 'hPa'                               &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PEDGEDRY',                &
+     lname = 'StateMet_PEDGEDRY',                &
      units = 'hPa'                               &
      )
 
