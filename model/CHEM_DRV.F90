@@ -2491,7 +2491,7 @@ CONTAINS
              DO I=I_0,I_1
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
-                sddarr3d(I,J,L) = State_Met%PEDGEDRY(II,JJ,L)
+                sddarr3d(I,J,L) = State_Met%PEDGE_DRY(II,JJ,L)
              ENDDO
              ENDDO
              ENDDO
