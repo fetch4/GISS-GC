@@ -439,19 +439,19 @@ CONTAINS
              if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
 
              ! Dry air mass [kg]
-             ! TODO: State_Met%AD          (II,JJ,K) = ???
+             State_Met%AD          (II,JJ,K) = ad(i, j, k)
 
              ! Dry air density [kg m-3]
-             ! TODO: State_Met%AIRDEN      (II,JJ,K) = ???
+             State_Met%AIRDEN      (II,JJ,K) = airden(i, j, k)
 
              ! Volume of grid box [m3]
-             ! TODO: State_Met%AIRVOL      (II,JJ,K) = ???
+             State_Met%AIRVOL      (II,JJ,K) = airvol(i, j, k)
 
              ! Water vapor mixing ratio (w/r/t dry air)
-             ! TODO: State_Met%AVGW        (II,JJ,K) = ???
+             State_Met%AVGW        (II,JJ,K) = avgn(i, j, k)
 
              ! Grid box height [m]
-             ! TODO: State_Met%BXHEIGHT    (II,JJ,K) = ???
+             State_Met%BXHEIGHT    (II,JJ,K) = bxheight(i, j, k)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! 3-D cloud fraction [1]
@@ -463,10 +463,10 @@ CONTAINS
 #endif
 
              ! Delta-pressure across grid box(wet air) [hPa]
-             ! TODO: State_Met%DELP        (II,JJ,K) = ???
+             State_Met%DELP        (II,JJ,K) = delp(i, j, k)
 
              ! Delta-pressure across grid box (dry air) [hPa]
-             ! TODO: State_Met%DELPDRY     (II,JJ,K) = ???
+             State_Met%DELPDRY     (II,JJ,K) = delpdry(i, j, k)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
 
@@ -542,7 +542,7 @@ CONTAINS
              State_Met%T           (II,JJ,K) = t(i,j,k)*pk(k,i,j)
 
              ! Potential temperature [K]
-             ! TODO: State_Met%THETA       (II,JJ,K) = ???
+             State_Met%THETA       (II,JJ,K) = theta(i, j, k)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! Optical depth of ice clouds [1]
