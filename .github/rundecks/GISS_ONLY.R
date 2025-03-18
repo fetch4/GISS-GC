@@ -232,7 +232,10 @@ aer_rad_forc=0   ! turn off aerosol radiative forcing diagnostics
 cloud_rad_forc=1 ! turn on cloud radiative forcing diagnostics
 
 ! diagnostics
-SUBDD='OH:4 NO:4 O3:4 NO2:4 CO:4 CH4:4 PS:4'
+! NOTE: Surface pressure 'PS' is already a SUBDD in the GISS Model, so this should work. Other
+!       SUBDDs like 'OH', 'NO', 'O3', 'NO2', 'CO', 'CH4' need to be transferred over from GEOS-Chem,
+!       so will not work in the GISS-only configuration.
+SUBDD='PS:4'
 NSUBDD=1         ! saving sub-daily diags every NSUBDD-th physics timestep
 DAYS_PER_FILE=1
 KCOPY=1          ! save accumulated diagnostics files
