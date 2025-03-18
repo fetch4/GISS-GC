@@ -4497,20 +4497,11 @@ decl_count = 0
        units = 'm'                               &
        )
 
-  ! TODO: CONVDEPTH
-  ! TODO: DELP
-  ! TODO: DELPDRY
-  ! TODO: DQRCU
-  ! TODO: DQRLSAN
-  ! TODO: DTRAIN
-
   arr(next()) = info_type_(                      &
        sname = 'StateMet_EFLUX',                 &
        lname = 'StateMet_EFLUX',                 &
        units = 'W m-2'                           &
        )
-
-  ! TODO: FLASHDENS
 
   arr(next()) = info_type_(                      &
        sname = 'StateMet_FLASHDENS',             &
