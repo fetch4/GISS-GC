@@ -103,7 +103,8 @@ CONTAINS
     USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT, GRID, getDomainBounds, hasnorthpole, hassouthpole
     USE DOMAIN_DECOMP_1D,  ONLY : HALO_UPDATE, SOUTH, NORTH
     USE MODEL_COM,         ONLY : modelEclock, itime, ItimeI, DTsrc
-    USE ATM_COM,           ONLY : pedn, pmid, pk, ptropo, zatmo, mws, t, q, ualij, valij, qci, qcl
+    USE ATM_COM,           ONLY : gz, mma, mws, pedn, pk, pmid, ptropo, q, qci, qcl, t, ualij, &
+                                  valij, zatmo
 #ifdef CALC_MERRA2_LIKE_DIAGS
     USE CLOUDS_COM,        ONLY : tauss, taumc, cldmc, cldss, cldss3d, pficu, pflcu, pfilsan, pfllsan
     USE CLOUDS_COM,        ONLY : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
@@ -121,7 +122,7 @@ CONTAINS
 #endif
     USE RAD_COM,           ONLY : cfrac, srdn, fsrdir, srvissurf, cosz1, save_cosz2
     USE SEAICE_COM,        ONLY : si_atm, si_ocn
-    USE CONSTANT,          ONLY : bygrav, lhe, tf, teeny
+    USE CONSTANT,          ONLY : avog, bygasc, bygrav, lhe, tf, teeny
     USE LIGHTNING,         ONLY : cth_save, flash_dens
 
     ! GEOS-Chem modules
@@ -439,19 +440,25 @@ CONTAINS
              if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
 
              ! Dry air mass [kg]
-             ! TODO: State_Met%AD          (II,JJ,K) = ???
+             State_Met%AD          (II,JJ,K) = mma(i,j,k)
 
              ! Dry air density [kg m-3]
-             ! TODO: State_Met%AIRDEN      (II,JJ,K) = ???
+             ! NOTE: Formula from DIFFG function definition in model/DRYDEF.f with pressure PMID
+             State_Met%AIRDEN      (II,JJ,K) = PMID(II,JJ,K)*avog*bygasc/t(i,j,k)*pk(k,i,j)
 
              ! Volume of grid box [m3]
              ! TODO: State_Met%AIRVOL      (II,JJ,K) = ???
+             ! NOTE: We could calculate this using State_Grid%XEdge and State_Grid%YEdge but what
+             !       about the edge cases?
 
              ! Water vapor mixing ratio (w/r/t dry air)
-             ! TODO: State_Met%AVGW        (II,JJ,K) = ???
+             ! NOTE: QSAT is a function defined in model/shared/Utilities.F90
+             State_Met%AVGW        (II,JJ,K) = QSAT(t(i,j,k)*pk(k,i,j),LHE,pmid(k,i,j))
 
              ! Grid box height [m]
-             ! TODO: State_Met%BXHEIGHT    (II,JJ,K) = ???
+             ! NOTE: This is the geopotential height from Model E. Do we need to deduce the heights
+             !       from the GEOS-Chem State_Grid derived type?
+             State_Met%BXHEIGHT    (II,JJ,K) = gz(i,j,k)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! 3-D cloud fraction [1]
@@ -522,9 +529,9 @@ CONTAINS
 #endif
 
              ! Relative humidity [%]
-             State_Met%RH          (II,JJ,K) = 100.*q(i,j,k)/QSAT(t(i,j,k)*pk(k,i,j),LHE,pmid(k,i,j))   
+             State_Met%RH          (II,JJ,K) = 100.*q(i,j,k)/State_Met%AVGW(II,JJ,K)
              IF ( IT_IS_NAN( State_Met%RH(II,JJ,K) ) ) THEN
-                WRITE(6,*) II,JJ,K, q(i,j,k), QSAT(t(i,j,k)*pk(k,i,j),LHE,pmid(k,i,j)), &
+                WRITE(6,*) II,JJ,K, q(i,j,k), State_Met%AVGW(II,JJ,K), &
                      t(i,j,k), pk(k,i,j), LHE, pmid(k,i,j)
                 CALL STOP_MODEL("Bad RH",255)
              ENDIF
