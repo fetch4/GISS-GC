@@ -549,7 +549,7 @@ CONTAINS
              State_Met%T           (II,JJ,K) = t(i,j,k)*pk(k,i,j)
 
              ! Potential temperature [K]
-             ! TODO: State_Met%THETA       (II,JJ,K) = ???
+             State_Met%THETA       (II,JJ,K) = t(i,j,k)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! Optical depth of ice clouds [1]
