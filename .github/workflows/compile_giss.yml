@@ -7,8 +7,16 @@ on:
   push:
     branches: [main, develop]
 
-  # Trigger the CI whenever a commit is pushed to an open PR
+  # Triggers the workflow on pushes to open pull requests with code changes
   pull_request:
+    paths:
+      - '.dev/config/*.rc'
+      - '.dev/config/*.yml'
+      - '.dev/utils/*.sh'
+      - '.github/rundecks/*.R'
+      - '.github/workflows/compile_giss.yml'
+      - '.gitmodules'
+      - 'model/**'
 
 # Cancel jobs running if new commits are pushed
 concurrency:
