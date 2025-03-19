@@ -7,8 +7,9 @@ on:
   push:
     branches: [main, develop]
 
-  # Trigger the CI whenever a commit is pushed to an open PR
-  pull_request:
+  # TODO: Re-enable before merging
+  # # Trigger the CI whenever a commit is pushed to an open PR
+  # pull_request:
 
 # Cancel jobs running if new commits are pushed
 concurrency:
