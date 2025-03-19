@@ -7,6 +7,18 @@
 #   ./check_consistent.py
 # """
 
+import argparse
+import os
+
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument(
+    "--filepath",
+    type=str,
+    default=".dev/config",
+    help="Path to the configuration files",
+)
+parsed_args = parser.parse_args()
+
 # Define the two models 'gc' and 'giss' and their corresponding configuration files
 filenames = {"gc": "HISTORY.rc", "giss": "HISTORY_ModelE.rc"}
 models = tuple(filenames.keys())
@@ -25,7 +37,7 @@ def other_model(model):
 # Read the two configuration files and report the number of lines in each
 lines = {}
 for model, filename in filenames.items():
-    with open(filename, "r") as f:
+    with open(os.path.join(parsed_args.filepath, filename), "r") as f:
         lines[model] = f.readlines()
     print(f"Number of lines in {filename:20s}: {len(lines[model])}")
 
