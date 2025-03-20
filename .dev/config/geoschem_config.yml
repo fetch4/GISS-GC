@@ -25,8 +25,8 @@ simulation:
 # Grid settings
 #============================================================================
 grid:
-  resolution: 4.0x5.0
-  number_of_levels: 72
+  resolution: 2.0x2.5
+  number_of_levels: 40
   longitude:
     range: [-180.0, 180.0]
     center_at_180: true 

@@ -114,6 +114,8 @@ else
   cd "${ModelE_Support}/prod_runs/${RUNID}"
   ./${RUNID}ln
   if [ "${COLD_RESTART}" = true ]; then
+    # Remove any existing restart files to avoid confusion
+    rm -f fort.*.nc
     # Run the model for one hour
     # NOTE: Add --tag-output (OpenMPI) or -prepend-rank (Intel) to see output per rank
     mpiexec -np "${NP}" ./${RUNID}.exe -i I -cold-restart 2>&1 | tee cold-restart.log
