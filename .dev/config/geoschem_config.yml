@@ -11,13 +11,13 @@
 simulation:
   name: fullchem
   start_date: [20160701, 000000]
-  end_date: [20160801, 000000]
+  end_date: [20160701, 020000]
   root_data_dir: /home/joe/data/GISS-GC/prod_input_files/ExtData
   met_field: MERRA2
   species_database_file: ./species_database.yml
   species_metadata_output_file: OutputDir/geoschem_species_metadata.yml
   verbose:
-    activate: true
+    activate: false
     on_cores: root       # Allowed values: root all
   use_gcclassic_timers: false
 
@@ -25,8 +25,8 @@ simulation:
 # Grid settings
 #============================================================================
 grid:
-  resolution: 4.0x5.0
-  number_of_levels: 72
+  resolution: 2.0x2.5
+  number_of_levels: 40
   longitude:
     range: [-180.0, 180.0]
     center_at_180: true 
@@ -51,7 +51,8 @@ timesteps:
 operations:
 
   chemistry:
-    activate: true
+    # TODO: Reactivate chemistry
+    activate: false
     linear_chemistry_aloft:
       activate: true
       use_linoz_for_O3: true

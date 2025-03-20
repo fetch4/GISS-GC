@@ -18,6 +18,7 @@ spconfig.py
 species_database.yml
 
 # File patterns
+*__genmod.f90
 load_modules-*.sh
 machine.file.*
 spack-build.*

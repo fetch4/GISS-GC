@@ -635,6 +635,7 @@ subroutine CONDSE
 
   numThreads = 1 ! no openmp
 
+#if (defined CALCULATE_LIGHTNING) || (defined TRACERS_SPECIAL_Shindell)
 #ifdef AUTOTUNE_LIGHTNING
       IF ( SUM(CNT_FR) .gt. 0 ) THEN
          TUNE_LT_LAND = LAND_FR_LIS*SUM(CNT_FR)/SUM(LAND_FR_UNC)
@@ -651,9 +652,10 @@ subroutine CONDSE
                'CLOUDS2_DRV: Calculating land/sea tuning parameters:', &
      	       TUNE_LT_LAND, TUNE_LT_SEA
       !CALL STOP_MODEL( 'LTM Testing',17)
-      FLASH_DENS = 0d0
-      !CG_DENS    = 0d0
       FLASH_UNC  = 0d0
+#endif
+      FLASH_DENS = 0d0
+      ! CG_DENS    = 0d0 ! TODO: Should this variable be dropped?
 #endif
 
   !****
