@@ -1418,7 +1418,8 @@ CONTAINS
 
   !==========================================================================================================
 
-  SUBROUTINE INIT_CHEM( grid, is_coldstart )
+  ! TODO: Docstring, including info on arguments
+  SUBROUTINE INIT_CHEM( grid, istart, is_coldstart )
 
     USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator 
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
@@ -1460,6 +1461,7 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE (DIST_GRID), INTENT(IN) :: grid
+    INTEGER, INTENT(IN)          :: istart
     LOGICAL, INTENT(IN)          :: is_coldstart
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
@@ -2010,6 +2012,8 @@ CONTAINS
             'the HEMCO log file for additional error messages! '
        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
     ENDIF
+
+    ! TODO: Process istart=9 case
 
     ! In the case of a cold restart, initialise GEOS-Chem from its restart file
     IF (is_coldstart) THEN

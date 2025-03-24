@@ -236,7 +236,7 @@ C****
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
 
-      call initializeModelE(coldRestart)
+      call initializeModelE(istart,coldRestart)
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
@@ -249,6 +249,7 @@ C**** INITIALIZATIONS
 C****
          CALL TIMER (NOW,MDUM)
 
+      ! TODO: Refactor to get istart set before the call to initializeModelE
 C**** Read input/ic files
       CALL INPUT (istart,ifile,coldRestart)
 
@@ -546,7 +547,8 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       contains
 
-      subroutine initializeModelE(is_coldstart)
+      ! TODO: Docstring, including info on arguments
+      subroutine initializeModelE(istart, is_coldstart)
       USE DOMAIN_DECOMP_1D, ONLY : init_app, am_i_root
       use Model_com, only: orbit, calendar, makeOrbit
       use Dictionary_mod
@@ -554,6 +556,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
       use AbstractOrbit_mod, only: AbstractOrbit
       implicit none
 
+      INTEGER, INTENT(IN) :: istart
       LOGICAL, INTENT(IN) :: is_coldstart
 
       call initializeSysTimers()
@@ -579,7 +582,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       if (am_i_root()) call calendar%print(2000)
 
-      call alloc_drv_atm(is_coldstart)
+      call alloc_drv_atm(istart,is_coldstart)
       call alloc_drv_ocean()
 
       end subroutine initializeModelE
@@ -832,6 +835,7 @@ C****
       end subroutine init_Model
 
 
+      ! TODO: Docstring, including info on arguments
       SUBROUTINE INPUT (istart,ifile,coldRestart)
 C****
 C**** THIS SUBROUTINE SETS THE PARAMETERS IN THE C ARRAY, READS IN THE
@@ -1249,6 +1253,7 @@ C**** MUST be before other init routines
 !!! hack: may be prevented if post-processing option is eliminated
       istart_fixup = istart
       if (istart==8 .and. do_IC_fixups==1) istart_fixup = 9
+      ! NOTE: Might want to borrow istart_fixup=9 logic
 
       is_coldstart = (istart<9 .and. init_topog_related == 1)
 ! long version:
