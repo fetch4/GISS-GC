@@ -11,7 +11,7 @@ GEOS-Chem is a global 3D model of atmospheric chemistry traditionally driven by 
 GISS-GC can be built and run on a laptop with a Linux operating system using the following [Linux laptop instructions](https://github.com/fetch4/GISS-GC/blob/develop/doc/GISS-GC-DOC/build_on_linux_laptop.md). A useful tutorial about running the GISS Model E GCM to drive the GEOS-Chem Chemical Transport Model (CTM) can be found [here](https://github.com/fetch4/GISS-GC/blob/develop/doc/GISS-GC-DOC/giss-gc_tutorial.md).
 
 ## Contributing
-Contributions to the code repository are welcome, particularly from anyone interested in using, or implementing this Chemical Transport Model. We welcome addition of details to the model including code.
+Contributions to the code repository are welcome, particularly from anyone interested in using, or implementing this coupled model. We welcome addition of details to the model including code.
 
 Open tickets can be viewed at [Issues](https://github.com/fetch4/GISS-GC/issues).
 
