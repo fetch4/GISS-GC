@@ -13,6 +13,6 @@ GISS-GC can be built and run on a laptop with a Linux operating system using the
 ## Contributing
 Contributions to the code repository are welcome, particularly from anyone interested in using, or implementing this coupled model. We welcome addition of details to the model including code.
 
-Open tickets can be viewed at [Issues](https://github.com/fetch4/GISS-GC/issues).
+Open tickets can be viewed under the [Issues](https://github.com/fetch4/GISS-GC/issues) tab.
 
 To contribute, find a relevant issue or open a new one and assign yourself to work on it. Then create a branch in which to add your contribution and open a pull request. Once ready assign a reviewer and request a code review. Merging should only be performed once a reviewer has approved the changes. 
