@@ -2019,6 +2019,9 @@ CONTAINS
        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
     ENDIF
 
+    ! TODO: Check ISTART=9 gets passed through correctly
+    PRINT *, "DEBUG INIT_CHEM: ISTART=", istart
+
     ! TODO: Process istart=9 case
 
     ! In the case of a cold restart, initialise GEOS-Chem from its restart file

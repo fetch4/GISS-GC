@@ -255,6 +255,9 @@ C**** NOTE: Namelist reads hoisted out of INPUT subroutine
       READ (iu_IFILE,NML=INPUTZ,ERR=890)
       if (coldRestart) READ (iu_IFILE,NML=INPUTZ_cold,ERR=890)
 
+      ! TODO: Check ISTART=9 gets read correctly
+      PRINT *, "DEBUG GISS_modelE: ISTART=", istart
+
       call initializeModelE(istart,coldRestart)
 
       ! Only the root node pays attention to allotted wall time
