@@ -15,4 +15,4 @@ Contributions to the code repository are welcome, particularly from anyone inter
 
 Open tickets can be viewed under the [Issues](https://github.com/fetch4/GISS-GC/issues) tab.
 
-To contribute, find a relevant issue or open a new one and assign yourself to work on it. Then create a branch in which to add your contribution and open a pull request. Once ready assign a reviewer and request a code review. Merging should only be performed once a reviewer has approved the changes. 
+To contribute, find a relevant issue or open a new one and assign yourself to work on it. Then create a branch in which to add your contribution and open a pull request. Once ready, assign a reviewer and request a code review. Merging should only be performed once a reviewer has approved the changes. 
