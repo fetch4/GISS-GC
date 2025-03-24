@@ -799,8 +799,11 @@ C****
 
       end subroutine INPUT_atm
 
-      ! TODO: Docstring, including info on arguments
       subroutine alloc_drv_atm(istart, is_coldstart)
+!@sum Allocate arrays used for driving the model's atmospheric component.
+!@var istart Integer control variable for setting initial conditions
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
 #ifdef SCM
       use Dictionary_mod, only : sync_param
 #endif

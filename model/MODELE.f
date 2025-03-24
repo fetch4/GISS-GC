@@ -570,8 +570,11 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       contains
 
-      ! TODO: Docstring, including info on arguments
       subroutine initializeModelE(istart, is_coldstart)
+!@sum  GISS modelE main initialization routine
+!@var istart Integer control variable for setting initial conditions
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
       USE DOMAIN_DECOMP_1D, ONLY : init_app, am_i_root
       use Model_com, only: orbit, calendar, makeOrbit
       use Dictionary_mod
@@ -858,12 +861,13 @@ C****
       end subroutine init_Model
 
 
-      ! TODO: Docstring, including info on arguments
       SUBROUTINE INPUT (istart,ifile,coldRestart)
-C****
-C**** THIS SUBROUTINE SETS THE PARAMETERS IN THE C ARRAY, READS IN THE
-C**** INITIAL CONDITIONS, AND CALCULATES THE DISTANCE PROJECTION ARRAYS
-C****
+!@sum Set the parameters in the C array, read in the initial conditions, and
+!     calculate the distance projection arrays.
+!@var istart Integer control variable for setting initial conditions
+!@var ifile Character string for the input filename
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
       use TimeInterval_mod
       USE FILEMANAGER, only : openunit,closeunit
       USE TIMINGS, only : timing,ntimeacc

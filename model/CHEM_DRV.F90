@@ -1418,10 +1418,16 @@ CONTAINS
 
   !==========================================================================================================
 
-  ! TODO: Docstring, including info on arguments
   SUBROUTINE INIT_CHEM( grid, istart, is_coldstart )
+!@sum Initialise the chemistry part of the coupled GISS-GC model, i.e, the
+!     component driven by GEOS-Chem.
+!@var grid Instance of the GEOS-Chem State_Grid derived type for the model
+!     configuration.
+!@var istart Integer control variable for setting initial conditions
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
 
-    USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator 
+    USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
     USE GEOM,                    ONLY : axyp, lat2d_dg, lon2d_dg
     USE CONSTANT,                ONLY : Pi
