@@ -161,7 +161,8 @@
      &     , iowrite_single, isBeginningAccumPeriod
      &     , KCOPY,KRSF, NMONAV, IRAND, iowrite_mon, MDIAG, NDAY
      &     , rsf_file_name, iowrite, KDISK, dtSRC, MSURF
-     &     , calendar
+     &     , calendar, qcheck
+     &     ,HOURI,DATEI,MONTHI,YEARI ,HOURE,DATEE,MONTHE,YEARE
       USE DOMAIN_DECOMP_1D, only: AM_I_ROOT,broadcast,sumxpe
       USE RANDOM
       USE GETTIME_MOD
@@ -223,6 +224,20 @@ C**** Command line options
       character(len=8) :: yyyymmdd
 #endif
 
+      INTEGER :: TIMEE=-1,IHOURE=-1,IRANDI=0
+      INTEGER :: IWRITE=0,JWRITE=0,ITWRITE=23
+      INTEGER, DIMENSION(13) :: KDIAG
+
+C**** NOTE: Namelists hoisted out of INPUT subroutine
+      NAMELIST/INPUTZ/ ISTART,IRANDI
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,KDIAG
+     *     ,IHOURE, TIMEE,HOURE,DATEE,MONTHE,YEARE,IYEAR1
+     *     ,        HOURI,DATEI,MONTHI,YEARI
+      NAMELIST/INPUTZ_cold/ ISTART,IRANDI
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,KDIAG
+     *     ,IHOURE, TIMEE,HOURE,DATEE,MONTHE,YEARE,IYEAR1
+     *     ,        HOURI,DATEI,MONTHI,YEARI
+
 #ifdef USE_SYSUSAGE
       do i_su=0,max_su
         call sysusage(i_su,0)
@@ -235,6 +250,10 @@ C****
       call openunit(trim(ifile),iu_IFILE,.false.,.true.)
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
+
+C**** NOTE: Namelist reads hoisted out of INPUT subroutine
+      READ (iu_IFILE,NML=INPUTZ,ERR=890)
+      if (coldRestart) READ (iu_IFILE,NML=INPUTZ_cold,ERR=890)
 
       call initializeModelE(istart,coldRestart)
 
@@ -249,7 +268,6 @@ C**** INITIALIZATIONS
 C****
          CALL TIMER (NOW,MDUM)
 
-      ! TODO: Refactor to get istart set before the call to initializeModelE
 C**** Read input/ic files
       CALL INPUT (istart,ifile,coldRestart)
 
@@ -544,6 +562,11 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 #ifdef USE_MPP
       call fms_end( )
 #endif
+
+      RETURN
+
+ 890   write (6,*) 'Error in NAMELIST parameters'
+      call stop_model('Error in NAMELIST parameters',255)
 
       contains
 
