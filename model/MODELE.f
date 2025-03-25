@@ -1279,7 +1279,6 @@ C**** MUST be before other init routines
 !!! hack: may be prevented if post-processing option is eliminated
       istart_fixup = istart
       if (istart==8 .and. do_IC_fixups==1) istart_fixup = 9
-      ! NOTE: Might want to borrow istart_fixup=9 logic
 
       is_coldstart = (istart<9 .and. init_topog_related == 1)
 ! long version:
