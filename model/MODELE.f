@@ -254,9 +254,6 @@ C****
       if (coldRestart) READ (iu_IFILE,NML=INPUTZ_cold,ERR=890)
       call closeunit(iu_IFILE)
 
-      ! TODO: Check ISTART=9 gets read correctly
-      PRINT *, "DEBUG GISS_modelE: ISTART=", istart
-
       call initializeModelE(istart,coldRestart)
 
       ! Only the root node pays attention to allotted wall time

@@ -2019,13 +2019,8 @@ CONTAINS
        CALL Error_Stop( ErrMsg, ThisLoc, Instr )
     ENDIF
 
-    ! TODO: Check ISTART=9 gets passed through correctly
-    PRINT *, "DEBUG INIT_CHEM: ISTART=", istart
-
-    ! TODO: Process istart=9 case
-
     ! In the case of a cold restart, initialise GEOS-Chem from its restart file
-    IF (is_coldstart) THEN
+    IF (is_coldstart .AND. istart /= 9) THEN
       CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
 
       ! IF ( AM_I_ROOT() ) THEN
@@ -2120,7 +2115,7 @@ CONTAINS
 
     TrM    = 0d0
     TrMom  = 0d0
-    IF (is_coldstart) THEN
+    IF (is_coldstart .AND. istart /= 9) THEN
       !------------------------------------------------------------------------
       ! In the case of a cold restart, copy State_Chm into TrM with the
       ! appropriate units
