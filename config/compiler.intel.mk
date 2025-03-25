@@ -4,15 +4,24 @@ IFORT_RELEASE := $(shell ifort --version | perl -e \
   'while(<>){ if(/ifort.* (\d+\.\d+)/) { print "$$1"; } }')
 FMAKEDEP = $(SCRIPTS_DIR)/sfmakedepend
 CMP_MOD = $(SCRIPTS_DIR)/compare_module_file.pl -compiler INTEL-ifort-9-0-on-LINUX
-FFLAGS = -fpp -O2 -ftz         -convert big_endian 
-F90FLAGS = -fpp -O2 -ftz        -convert big_endian -free 
+ifeq ($(TYPE),Debug)
+FFLAGS = -g -fpp -O0 -warn all -check bounds -check uninit -check pointers -traceback -assume byterecl -ftz -convert big_endian
+LFLAGS = -g -O0 -ftz
+else
+FFLAGS = -fpp -O2 -ftz -convert big_endian
 LFLAGS = -O2 -ftz
+endif
+F90FLAGS = $(FFLAGS) -free
 CPPFLAGS += -DCOMPILER_Intel8 -DCONVERT_BIGENDIAN
-F90_VERSION = $(shell $(F90) -v 2>&1)
+F90_VERSION = $(shell $(F90) --version 2>&1)
 ifeq ($(MP),YES)
-FFLAGS += -openmp
-F90FLAGS += -openmp
-LFLAGS += -openmp
+FFLAGS += -qopenmp
+F90FLAGS += -qopenmp
+LFLAGS += -qopenmp
+endif
+CTM_LFLAGS = $(LFLAGS)
+ifeq ($(GC),YES)
+CTM_LFLAGS += -nostartfiles -nofor-main
 endif
 R8 = -r8
 EXTENDED_SOURCE = -extend_source

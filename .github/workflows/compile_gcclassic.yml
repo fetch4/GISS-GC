@@ -1,0 +1,99 @@
+# Workflow to test compilation of GCClassic
+name: Compile GCClassic
+
+# Controls when the workflow will run
+on:
+  # Trigger the CI whenever a commit is pushed to main or develop, i.e., a PR is merged
+  push:
+    branches: [main, develop]
+
+  # Trigger the CI whenever a commit is pushed to an open PR that changes files matching one or more
+  # paths listed
+  pull_request:
+    paths:
+      - '.github/workflows/compile_gcclassic.yml'
+      - '.gitmodules'
+      - '.dev/utils/*.sh'
+
+# Cancel jobs running if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Environment variables for GCClassic
+  GISS_HOME: /__w/GISS-GC/GISS-GC
+  DATA: /__w/GISS-GC/GISS-GC/data/ExtData
+  GCCLASSIC_RUNDIR: /__w/GISS-GC/GISS-GC/run/gcclassic
+  # Environment variables for compiler
+  CC: gcc
+  CXX: g++
+  FC: gfortran
+  F90: gfortran
+  F77: gfortran
+  F90FLAGS: -nostartfiles
+  # Misc. environment variables
+  F_UFMTENDIAN: big
+  KMP_STACKSIZE: 100000000
+  OMP_NUM_THREADS: 1
+
+jobs:
+  # Test that GCClassic can be compiled without error
+  compile:
+    strategy:
+      matrix:
+        mode: ["debug", "release"]
+
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/fetch4/giss-gc-dev-env:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+
+    steps:
+    - name: Checkout code
+      with:
+        persist-credentials: false
+      uses: actions/checkout@v2
+
+    - name: Setup submodules
+      run: |
+        git config --global --add safe.directory ${GISS_HOME}
+        git submodule init
+        git submodule update
+
+    - name: Create fake inputs
+      run: |
+        mkdir -p ${DATA}/GEOSCHEM_RESTARTS/GC_14.3.0
+        touch ${DATA}/GEOSCHEM_RESTARTS/GC_14.3.0/GEOSChem.Restart.fullchem.20190701_0000z.nc4
+
+    - name: Setup GCClassic environment
+      run: |
+        mkdir -p ~/.geoschem
+        {
+          echo "export GC_DATA_ROOT=${DATA}"
+          echo "export GC_USER_REGISTERED=true"
+        } > ~/.geoschem/config
+
+    - name: Setup GCClassic run directory
+      run: |
+        set -eu
+        cp .dev/config/HISTORY.rc .github/
+        cd .github
+        ./set_gcclassic_rundir.sh
+
+    - name: Build GCClassic
+      run: |
+        . /opt/spack-environment/activate.sh
+        set -eu
+        # Environment variables for passing NetCDF-C and NetCDF-Fortran
+        export NETCDF_HOME=$(nc-config --prefix)
+        export NETCDF_F_HOME=$(nf-config --prefix)
+        # Build the model without GEOS-Chem support
+        cp .dev/utils/build.sh .
+        OPTS="--classic"
+        if [ "${{ matrix.mode }}" = "debug" ]; then
+          OPTS="${OPTS} --debug"
+        fi
+        ./build.sh ${OPTS}

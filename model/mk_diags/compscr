@@ -7,8 +7,8 @@ fc="your_fortran_compiler_name" # e.g. ifort
 
 fccmd=$(nf-config --fc)
 fccmd+=" -cpp -fallow-argument-mismatch"
-nclib=$(nf-config --flibs)
-ncinc=$(nf-config --fflags)
+nclib="$(nf-config --flibs) $(nc-config --libs)"
+ncinc="$(nf-config --fflags) $(nc-config --cflags)"
 
 echo "executing compscr with arguments:"
 echo

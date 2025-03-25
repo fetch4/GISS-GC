@@ -1,4 +1,9 @@
+#include "rundeck_opts.h"
+#ifdef TRACERS_GC
+module Praecisionem_mod
+#else
 module Precision_mod
+#endif
 !@sum  The reduce_precision routines truncate the number of
 !@+    significant digits in a real*8 number x to an approximate
 !@+    precision of relacc (1d-16 < relacc << 1).  Fortran functions
@@ -42,4 +47,8 @@ contains
     x = nint(fraction(x)/relacc,kind=8)*relacc*2d0**exponent(x)
   end subroutine reduce_precision_4d
 
+#ifdef TRACERS_GC
+end module Praecisionem_mod
+#else
 end module Precision_mod
+#endif

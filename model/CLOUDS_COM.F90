@@ -59,9 +59,21 @@ module CLOUDS_COM
   real*8, allocatable, dimension(:,:,:) :: TAUMC
 !@var CLDSS super-saturated cloud cover area (percent)
   real*8, allocatable, dimension(:,:,:) :: CLDSS
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
 !@var CLDSS3D super-saturated cloud cover volume 3-D fraction
   real*8, allocatable, dimension(:,:,:) :: CLDSS3D
+  real*8, allocatable, dimension(:,:,:) :: &
+                   dtrain,         & ! Updraft detrainment flux in layer [kg/m2/s]
+                   dqrcu,          & ! Convective rainwater source in layer [kg/kg/s]
+                   dqrlsan,        & ! Stratiform rainwater source in layer [kg/kg/s] 
+                   reevapcn,       & ! Evap./subl. of convective precip in layer [kg/kg/s]
+                   reevapls,       & ! Evap./subl. of stratiform precip in layer [kg/kg/s]
+                   cmfmc,          & ! Upward cloud mass flux [kg/m2/s]                   
+                   pficu,          & ! Downward flux of convective ice precipitation [kg/m2/s]
+                   pflcu,          & ! Downward flux of convective liq precipitation [kg/m2/s]
+                   pfilsan,        & ! Downward flux of large-scale ice precipitation [kg/m2/s]
+                   pfllsan           ! Downward flux of large-scale liq precipitation [kg/m2/s]                   
+  integer LMIN
 #endif
 !@var CLDMC moist convective cloud cover area (percent)
   real*8, allocatable, dimension(:,:,:) :: CLDMC
@@ -223,8 +235,10 @@ subroutine ALLOC_CLOUDS_COM(grid)
        ULS,VLS,UMC,VMC,TLS,QLS,TAUSSIP,CSIZSSIP, &
        QLss,QIss,QLmc,QImc, &
        TMC,QMC,DDM1,AIRX,LMC,DDMS,TDN1,QDN1,DDML
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   use CLOUDS_COM, only : CLDSS3D
+  use CLOUDS_COM, only : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
+  use CLOUDS_COM, only : pficu, pflcu, pfilsan, pfllsan
 #endif
 #if (defined mjo_subdd) || (defined etc_subdd)
   use CLOUDS_COM, only : CLWC3D,CIWC3D,TLH3D,SLH3D,DLH3D,LLH3D
@@ -300,9 +314,29 @@ subroutine ALLOC_CLOUDS_COM(grid)
        QLmc(LM,I_0H:I_1H,J_0H:J_1H), &
        QImc(LM,I_0H:I_1H,J_0H:J_1H), &
        STAT=IER)
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
   allocate( CLDSS3D(LM,I_0H:I_1H,J_0H:J_1H) )
   CLDSS3D = 0d0
+  allocate( dtrain(I_0H:I_1H,J_0H:J_1H,LM) )
+  dtrain = 0d0
+  allocate( dqrcu(I_0H:I_1H,J_0H:J_1H,LM) )
+  dqrcu = 0d0
+  allocate( dqrlsan(I_0H:I_1H,J_0H:J_1H,LM) )
+  dqrlsan = 0d0
+  allocate( reevapcn(I_0H:I_1H,J_0H:J_1H,LM) )
+  reevapcn = 0d0
+  allocate( reevapls(I_0H:I_1H,J_0H:J_1H,LM) )
+  reevapls = 0d0
+  allocate( cmfmc(I_0H:I_1H,J_0H:J_1H,(LM+1)) )
+  cmfmc = 0d0
+  allocate( pficu(I_0H:I_1H,J_0H:J_1H,(LM+1)) )
+  pficu = 0d0
+  allocate( pflcu(I_0H:I_1H,J_0H:J_1H,(LM+1)) )
+  pflcu = 0d0
+  allocate( pfilsan(I_0H:I_1H,J_0H:J_1H,(LM+1)) )
+  pfilsan = 0d0
+  allocate( pfllsan(I_0H:I_1H,J_0H:J_1H,(LM+1)) )
+  pfllsan = 0d0
 #endif
 #ifdef mjo_subdd
   allocate( &

@@ -236,7 +236,7 @@ C****
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
 
-      call initializeModelE()
+      call initializeModelE(coldRestart)
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
@@ -546,13 +546,15 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       contains
 
-      subroutine initializeModelE()
+      subroutine initializeModelE(is_coldstart)
       USE DOMAIN_DECOMP_1D, ONLY : init_app, am_i_root
       use Model_com, only: orbit, calendar, makeOrbit
       use Dictionary_mod
       USE MODEL_COM, only : master_yr
       use AbstractOrbit_mod, only: AbstractOrbit
       implicit none
+
+      LOGICAL, INTENT(IN) :: is_coldstart
 
       call initializeSysTimers()
 
@@ -577,7 +579,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       if (am_i_root()) call calendar%print(2000)
 
-      call alloc_drv_atm()
+      call alloc_drv_atm(is_coldstart)
       call alloc_drv_ocean()
 
       end subroutine initializeModelE
@@ -857,10 +859,17 @@ C****
       USE RESOLUTION, only : LM ! atm reference for init_tracer hack
 #endif
 #endif
-
+#ifdef TRACERS_GC
+      USE CHEM_DRV, only : nymdB, nymdE, nhmsB, nhmsE
+#endif
+      
       use TimeConstants_mod, only: INT_HOURS_PER_DAY
       use ModelClock_mod, only: ModelClock
+#ifdef TRACERS_GC
+      use Tempus_mod, only: Time, newTime
+#else
       use Time_mod, only: Time, newTime
+#endif
       use MODEL_COM, only: calendar, orbit
       use CalendarMonth_mod, only: LEN_MONTH_ABBREVIATION
       use TimeInterval_mod
@@ -1160,6 +1169,12 @@ C****
       end if
       ITimeE = nint((modelEtimeE - modelEtime0) / dtSrcUsed)
 
+#ifdef TRACERS_GC
+      nymdB = 10000*YEARI + 10*MONTHI + DATEI
+      nymdE = 10000*YEARE + 10*MONTHE + DATEE
+      nhmsB = 10000*HOURI
+      nhmsE = 10000*HOURE
+#endif
 
 C**** Check consistency of DTsrc with NDAY
       if (is_set_param("DTsrc") .and.

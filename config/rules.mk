@@ -62,7 +62,11 @@ I = I
 # by default assume that fortran compiler can do cpp
 EXTERNAL_CPP = NO
 # assume that C compiler understands basic gcc flags
+ifeq ($(TYPE),Debug)
+CFLAGS = -g -O0
+else
 CFLAGS = -O2
+endif
 # check if ABI was specified
 ifneq ($(ABI),)
   CFLAGS += -m$(ABI)
@@ -229,36 +233,43 @@ endif
 
 ifneq ($(CUBED_SPHERE),YES)
 
-ifdef NETCDFHOME
-  ifneq ($(wildcard $(NETCDFHOME)/include/netcdf.inc),)
-    NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include
-  else
-    ifneq ($(wildcard $(NETCDFHOME)/include/netcdf-3/netcdf.inc),)
-      NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include/netcdf-3
+ifneq ($(and $(NETCDF_HOME),$(NETCDF_F_HOME)),)
+  LIBS += -L$(NETCDF_HOME)/lib -lnetcdf -L$(NETCDF_F_HOME)/lib -lnetcdff
+  FFLAGS += -I$(NETCDF_HOME)/include -I$(NETCDF_F_HOME)/include
+  F90FLAGS += -I$(NETCDF_HOME)/include -I$(NETCDF_F_HOME)/include
+  INCS += -I$(NETCDF_HOME)/include -I$(NETCDF_F_HOME)/include
+else
+  ifdef NETCDFHOME
+    ifneq ($(wildcard $(NETCDFHOME)/include/netcdf.inc),)
+      NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include
     else
-      $(error NetCDF include files not found)
+      ifneq ($(wildcard $(NETCDFHOME)/include/netcdf-3/netcdf.inc),)
+        NETCDFINCLUDEDIR ?= $(NETCDFHOME)/include/netcdf-3
+      else
+        $(error NetCDF include files not found)
+      endif
+    endif
+
+    ifneq ($(wildcard $(NETCDFHOME)/$(LIBABI)/libnetcdf*),)
+      NETCDFLIBDIR ?= $(NETCDFHOME)/$(LIBABI)
+    else
+      NETCDFLIBDIR ?= $(NETCDFHOME)/lib
     endif
   endif
 
-  ifneq ($(wildcard $(NETCDFHOME)/$(LIBABI)/libnetcdf*),)
-    NETCDFLIBDIR ?= $(NETCDFHOME)/$(LIBABI)
-  else
-    NETCDFLIBDIR ?= $(NETCDFHOME)/lib
+  ifdef NETCDFINCLUDEDIR
+    FFLAGS += -I$(NETCDFINCLUDEDIR)
+    F90FLAGS += -I$(NETCDFINCLUDEDIR)
+    INCS += -I$(NETCDFINCLUDEDIR)
   endif
-endif
 
-ifdef NETCDFINCLUDEDIR
-  FFLAGS += -I$(NETCDFINCLUDEDIR)
-  F90FLAGS += -I$(NETCDFINCLUDEDIR)
-  INCS += -I$(NETCDFINCLUDEDIR)
-endif
-
-ifdef NETCDFLIBDIR
-  LIBS += -L$(NETCDFLIBDIR) -lnetcdf
-  ifeq ($(wildcard $(NETCDFLIBDIR)/libnetcdff.*),)
+  ifdef NETCDFLIBDIR
     LIBS += -L$(NETCDFLIBDIR) -lnetcdf
-  else
-    LIBS += -L$(NETCDFLIBDIR) -L/opt/local/lib -lnetcdff -lnetcdf
+    ifeq ($(wildcard $(NETCDFLIBDIR)/libnetcdff.*),)
+      LIBS += -L$(NETCDFLIBDIR) -lnetcdf
+    else
+      LIBS += -L$(NETCDFLIBDIR) -L/opt/local/lib -lnetcdff -lnetcdf
+    endif
   endif
 endif
 
@@ -423,7 +434,7 @@ endif
 	 $(CPP) $(CPPFLAGS) $< > $@
 
 %.o: %.c
-	$(CC) -c -O2 -m64 $<
+	$(CC) -c $(CFLAGS) -m64 $<
 
 %.f: %.m4f
 	-rm -f $@

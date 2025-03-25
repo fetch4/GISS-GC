@@ -24,9 +24,22 @@ endif
 
 FMAKEDEP = $(SCRIPTS_DIR)/sfmakedepend
 CPPFLAGS += -DCOMPILER_G95
+ifeq ($(TYPE),Debug)
+FFLAGS = -g -cpp -fconvert=big-endian -O0 -Wall -fcheck=bounds -fcheck=do -fcheck=mem -fcheck=recursion -fbacktrace -fallow-argument-mismatch
+else
 FFLAGS = -g -cpp -fconvert=big-endian -O2 -fno-range-check -fallow-argument-mismatch
-F90FLAGS = -g -cpp -fconvert=big-endian -O2 -fno-range-check -ffree-line-length-none -fallow-argument-mismatch
+endif
+F90FLAGS = $(FFLAGS) -ffree-line-length-none
 LFLAGS =
+ifeq ($(MP),YES)
+FFLAGS += -fopenmp
+F90FLAGS += -fopenmp
+LFLAGS += -fopenmp
+endif
+CTM_LFLAGS = $(LFLAGS)
+ifeq ($(GC),YES)
+CTM_LFLAGS += -nostartfiles
+endif
 
 F90_VERSION = $(shell $(F90) --version | head -1)
 

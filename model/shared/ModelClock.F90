@@ -1,7 +1,12 @@
+#include "rundeck_opts.h"
 module ModelClock_mod
   use BaseTime_mod
   use TimeInterval_mod
+#ifdef TRACERS_GC
+  use Tempus_mod
+#else
   use Time_mod
+#endif
   implicit none
   private
 

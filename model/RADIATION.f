@@ -1774,7 +1774,7 @@ C----------------------------------------------
       SUBROUTINE RCOMPX
       use SURF_ALBEDO, only : getsur
       use O3mod, only : plbo3,nlo3,plbo3_traditional,nlo3_traditional
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       use O3mod, only : save_to3
 #endif
 #ifdef SCM
@@ -1818,9 +1818,9 @@ C--------------------------------
       if(set_gases_internally) then
 !!!                   CALL GETO3D(ILON,JLAT) ! may have to be changed ??
       if(use_o3_ref > 0 )then
-        CALL REPART (O3JREF(1,IGCM,JGCM),
+        CALL REPART (O3JREF(1:1,IGCM,JGCM),
      *          PLBO3_traditional,NLO3_traditional+1, ! in
-     *                        U0GAS(1,3),PLB0, NL+1)  ! out, ok if L1>1 ?
+     *                        U0GAS(1:1,3),PLB0, NL+1)  ! out, ok if L1>1 ?
         ! next block may seem weird but it is here to allow RCOMPX calls with
         ! reference ozone in part of the atmosphere and tracer below:
         if(use_tracer_chem(1) > 0) then
@@ -1828,8 +1828,8 @@ C--------------------------------
         endif
         FULGAS(3)=1.d0
       else
-        CALL REPART (O3JDAY(1,IGCM,JGCM),PLBO3,NLO3+1, ! in
-     *                        U0GAS(1,3),PLB0, NL+1)   ! out, ok if L1>1 ?
+        CALL REPART (O3JDAY(1:1,IGCM,JGCM),PLBO3,NLO3+1, ! in
+     *                        U0GAS(1:1,3),PLB0, NL+1)   ! out, ok if L1>1 ?
 #ifdef HIGH_FREQUENCY_O3_INPUT
         ! Overwrite the lm_gcm levels with higher frequency ozone, leaving
         ! climatology above those levels:
@@ -1861,7 +1861,7 @@ C--------------------------------
       endif
 C--------------------------------
 
-#ifdef GCAP
+#ifdef CALC_MERRA2_LIKE_DIAGS
       ! Save DU of ozone used in calculation
       save_to3(igcm,jgcm) = SUM(u0gas(:,3))*1000.0
 #endif
@@ -3057,16 +3057,16 @@ C-----------------
 
       DO NA=1,6
       IF(MADAER.eq.3) THEN
-      CALL REPART (A6JDAY(1,NA,IGCM,JGCM),PLBAER,lma+1,    ! in
+      CALL REPART (A6JDAY(1:1,NA,IGCM,JGCM),PLBAER,lma+1,    ! in
 #ifdef REPART_AER_FIX
       ! passing plb0 instead of plb for approximate consistency with input
-     *             ATAULX(1,NA),PLB0,NL+1)              ! out
+     *             ATAULX(1:1,NA),PLB0,NL+1)              ! out
 #else
      *             ATAULX(1,NA),PLB,NL+1)               ! out
 #endif
       ELSE
-      CALL REPART (A6JDAY(1,NA,ILON,JLAT),PLBA09,10,    ! in
-     *             ATAULX(1,NA),PLB,NL+1)               ! out
+      CALL REPART (A6JDAY(1:1,NA,ILON,JLAT),PLBA09,10,    ! in
+     *             ATAULX(1:1,NA),PLB,NL+1)               ! out
       ENDIF
       END DO
 
@@ -8343,7 +8343,8 @@ C
       DO 430 I=1,72
       ILON=I
 !!!   CALL GETO3D(ILON,JLAT)
-      CALL REPART(O3JDAY(1,IGCM,JGCM),PLBO3,NLO3+1,U0GAS(1,3),PLB0,NL+1)
+      CALL REPART(O3JDAY(1:1,IGCM,JGCM),PLBO3,NLO3+1,U0GAS(1:1,3),PLB0,
+     *          NL+1)
       DO 420 L=1,NL
       O3(J,L)=O3(J,L)+U0GAS(L,3)/72.D0
   420 CONTINUE
@@ -8427,7 +8428,8 @@ C
       DO 520 I=1,72
       ILON=I
 !!!   CALL GETO3D(ILON,JLAT)
-      CALL REPART(O3JDAY(1,IGCM,JGCM),PLBO3,NLO3+1,U0GAS(1,3),PLB0,NL+1)
+      CALL REPART(O3JDAY(1:1,IGCM,JGCM),PLBO3,NLO3+1,U0GAS(1:1,3),PLB0,
+     *          NL+1)
       SUMO3=0.D0
       DO 510 L=N1,N2
       SUMO3=SUMO3+U0GAS(L,3)
@@ -8686,12 +8688,8 @@ C
       RETURN
       END SUBROUTINE WRITET
 
-      END MODULE RADPAR
-
-
       SUBROUTINE GTREND(XNOW,TNOW)
 C
-      USE RADPAR, only: nghg,ghgyr1,ghgyr2,ghgam
       IMPLICIT NONE
       REAL*8 xnow(nghg),tnow,year,dy,frac
       INTEGER iy,n
@@ -8724,3 +8722,4 @@ C
       RETURN
       END SUBROUTINE GTREND
 
+      END MODULE RADPAR

@@ -1008,7 +1008,11 @@ C**** array HICB(I,J) acording to FSHGLM and FNHGLM
       USE Dictionary_mod
       USE DOMAIN_DECOMP_ATM, only : GRID, getDomainBounds, 
      &     GLOBALSUM, AM_I_ROOT
+#ifdef TRACERS_GC
+      use Tempus_mod, only: Time
+#else
       use Time_mod, only: Time
+#endif
       use Rational_mod
 
       IMPLICIT NONE
