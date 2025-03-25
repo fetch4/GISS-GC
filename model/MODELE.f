@@ -246,14 +246,13 @@ C**** NOTE: Namelists hoisted out of INPUT subroutine
 
 C****
 C**** Reading rundeck (I-file) options
+C**** NOTE: Namelist reads hoisted out of INPUT subroutine
 C****
       call openunit(trim(ifile),iu_IFILE,.false.,.true.)
       call parse_params(iu_IFILE)
-      call closeunit(iu_IFILE)
-
-C**** NOTE: Namelist reads hoisted out of INPUT subroutine
       READ (iu_IFILE,NML=INPUTZ,ERR=890)
       if (coldRestart) READ (iu_IFILE,NML=INPUTZ_cold,ERR=890)
+      call closeunit(iu_IFILE)
 
       ! TODO: Check ISTART=9 gets read correctly
       PRINT *, "DEBUG GISS_modelE: ISTART=", istart
