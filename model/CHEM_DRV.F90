@@ -1418,9 +1418,16 @@ CONTAINS
 
   !==========================================================================================================
 
-  SUBROUTINE INIT_CHEM( grid, is_coldstart )
+  SUBROUTINE INIT_CHEM( grid, istart, is_coldstart )
+!@sum Initialise the chemistry part of the coupled GISS-GC model, i.e, the
+!     component driven by GEOS-Chem.
+!@var grid Instance of the GEOS-Chem State_Grid derived type for the model
+!     configuration.
+!@var istart Integer control variable for setting initial conditions
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
 
-    USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator 
+    USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
     USE GEOM,                    ONLY : axyp, lat2d_dg, lon2d_dg
     USE CONSTANT,                ONLY : Pi
@@ -1460,6 +1467,7 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE (DIST_GRID), INTENT(IN) :: grid
+    INTEGER, INTENT(IN)          :: istart
     LOGICAL, INTENT(IN)          :: is_coldstart
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
@@ -2012,7 +2020,7 @@ CONTAINS
     ENDIF
 
     ! In the case of a cold restart, initialise GEOS-Chem from its restart file
-    IF (is_coldstart) THEN
+    IF (is_coldstart .AND. istart /= 9) THEN
       CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
 
       ! IF ( AM_I_ROOT() ) THEN
@@ -2107,7 +2115,7 @@ CONTAINS
 
     TrM    = 0d0
     TrMom  = 0d0
-    IF (is_coldstart) THEN
+    IF (is_coldstart .AND. istart /= 9) THEN
       !------------------------------------------------------------------------
       ! In the case of a cold restart, copy State_Chm into TrM with the
       ! appropriate units

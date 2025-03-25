@@ -161,7 +161,8 @@
      &     , iowrite_single, isBeginningAccumPeriod
      &     , KCOPY,KRSF, NMONAV, IRAND, iowrite_mon, MDIAG, NDAY
      &     , rsf_file_name, iowrite, KDISK, dtSRC, MSURF
-     &     , calendar
+     &     , calendar, qcheck
+     &     ,HOURI,DATEI,MONTHI,YEARI ,HOURE,DATEE,MONTHE,YEARE
       USE DOMAIN_DECOMP_1D, only: AM_I_ROOT,broadcast,sumxpe
       USE RANDOM
       USE GETTIME_MOD
@@ -223,6 +224,20 @@ C**** Command line options
       character(len=8) :: yyyymmdd
 #endif
 
+      INTEGER :: TIMEE=-1,IHOURE=-1,IRANDI=0
+      INTEGER :: IWRITE=0,JWRITE=0,ITWRITE=23
+      INTEGER, DIMENSION(13) :: KDIAG
+
+C**** NOTE: Namelists hoisted out of INPUT subroutine
+      NAMELIST/INPUTZ/ ISTART,IRANDI
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,KDIAG
+     *     ,IHOURE, TIMEE,HOURE,DATEE,MONTHE,YEARE,IYEAR1
+     *     ,        HOURI,DATEI,MONTHI,YEARI
+      NAMELIST/INPUTZ_cold/ ISTART,IRANDI
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,KDIAG
+     *     ,IHOURE, TIMEE,HOURE,DATEE,MONTHE,YEARE,IYEAR1
+     *     ,        HOURI,DATEI,MONTHI,YEARI
+
 #ifdef USE_SYSUSAGE
       do i_su=0,max_su
         call sysusage(i_su,0)
@@ -231,12 +246,15 @@ C**** Command line options
 
 C****
 C**** Reading rundeck (I-file) options
+C**** NOTE: Namelist reads hoisted out of INPUT subroutine
 C****
       call openunit(trim(ifile),iu_IFILE,.false.,.true.)
       call parse_params(iu_IFILE)
+      READ (iu_IFILE,NML=INPUTZ,ERR=890)
+      if (coldRestart) READ (iu_IFILE,NML=INPUTZ_cold,ERR=890)
       call closeunit(iu_IFILE)
 
-      call initializeModelE(coldRestart)
+      call initializeModelE(istart,coldRestart)
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
@@ -544,9 +562,18 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
       call fms_end( )
 #endif
 
+      RETURN
+
+ 890   write (6,*) 'Error in NAMELIST parameters'
+      call stop_model('Error in NAMELIST parameters',255)
+
       contains
 
-      subroutine initializeModelE(is_coldstart)
+      subroutine initializeModelE(istart, is_coldstart)
+!@sum  GISS modelE main initialization routine
+!@var istart Integer control variable for setting initial conditions
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
       USE DOMAIN_DECOMP_1D, ONLY : init_app, am_i_root
       use Model_com, only: orbit, calendar, makeOrbit
       use Dictionary_mod
@@ -554,6 +581,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
       use AbstractOrbit_mod, only: AbstractOrbit
       implicit none
 
+      INTEGER, INTENT(IN) :: istart
       LOGICAL, INTENT(IN) :: is_coldstart
 
       call initializeSysTimers()
@@ -579,7 +607,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       if (am_i_root()) call calendar%print(2000)
 
-      call alloc_drv_atm(is_coldstart)
+      call alloc_drv_atm(istart,is_coldstart)
       call alloc_drv_ocean()
 
       end subroutine initializeModelE
@@ -833,10 +861,12 @@ C****
 
 
       SUBROUTINE INPUT (istart,ifile,coldRestart)
-C****
-C**** THIS SUBROUTINE SETS THE PARAMETERS IN THE C ARRAY, READS IN THE
-C**** INITIAL CONDITIONS, AND CALCULATES THE DISTANCE PROJECTION ARRAYS
-C****
+!@sum Set the parameters in the C array, read in the initial conditions, and
+!     calculate the distance projection arrays.
+!@var istart Integer control variable for setting initial conditions
+!@var ifile Character string for the input filename
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
       use TimeInterval_mod
       USE FILEMANAGER, only : openunit,closeunit
       USE TIMINGS, only : timing,ntimeacc

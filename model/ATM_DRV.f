@@ -799,7 +799,11 @@ C****
 
       end subroutine INPUT_atm
 
-      subroutine alloc_drv_atm(is_coldstart)
+      subroutine alloc_drv_atm(istart, is_coldstart)
+!@sum Allocate arrays used for driving the model's atmospheric component.
+!@var istart Integer control variable for setting initial conditions
+!@var is_coldstart Logical control variable specifying whether the current run
+!     starts from a cold restart
 #ifdef SCM
       use Dictionary_mod, only : sync_param
 #endif
@@ -836,6 +840,7 @@ c set-up for MPI implementation
       include 'mpif.h'      ! Needed for GLINT2
 #endif
 
+      INTEGER, INTENT(IN) :: istart
       LOGICAL, INTENT(IN) :: is_coldstart
 
 c initialize the atmospheric domain decomposition
@@ -845,7 +850,7 @@ c for now, CREATE_CAP is only relevant to the cubed sphere grid
       call geom_atm
 
 #if defined( TRACERS_GC )
-      call init_chem( grid, is_coldstart )
+      call init_chem( grid, istart, is_coldstart )
 #endif
       
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
