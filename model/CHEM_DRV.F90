@@ -4446,7 +4446,7 @@ SUBROUTINE tijlh_defs(arr,nmax,decl_count)
 use subdd_mod, only : info_type
 ! info_type_ is a homemade structure constructor for older compilers
 use subdd_mod, only : info_type_
-use chem_com, only : ntm, trname, nsp, spname
+use chem_com, only : ntm, trname, nsp, nprod, nloss, spname, prodname, lossname
 implicit none
 integer :: nmax,decl_count
 integer :: n
@@ -4716,7 +4716,15 @@ arr(next()) = info_type_(                        &
      )
 
 ! ProdLoss Collection
-! TODO: Prod_?PRD? - NOTE: Loop case
+
+! Loop over all products
+do n=1,nprod
+   arr(next()) = info_type_(                     &
+       sname = trim(prodname(n)),                &
+       lname = trim(prodname(n)),                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! products loop
 
 arr(next()) = info_type_(                        &
      sname = 'ProdBCPIfromBCPO',                 &
@@ -4795,7 +4803,15 @@ arr(next()) = info_type_(                        &
      lname = 'ProdSO4fromO3s',                   &
      units = 'kg S s-1'                          &
      )
-! TODO: Loss_?LOS? - NOTE: Loop case
+
+! Loop over all losses
+do n=1,nloss
+   arr(next()) = info_type_(                     &
+       sname = trim(lossname(n)),                &
+       lname = trim(lossname(n)),                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! losses loop
 
 arr(next()) = info_type_(                        &
      sname = 'LossHNO3onSeaSalt',                &
