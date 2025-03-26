@@ -624,24 +624,56 @@ CONTAINS
              if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
 
              ! TODO: Prod_?PRD? - NOTE: Loop case
-             ! TODO: ProdBCPIfromBCPO
-             ! TODO: ProdOCPIfromOCPO
-             ! TODO: ProdHMSfromSO2andHCHOinCloud
-             ! TODO: ProdSO2andHCHOfromHMSinCloud
-             ! TODO: ProdSO4fromHMSinCloud
-             ! TODO: ProdSO4fromH2O2inCloud
-             ! TODO: ProdSO4fromO2inCloudMetal
-             ! TODO: ProdSO4fromO3inCloud
-             ! TODO: ProdSO4fromO3inSeaSalt
-             ! TODO: ProdSO4fromHOBrInCloud
-             ! TODO: ProdSO4fromSRO3
-             ! TODO: ProdSO4fromSRHObr
-             ! TODO: ProdSO4fromO3s
-             ! TODO: Loss_?LOS? - NOTE: Loop case
-             ! TODO: LossHNO3onSeaSalt
-             ! TODO: ProdCOfromCH4
-             ! TODO: ProdCOfromNMVOC
+             
+             ! Production of hydrophilic BC from hydrophobic BC [kg]
+             ProdLoss%ProdBCPIfromBCPO             (II,JJ,K) = prodbcpifrombcpo(i,j,k)
+        
+             ! Production of hydrophilic OC from hydrophobic OC [kg]
+             ProdLoss%ProdOCPIfromOCPO             (II,JJ,K) = prodocpifromocpo(i,j,k)
 
+             ! [kg S s-1]
+             ProdLoss%ProdHMSfromSO2andHCHOinCloud             (II,JJ,K) = prodhmsfromso2andhchoincloud(i,j,k)
+
+             ! [kg S s-1]
+             ProdLoss%ProdSO2andHCHOfromHMSinCloud             (II,JJ,K) = prodso2andhchofromhmsincloud(i,j,k)
+
+             ! [kg S  s-1]
+             ProdLoss%ProdSO4fromHMSinCloud             (II,JJ,K) = prodso4fromhmsincloud(i,j,k)
+
+             ! P(SO4) from aqueous oxidation of H2O2 in clouds [kg S s-1]
+             ProdLoss%ProdSO4fromH2O2inCloud             (II,JJ,K) = prodso4fromh2o2incloud(i,j,k)
+
+             ! P(SO4) from aqueous oxidation of O2 from metals in cloud [kg S]
+             ProdLoss%ProdSO4fromO2inCloudMetal             (II,JJ,K) = prodso4fromo2incloudmetal(i,j,k)
+
+             ! P(SO4) from aqueus oxidation of O3 in cloud [kg S s-1]
+             ProdLoss%ProdSO4fromO3inCloud             (II,JJ,K) = prodso4fromo3incloud(i,j,k)
+
+             ! P(SO4) from O3 in sea salt [kg S s-1]
+             ProdLoss%ProdSO4fromO3inSeaSalt             (II,JJ,K) = prodso4fromo3inseasalt(i,j,k)
+
+             ! P(SO4) from aqueus oxidation of HOBr in clouds [kg S s-1]
+             ProdLoss%ProdSO4fromHOBrInCloud             (II,JJ,K) = prodso4fromhobrincloud(i,j,k)
+
+             ! P(SO4) from sulphur production rate of O3 [kg S s-1]
+             ProdLoss%ProdSO4fromSRO3             (II,JJ,K) = prodso4fromsro3(i,j,k)
+
+             ! P(SO4) from sulphur production rate of HOBr + O3 [kg S s-1]
+             ProdLoss%ProdSO4fromSRHObr             (II,JJ,K) = prodso4fromsrhobr(i,j,k)
+
+             ! P(SO4) from aqueous phase SO3 loss by OH [kg S s-1]
+             ProdLoss%ProdSO4fromO3s             (II,JJ,K) = prodso4fromo3s(i,j,k)
+
+             ! TODO: Loss_?LOS? - NOTE: Loop case
+
+             ! L(HNO3) on sea salt aerosols [kg s-1]
+             ProdLoss%LossHNO3onSeaSalt             (II,JJ,K) = losshno3onseasalt(i,j,k)
+
+             ! P(CO) from CH4 [kg s-1]
+             ProdLoss%ProdCOfromCH4             (II,JJ,K) = prodcofromch4(i,j,k)
+
+             ! P(CO) from NMVOCs SO3 - loss by OH [kg s-1]
+             ProdLoss%ProdCOfromNMVOC             (II,JJ,K) = prodcofromnmvoc(i,j,k)
           ENDDO
        ENDDO
     ENDDO
