@@ -609,6 +609,27 @@ CONTAINS
        ENDDO
     ENDDO
 
+
+    DO K=1,LM
+       DO JJJ=J_0,J_1
+          DO III=I_0,I_1
+
+             ! GEOS-Chem local index
+             II = III - I_0 + 1
+             JJ = JJJ - J_0 + 1
+
+             ! GISS meteorology index (GISS only has one polar box)
+             I = III
+             J = JJJ
+             if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
+             if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
+
+             ! TODO: RxnRate
+
+          ENDDO
+       ENDDO
+    ENDDO
+
     ! Set the pressure at level edges [hPa] from the GCM
     CALL Accept_External_Pedge( State_Met  = State_Met,   &
          State_Grid = State_Grid,  &
