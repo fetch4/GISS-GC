@@ -4505,25 +4505,105 @@ arr(next()) = info_type_(                        &
      units = 'm s-1'                             &
      )
 
+! ProdLoss Collection
 ! TODO: Prod_?PRD? - NOTE: Loop case
-! TODO: ProdBCPIfromBCPO
-! TODO: ProdOCPIfromOCPO
-! TODO: ProdHMSfromSO2andHCHOinCloud
-! TODO: ProdSO2andHCHOfromHMSinCloud
-! TODO: ProdSO4fromHMSinCloud
-! TODO: ProdSO4fromH2O2inCloud
-! TODO: ProdSO4fromO2inCloudMetal
-! TODO: ProdSO4fromO3inCloud
-! TODO: ProdSO4fromO3inSeaSalt
-! TODO: ProdSO4fromHOBrInCloud
-! TODO: ProdSO4fromSRO3
-! TODO: ProdSO4fromSRHObr
-! TODO: ProdSO4fromO3s
-! TODO: Loss_?LOS? - NOTE: Loop case
-! TODO: LossHNO3onSeaSalt
-! TODO: ProdCOfromCH4
-! TODO: ProdCOfromNMVOC
 
+arr(next()) = info_type_(                        &
+     sname = 'ProdBCPIfromBCPO',                 &
+     lname = 'ProdBCPIfromBCPO',                 &
+     units = 'kg'                                &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdBCPIfromOCPO',                 &
+     lname = 'ProdBCPIfromOCPO',                 &
+     units = 'kg'                                &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdHMSfromSO2andHCHOinCloud',     &
+     lname = 'ProdHMSfromSO2andHCHOinCloud',     &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO2andHCHOfromHMSinCloud',     &
+     lname = 'ProdSO2andHCHOfromHMSinCloud',     &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromHMSinCloud',            &
+     lname = 'ProdSO4fromHMSinCloud',            &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromH2O2inCloud',           &
+     lname = 'ProdSO4fromH2O2inCloud',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO2inCloudMetal',        &
+     lname = 'ProdSO4fromO2inCloudMetal',        &
+     units = 'kg S'                              &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3inCloud',             &
+     lname = 'ProdSO4fromO3inCloud',             &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3inSeaSalt',           &
+     lname = 'ProdSO4fromO3inSeaSalt',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromHOBrInCloud',           &
+     lname = 'ProdSO4fromHOBrInCloud',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromSRO3',                  &
+     lname = 'ProdSO4fromSRO3',                  &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromSRHObr',                 &
+     lname = 'ProdSO4fromSRHObr',                &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3s',                   &
+     lname = 'ProdSO4fromO3s',                   &
+     units = 'kg S s-1'                          &
+     )
+! TODO: Loss_?LOS? - NOTE: Loop case
+
+arr(next()) = info_type_(                        &
+     sname = 'LossHNO3onSeaSalt',                &
+     lname = 'LossHNO3onSeaSalt',                &
+     units = 'kg s-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdCOfromCH4',                    &
+     lname = 'ProdCOfromCH4',                    &
+     units = 'kg s-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdCOfromNMVOC',                  &
+     lname = 'ProdCOfromNMVOC',                  &
+     units = 'kg s-1'                            &
+     )
 return
 contains
 integer function next()
