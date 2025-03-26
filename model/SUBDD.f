@@ -227,6 +227,8 @@
       integer :: subdd_period
 !@var ndiags number of outputs in this group
       integer :: ndiags=0
+!@var nrxns number of reactions in this group
+      integer :: nrxns=0
 !@var dtime length of each output period (hr)
 !@var timelast time of last accumulation/store in this group and output file
 !@+            (hrs since start of run)

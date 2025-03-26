@@ -2221,6 +2221,7 @@ CONTAINS
     ! use geom, only : byaxyp
     ! use atm_com, only : byma
     USE UnitConv_Mod
+    USE gckpp_Parameters,   ONLY : NREACT
 
     implicit none
 
@@ -2766,6 +2767,30 @@ CONTAINS
           endif
 
           call inc_subdd(subdd,k,sddarr3d)
+       enddo ! k
+    enddo ! igroup
+
+    do igrp=1,ngroups
+       subdd => subdd_groups(grpids(igrp))
+       ! TODO: Set up number of reactions properly
+       do k=1,subdd%nrxns
+          nslot_loop: do n=1,NREACT
+             ! TODO: Check names match properly
+             if( trim( State_Chm%SpcData(N)%Info%Name ) .eq. trim(subdd%name(k)) ) then
+                DO L=1,LmaxSUBDD
+                DO J=J_0,J_1
+                DO I=I_0,I_1
+                   II = I - I_0 + 1
+                   JJ = J - J_0 + 1
+                   ! TODO: Copy over reaction rate data
+                   ! sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)
+                ENDDO
+                ENDDO
+                ENDDO
+                call inc_subdd(subdd,k,sddarr3d)
+                exit nslot_loop
+             end if
+          end do nslot_loop
        enddo ! k
     enddo ! igroup
 
