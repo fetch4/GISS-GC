@@ -2835,23 +2835,201 @@ CONTAINS
           endif
 
           ! TODO: Prod_?PRD? - NOTE: Loop case
-          ! TODO: ProdBCPIfromBCPO
-          ! TODO: ProdOCPIfromOCPO
-          ! TODO: ProdHMSfromSO2andHCHOinCloud
-          ! TODO: ProdSO2andHCHOfromHMSinCloud
-          ! TODO: ProdSO4fromHMSinCloud
-          ! TODO: ProdSO4fromH2O2inCloud
-          ! TODO: ProdSO4fromO2inCloudMetal
-          ! TODO: ProdSO4fromO3inCloud
-          ! TODO: ProdSO4fromO3inSeaSalt
-          ! TODO: ProdSO4fromHOBrInCloud
-          ! TODO: ProdSO4fromSRO3
-          ! TODO: ProdSO4fromSRHObr
-          ! TODO: ProdSO4fromO3s
+          
+         
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdBCPIfromBCPO" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdBCPIfromBCPO(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdOCPIfromOCPO" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdOCPIfromOCPO(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdHMSfromSO2andHCHOinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdHMSfromSO2andHCHOinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO2andHCHOfromHMSinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO2andHCHOfromHMSinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromHMSinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromHMSinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromH2O2inCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromH2O2inCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO2inCloudMetal" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromO2inCloudMetal(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3inCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromO3inCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3inSeaSalt" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromO3inSeaSalt(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromHOBrInCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromHOBrInCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromSRO3" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromSRO3(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromSRHObr" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromSRHObr(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3s" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdSO4fromO3s(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
           ! TODO: Loss_?LOS? - NOTE: Loop case
-          ! TODO: LossHNO3onSeaSalt
-          ! TODO: ProdCOfromCH4
-          ! TODO: ProdCOfromNMVOC
+          
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_LossHNO3onSeaSalt" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%LossHNO3onSeaSalt(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdCOfromCH4" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdCOfromCH4(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+          
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdCOfromNMVOC" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = ProdLoss%ProdCOfromNMVOC(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
 
           call inc_subdd(subdd,k,sddarr3d)
        enddo ! k
