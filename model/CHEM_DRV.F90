@@ -2030,7 +2030,6 @@ CONTAINS
     IF ( Input_Opt%useTimers ) THEN
        CALL Timer_End ( "HEMCO", RC )
     ENDIF
-
     
     ! Populate the State_Met%LandTypeFrac field with data from HEMCO
     CALL Init_LandTypeFrac( Input_Opt, State_Grid, State_Met, RC )
