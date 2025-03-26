@@ -609,6 +609,27 @@ CONTAINS
        ENDDO
     ENDDO
 
+
+    DO K=1,LM
+       DO JJJ=J_0,J_1
+          DO III=I_0,I_1
+
+             ! GEOS-Chem local index
+             II = III - I_0 + 1
+             JJ = JJJ - J_0 + 1
+
+             ! GISS meteorology index (GISS only has one polar box)
+             I = III
+             J = JJJ
+             if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
+             if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
+
+             ! TODO: RxnRate
+
+          ENDDO
+       ENDDO
+    ENDDO
+
     ! Set the pressure at level edges [hPa] from the GCM
     CALL Accept_External_Pedge( State_Met  = State_Met,   &
          State_Grid = State_Grid,  &
@@ -2221,6 +2242,7 @@ CONTAINS
     ! use geom, only : byaxyp
     ! use atm_com, only : byma
     USE UnitConv_Mod
+    USE gckpp_Parameters,   ONLY : NREACT
 
     implicit none
 
@@ -2766,6 +2788,30 @@ CONTAINS
           endif
 
           call inc_subdd(subdd,k,sddarr3d)
+       enddo ! k
+    enddo ! igroup
+
+    do igrp=1,ngroups
+       subdd => subdd_groups(grpids(igrp))
+       ! TODO: Set up number of reactions properly
+       do k=1,subdd%nrxns
+          nslot_loop: do n=1,NREACT
+             ! TODO: Check names match properly
+             if( trim( State_Chm%SpcData(N)%Info%Name ) .eq. trim(subdd%name(k)) ) then
+                DO L=1,LmaxSUBDD
+                DO J=J_0,J_1
+                DO I=I_0,I_1
+                   II = I - I_0 + 1
+                   JJ = J - J_0 + 1
+                   ! TODO: Copy over reaction rate data
+                   ! sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)
+                ENDDO
+                ENDDO
+                ENDDO
+                call inc_subdd(subdd,k,sddarr3d)
+                exit nslot_loop
+             end if
+          end do nslot_loop
        enddo ! k
     enddo ! igroup
 
@@ -4181,10 +4227,12 @@ use subdd_mod, only : info_type
 ! info_type_ is a homemade structure constructor for older compilers
 use subdd_mod, only : info_type_
 use chem_com, only : ntm, trname, nsp, spname
+USE gckpp_Parameters,   ONLY : NREACT
 implicit none
 integer :: nmax,decl_count
 integer :: n
 type(info_type) :: arr(nmax)
+character(len=3) :: eqn
 
 decl_count = 0
 
@@ -4448,6 +4496,23 @@ arr(next()) = info_type_(                        &
      lname = 'StateMet_V',                       &
      units = 'm s-1'                             &
      )
+
+! Reaction rates
+do n=1,NREACT
+   ! TODO: Avoid this hacky approach to padding with zeros
+   if (n < 10) then
+      write(eqn,"('00',i1)") n
+   else if (n < 100) then
+      write(eqn,"('0',i2)") n
+   else
+      write(eqn,"(i3)") n
+   end if
+   arr(next()) = info_type_(                     &
+       sname = 'RxnRate_EQ'//eqn,                &
+       lname = 'RxnRate_EQ'//eqn,                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! tracers loop
 
 return
 contains
