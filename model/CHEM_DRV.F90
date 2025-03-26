@@ -609,6 +609,43 @@ CONTAINS
        ENDDO
     ENDDO
 
+    DO K=1,LM
+       DO JJJ=J_0,J_1
+          DO III=I_0,I_1
+
+             ! GEOS-Chem local index
+             II = III - I_0 + 1
+             JJ = JJJ - J_0 + 1
+
+             ! GISS meteorology index (GISS only has one polar box)
+             I = III
+             J = JJJ
+             if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
+             if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
+
+             ! TODO: Prod_?PRD? - NOTE: Loop case
+             ! TODO: ProdBCPIfromBCPO
+             ! TODO: ProdOCPIfromOCPO
+             ! TODO: ProdHMSfromSO2andHCHOinCloud
+             ! TODO: ProdSO2andHCHOfromHMSinCloud
+             ! TODO: ProdSO4fromHMSinCloud
+             ! TODO: ProdSO4fromH2O2inCloud
+             ! TODO: ProdSO4fromO2inCloudMetal
+             ! TODO: ProdSO4fromO3inCloud
+             ! TODO: ProdSO4fromO3inSeaSalt
+             ! TODO: ProdSO4fromHOBrInCloud
+             ! TODO: ProdSO4fromSRO3
+             ! TODO: ProdSO4fromSRHObr
+             ! TODO: ProdSO4fromO3s
+             ! TODO: Loss_?LOS? - NOTE: Loop case
+             ! TODO: LossHNO3onSeaSalt
+             ! TODO: ProdCOfromCH4
+             ! TODO: ProdCOfromNMVOC
+
+          ENDDO
+       ENDDO
+    ENDDO
+
     ! Set the pressure at level edges [hPa] from the GCM
     CALL Accept_External_Pedge( State_Met  = State_Met,   &
          State_Grid = State_Grid,  &
@@ -2765,6 +2802,25 @@ CONTAINS
              ENDDO
           endif
 
+          ! TODO: Prod_?PRD? - NOTE: Loop case
+          ! TODO: ProdBCPIfromBCPO
+          ! TODO: ProdOCPIfromOCPO
+          ! TODO: ProdHMSfromSO2andHCHOinCloud
+          ! TODO: ProdSO2andHCHOfromHMSinCloud
+          ! TODO: ProdSO4fromHMSinCloud
+          ! TODO: ProdSO4fromH2O2inCloud
+          ! TODO: ProdSO4fromO2inCloudMetal
+          ! TODO: ProdSO4fromO3inCloud
+          ! TODO: ProdSO4fromO3inSeaSalt
+          ! TODO: ProdSO4fromHOBrInCloud
+          ! TODO: ProdSO4fromSRO3
+          ! TODO: ProdSO4fromSRHObr
+          ! TODO: ProdSO4fromO3s
+          ! TODO: Loss_?LOS? - NOTE: Loop case
+          ! TODO: LossHNO3onSeaSalt
+          ! TODO: ProdCOfromCH4
+          ! TODO: ProdCOfromNMVOC
+
           call inc_subdd(subdd,k,sddarr3d)
        enddo ! k
     enddo ! igroup
@@ -4448,6 +4504,25 @@ arr(next()) = info_type_(                        &
      lname = 'StateMet_V',                       &
      units = 'm s-1'                             &
      )
+
+! TODO: Prod_?PRD? - NOTE: Loop case
+! TODO: ProdBCPIfromBCPO
+! TODO: ProdOCPIfromOCPO
+! TODO: ProdHMSfromSO2andHCHOinCloud
+! TODO: ProdSO2andHCHOfromHMSinCloud
+! TODO: ProdSO4fromHMSinCloud
+! TODO: ProdSO4fromH2O2inCloud
+! TODO: ProdSO4fromO2inCloudMetal
+! TODO: ProdSO4fromO3inCloud
+! TODO: ProdSO4fromO3inSeaSalt
+! TODO: ProdSO4fromHOBrInCloud
+! TODO: ProdSO4fromSRO3
+! TODO: ProdSO4fromSRHObr
+! TODO: ProdSO4fromO3s
+! TODO: Loss_?LOS? - NOTE: Loop case
+! TODO: LossHNO3onSeaSalt
+! TODO: ProdCOfromCH4
+! TODO: ProdCOfromNMVOC
 
 return
 contains
