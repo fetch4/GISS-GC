@@ -4181,10 +4181,12 @@ use subdd_mod, only : info_type
 ! info_type_ is a homemade structure constructor for older compilers
 use subdd_mod, only : info_type_
 use chem_com, only : ntm, trname, nsp, spname
+USE gckpp_Parameters,   ONLY : NREACT
 implicit none
 integer :: nmax,decl_count
 integer :: n
 type(info_type) :: arr(nmax)
+character(len=3) :: eqn
 
 decl_count = 0
 
@@ -4448,6 +4450,23 @@ arr(next()) = info_type_(                        &
      lname = 'StateMet_V',                       &
      units = 'm s-1'                             &
      )
+
+! Reaction rates
+do n=1,NREACT
+   ! TODO: Avoid this hacky approach to padding with zeros
+   if (n < 10) then
+      write(eqn,"('00',i1)") n
+   else if (n < 100) then
+      write(eqn,"('0',i2)") n
+   else
+      write(eqn,"(i3)") n
+   end if
+   arr(next()) = info_type_(                     &
+       sname = 'RxnRate_EQ'//eqn,                &
+       lname = 'RxnRate_EQ'//eqn,                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! tracers loop
 
 return
 contains
