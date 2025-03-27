@@ -631,7 +631,7 @@ CONTAINS
              ! Production of hydrophilic organic carbon from hydrophobic organic carbon [kg]
              ProdLoss%ProdOCPIfromOCPO             (II,JJ,K) = prodocpifromocpo(i,j,k)
 
-             ! [kg S s-1]
+             ! Production of HMS from aqueous reaction of SO2 and HCHO in clouds [kg S s-1]
              ProdLoss%ProdHMSfromSO2andHCHOinCloud             (II,JJ,K) = prodhmsfromso2andhchoincloud(i,j,k)
 
              ! [kg S s-1]
