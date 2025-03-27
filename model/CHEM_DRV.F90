@@ -658,7 +658,7 @@ CONTAINS
              ! P(SO4) from sulphur production rate of O3 [kg S s-1]
              ProdLoss%ProdSO4fromSRO3             (II,JJ,K) = prodso4fromsro3(i,j,k)
 
-             ! P(SO4) from sulphur production rate of HOBr + O3 [kg S s-1]
+             ! Production of SO4 from sulphur production rate of HOBr + O3 [kg S s-1]
              ProdLoss%ProdSO4fromSRHObr             (II,JJ,K) = prodso4fromsrhobr(i,j,k)
 
              ! P(SO4) from aqueous phase SO3 loss by OH [kg S s-1]
