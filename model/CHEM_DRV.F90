@@ -649,7 +649,7 @@ CONTAINS
              ! Production of SO4 from aqueus oxidation of O3 in cloud [kg S s-1]
              ProdLoss%ProdSO4fromO3inCloud             (II,JJ,K) = prodso4fromo3incloud(i,j,k)
 
-             ! P(SO4) from O3 in sea salt [kg S s-1]
+             ! Production of SO4 from O3 in sea salt [kg S s-1]
              ProdLoss%ProdSO4fromO3inSeaSalt             (II,JJ,K) = prodso4fromo3inseasalt(i,j,k)
 
              ! P(SO4) from aqueus oxidation of HOBr in clouds [kg S s-1]
