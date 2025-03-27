@@ -625,7 +625,7 @@ CONTAINS
 
              ! TODO: Prod_?PRD? - NOTE: Loop case
              
-             ! Production of hydrophilic BC from hydrophobic BC [kg]
+             ! Production of hydrophilic black carbon from hydrophobic black carbon [kg]
              ProdLoss%ProdBCPIfromBCPO             (II,JJ,K) = prodbcpifrombcpo(i,j,k)
         
              ! Production of hydrophilic OC from hydrophobic OC [kg]
