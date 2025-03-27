@@ -666,7 +666,7 @@ CONTAINS
 
              ! TODO: Loss_?LOS? - NOTE: Loop case
 
-             ! L(HNO3) on sea salt aerosols [kg s-1]
+             ! Loss of HNO3 on sea salt aerosols [kg s-1]
              ProdLoss%LossHNO3onSeaSalt             (II,JJ,K) = losshno3onseasalt(i,j,k)
 
              ! P(CO) from CH4 [kg s-1]
