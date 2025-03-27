@@ -640,7 +640,7 @@ CONTAINS
              ! Production of SO4 from aqueous oxidation of O3 in clouds [kg S  s-1]
              ProdLoss%ProdSO4fromHMSinCloud             (II,JJ,K) = prodso4fromhmsincloud(i,j,k)
 
-             ! P(SO4) from aqueous oxidation of H2O2 in clouds [kg S s-1]
+             ! Production of SO4 from aqueous oxidation of H2O2 in clouds [kg S s-1]
              ProdLoss%ProdSO4fromH2O2inCloud             (II,JJ,K) = prodso4fromh2o2incloud(i,j,k)
 
              ! P(SO4) from aqueous oxidation of O2 from metals in cloud [kg S]
