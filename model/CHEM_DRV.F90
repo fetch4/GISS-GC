@@ -634,7 +634,7 @@ CONTAINS
              ! Production of HMS from aqueous reaction of SO2 and HCHO in clouds [kg S s-1]
              ProdLoss%ProdHMSfromSO2andHCHOinCloud             (II,JJ,K) = prodhmsfromso2andhchoincloud(i,j,k)
 
-             ! [kg S s-1]
+             ! Production of SO2 and HCHO from aqueous reaction of HS and OH- in clouds [kg S s-1]
              ProdLoss%ProdSO2andHCHOfromHMSinCloud             (II,JJ,K) = prodso2andhchofromhmsincloud(i,j,k)
 
              ! [kg S  s-1]
