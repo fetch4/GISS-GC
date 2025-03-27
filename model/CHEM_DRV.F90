@@ -628,7 +628,7 @@ CONTAINS
              ! Production of hydrophilic black carbon from hydrophobic black carbon [kg]
              ProdLoss%ProdBCPIfromBCPO             (II,JJ,K) = prodbcpifrombcpo(i,j,k)
         
-             ! Production of hydrophilic OC from hydrophobic OC [kg]
+             ! Production of hydrophilic organic carbon from hydrophobic organic carbon [kg]
              ProdLoss%ProdOCPIfromOCPO             (II,JJ,K) = prodocpifromocpo(i,j,k)
 
              ! [kg S s-1]
