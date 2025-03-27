@@ -669,7 +669,7 @@ CONTAINS
              ! Loss of HNO3 on sea salt aerosols [kg s-1]
              ProdLoss%LossHNO3onSeaSalt             (II,JJ,K) = losshno3onseasalt(i,j,k)
 
-             ! P(CO) from CH4 [kg s-1]
+             ! Production of CO from CH4 [kg s-1]
              ProdLoss%ProdCOfromCH4             (II,JJ,K) = prodcofromch4(i,j,k)
 
              ! P(CO) from NMVOCs SO3 - loss by OH [kg s-1]
