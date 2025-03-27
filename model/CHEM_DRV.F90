@@ -672,7 +672,7 @@ CONTAINS
              ! Production of CO from CH4 [kg s-1]
              ProdLoss%ProdCOfromCH4             (II,JJ,K) = prodcofromch4(i,j,k)
 
-             ! P(CO) from NMVOCs SO3 - loss by OH [kg s-1]
+             ! Production of CO from NMVOCs SO3 - loss by OH [kg s-1]
              ProdLoss%ProdCOfromNMVOC             (II,JJ,K) = prodcofromnmvoc(i,j,k)
           ENDDO
        ENDDO
