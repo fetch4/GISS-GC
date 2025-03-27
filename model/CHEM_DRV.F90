@@ -655,7 +655,7 @@ CONTAINS
              ! Production of SO4 from aqueus oxidation of HOBr in clouds [kg S s-1]
              ProdLoss%ProdSO4fromHOBrInCloud             (II,JJ,K) = prodso4fromhobrincloud(i,j,k)
 
-             ! P(SO4) from sulphur production rate of O3 [kg S s-1]
+             ! Production of SO4 from sulphur production rate of O3 [kg S s-1]
              ProdLoss%ProdSO4fromSRO3             (II,JJ,K) = prodso4fromsro3(i,j,k)
 
              ! Production of SO4 from sulphur production rate of HOBr + O3 [kg S s-1]
