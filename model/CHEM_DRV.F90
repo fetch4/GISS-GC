@@ -106,6 +106,7 @@ CONTAINS
     USE MODEL_COM,         ONLY : modelEclock, itime, ItimeI, DTsrc
     USE ATM_COM,           ONLY : gz, mma, mws, pedn, pk, pmid, ptropo, q, qci, qcl, t, ualij, &
                                   valij, zatmo
+    USE CHEM_COM,          ONLY : nprod, nloss
 #ifdef CALC_MERRA2_LIKE_DIAGS
     USE CLOUDS_COM,        ONLY : tauss, taumc, cldmc, cldss, cldss3d, pficu, pflcu, pfilsan, pfllsan
     USE CLOUDS_COM,        ONLY : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
@@ -623,7 +624,10 @@ CONTAINS
              if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
              if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
 
-             ! TODO: Prod_?PRD? - NOTE: Loop case
+             ! Loop over all products
+             do n=1,nprod
+                ! TODO: State_Diag%Prod(n,II,JJ,K) = ???
+             end do ! products loop
 
              ! Production of hydrophilic black carbon from hydrophobic black carbon [kg]
              ! TODO: State_Diag%ProdBCPIfromBCPO             (II,JJ,K) = ???
@@ -664,7 +668,10 @@ CONTAINS
              ! Production of SO4 from aqueous phase SO3 loss by OH [kg S s-1]
              ! TODO: State_Diag%ProdSO4fromO3s             (II,JJ,K) = ???
 
-             ! TODO: Loss_?LOS? - NOTE: Loop case
+             ! Loop over all losses
+             do n=1,nloss
+                ! TODO: State_Diag%Loss(n,II,JJ,K) = ???
+             end do ! losses loop
 
              ! Loss of HNO3 on sea salt aerosols [kg s-1]
              ! TODO: State_Diag%LossHNO3onSeaSalt             (II,JJ,K) = ???
