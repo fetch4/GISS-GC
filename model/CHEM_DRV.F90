@@ -106,6 +106,7 @@ CONTAINS
     USE MODEL_COM,         ONLY : modelEclock, itime, ItimeI, DTsrc
     USE ATM_COM,           ONLY : gz, mma, mws, pedn, pk, pmid, ptropo, q, qci, qcl, t, ualij, &
                                   valij, zatmo
+    USE CHEM_COM,          ONLY : nprod, nloss
 #ifdef CALC_MERRA2_LIKE_DIAGS
     USE CLOUDS_COM,        ONLY : tauss, taumc, cldmc, cldss, cldss3d, pficu, pflcu, pfilsan, pfllsan
     USE CLOUDS_COM,        ONLY : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
@@ -606,6 +607,81 @@ CONTAINS
           State_Met%PFLLSAN     (II,JJ,LM+1) =  pfllsan(i,j,LM+1)
 #endif
 
+       ENDDO
+    ENDDO
+
+    DO K=1,LM
+       DO JJJ=J_0,J_1
+          DO III=I_0,I_1
+
+             ! GEOS-Chem local index
+             II = III - I_0 + 1
+             JJ = JJJ - J_0 + 1
+
+             ! GISS meteorology index (GISS only has one polar box)
+             I = III
+             J = JJJ
+             if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
+             if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
+
+             ! Loop over all products
+             do n=1,nprod
+                ! TODO: State_Diag%Prod(n,II,JJ,K) = ???
+             end do ! products loop
+
+             ! Production of hydrophilic black carbon from hydrophobic black carbon [kg]
+             ! TODO: State_Diag%ProdBCPIfromBCPO             (II,JJ,K) = ???
+
+             ! Production of hydrophilic organic carbon from hydrophobic organic carbon [kg]
+             ! TODO: State_Diag%ProdOCPIfromOCPO             (II,JJ,K) = ???
+
+             ! Production of HMS from aqueous reaction of SO2 and HCHO in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdHMSfromSO2andHCHOinCloud             (II,JJ,K) = ???
+
+             ! Production of SO2 and HCHO from aqueous reaction of HS and OH- in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdSO2andHCHOfromHMSinCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous oxidation of O3 in clouds [kg S  s-1]
+             ! TODO: State_Diag%ProdSO4fromHMSinCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous oxidation of H2O2 in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromH2O2inCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous oxidation of O2 from metals in cloud [kg S]
+             ! TODO: State_Diag%ProdSO4fromO2inCloudMetal             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueus oxidation of O3 in cloud [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromO3inCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from O3 in sea salt [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromO3inSeaSalt             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueus oxidation of HOBr in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromHOBrInCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from sulphur production rate of O3 [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromSRO3             (II,JJ,K) = ???
+
+             ! Production of SO4 from sulphur production rate of HOBr + O3 [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromSRHObr             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous phase SO3 loss by OH [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromO3s             (II,JJ,K) = ???
+
+             ! Loop over all losses
+             do n=1,nloss
+                ! TODO: State_Diag%Loss(n,II,JJ,K) = ???
+             end do ! losses loop
+
+             ! Loss of HNO3 on sea salt aerosols [kg s-1]
+             ! TODO: State_Diag%LossHNO3onSeaSalt             (II,JJ,K) = ???
+
+             ! Production of CO from CH4 [kg s-1]
+             ! TODO: State_Diag%ProdCOfromCH4             (II,JJ,K) = ???
+
+             ! Production of CO from NMVOCs SO3 - loss by OH [kg s-1]
+             ! TODO: State_Diag%ProdCOfromNMVOC             (II,JJ,K) = ???
+          ENDDO
        ENDDO
     ENDDO
 
@@ -2215,6 +2291,7 @@ CONTAINS
 #ifdef CACHED_SUBDD
   SUBROUTINE accumGCsubdd
 
+    use chem_com, only : nprod, nloss, prodname, lossname
     use domain_decomp_atm, only : grid, am_i_root
     use subdd_mod, only : subdd_groups,subdd_type,subdd_ngroups, &
          inc_subdd,find_groups, LmaxSUBDD
@@ -2760,6 +2837,228 @@ CONTAINS
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
                 sddarr3d(I,J,L) = State_Met%V(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          ! Loop over all products
+          do n=1,nprod
+            if ( trim(subdd%name(k)) == prodname(n) ) then
+              DO L=1,LmaxSUBDD
+              DO J=J_0,J_1
+              DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  sddarr3d(I,J,L) = State_Diag%Prod(n,II,JJ,L)
+              ENDDO
+              ENDDO
+              ENDDO
+            endif
+          end do ! products loop
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdBCPIfromBCPO" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdBCPIfromBCPO(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdOCPIfromOCPO" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdOCPIfromOCPO(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdHMSfromSO2andHCHOinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdHMSfromSO2andHCHOinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO2andHCHOfromHMSinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO2andHCHOfromHMSinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromHMSinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromHMSinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromH2O2inCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromH2O2inCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO2inCloudMetal" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO2inCloudMetal(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3inCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO3inCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3inSeaSalt" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO3inSeaSalt(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromHOBrInCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromHOBrInCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromSRO3" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromSRO3(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromSRHObr" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromSRHObr(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3s" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO3s(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          ! Loop over all losses
+          do n=1,nloss
+            if ( trim(subdd%name(k)) == lossname(n) ) then
+              DO L=1,LmaxSUBDD
+              DO J=J_0,J_1
+              DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  sddarr3d(I,J,L) = State_Diag%Loss(n,II,JJ,L)
+              ENDDO
+              ENDDO
+              ENDDO
+            endif
+          end do ! losses loop
+
+          if ( trim(subdd%name(k)) == "ProdLoss_LossHNO3onSeaSalt" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%LossHNO3onSeaSalt(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdCOfromCH4" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdCOfromCH4(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdCOfromNMVOC" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdCOfromNMVOC(II,JJ,L)
              ENDDO
              ENDDO
              ENDDO
@@ -4180,7 +4479,7 @@ SUBROUTINE tijlh_defs(arr,nmax,decl_count)
 use subdd_mod, only : info_type
 ! info_type_ is a homemade structure constructor for older compilers
 use subdd_mod, only : info_type_
-use chem_com, only : ntm, trname, nsp, spname
+use chem_com, only : ntm, trname, nsp, nprod, nloss, spname, prodname, lossname
 implicit none
 integer :: nmax,decl_count
 integer :: n
@@ -4449,6 +4748,121 @@ arr(next()) = info_type_(                        &
      units = 'm s-1'                             &
      )
 
+! ProdLoss Collection
+
+! Loop over all products
+do n=1,nprod
+   arr(next()) = info_type_(                     &
+       sname = trim(prodname(n)),                &
+       lname = trim(prodname(n)),                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! products loop
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdBCPIfromBCPO',                 &
+     lname = 'ProdBCPIfromBCPO',                 &
+     units = 'kg'                                &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdBCPIfromOCPO',                 &
+     lname = 'ProdBCPIfromOCPO',                 &
+     units = 'kg'                                &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdHMSfromSO2andHCHOinCloud',     &
+     lname = 'ProdHMSfromSO2andHCHOinCloud',     &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO2andHCHOfromHMSinCloud',     &
+     lname = 'ProdSO2andHCHOfromHMSinCloud',     &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromHMSinCloud',            &
+     lname = 'ProdSO4fromHMSinCloud',            &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromH2O2inCloud',           &
+     lname = 'ProdSO4fromH2O2inCloud',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO2inCloudMetal',        &
+     lname = 'ProdSO4fromO2inCloudMetal',        &
+     units = 'kg S'                              &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3inCloud',             &
+     lname = 'ProdSO4fromO3inCloud',             &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3inSeaSalt',           &
+     lname = 'ProdSO4fromO3inSeaSalt',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromHOBrInCloud',           &
+     lname = 'ProdSO4fromHOBrInCloud',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromSRO3',                  &
+     lname = 'ProdSO4fromSRO3',                  &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromSRHObr',                 &
+     lname = 'ProdSO4fromSRHObr',                &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3s',                   &
+     lname = 'ProdSO4fromO3s',                   &
+     units = 'kg S s-1'                          &
+     )
+
+! Loop over all losses
+do n=1,nloss
+   arr(next()) = info_type_(                     &
+       sname = trim(lossname(n)),                &
+       lname = trim(lossname(n)),                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! losses loop
+
+arr(next()) = info_type_(                        &
+     sname = 'LossHNO3onSeaSalt',                &
+     lname = 'LossHNO3onSeaSalt',                &
+     units = 'kg s-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdCOfromCH4',                    &
+     lname = 'ProdCOfromCH4',                    &
+     units = 'kg s-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdCOfromNMVOC',                  &
+     lname = 'ProdCOfromNMVOC',                  &
+     units = 'kg s-1'                            &
+     )
 return
 contains
 integer function next()
