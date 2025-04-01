@@ -102,8 +102,11 @@ CONTAINS
     ! ModelE modules
     USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT, GRID, getDomainBounds, hasnorthpole, hassouthpole
     USE DOMAIN_DECOMP_1D,  ONLY : HALO_UPDATE, SOUTH, NORTH
+    USE DYNAMICS,          ONLY : SIGE
     USE MODEL_COM,         ONLY : modelEclock, itime, ItimeI, DTsrc
-    USE ATM_COM,           ONLY : pedn, pmid, pk, ptropo, zatmo, mws, t, q, ualij, valij, qci, qcl
+    USE ATM_COM,           ONLY : gz, mma, mws, pedn, pk, pmid, ptropo, q, qci, qcl, t, ualij, &
+                                  valij, zatmo
+    USE CHEM_COM,          ONLY : nprod, nloss
 #ifdef CALC_MERRA2_LIKE_DIAGS
     USE CLOUDS_COM,        ONLY : tauss, taumc, cldmc, cldss, cldss3d, pficu, pflcu, pfilsan, pfllsan
     USE CLOUDS_COM,        ONLY : dtrain, dqrcu, dqrlsan, reevapcn, reevapls, cmfmc
@@ -121,12 +124,13 @@ CONTAINS
 #endif
     USE RAD_COM,           ONLY : cfrac, srdn, fsrdir, srvissurf, cosz1, save_cosz2
     USE SEAICE_COM,        ONLY : si_atm, si_ocn
-    USE CONSTANT,          ONLY : bygrav, lhe, tf, teeny
+    USE CONSTANT,          ONLY : avog, bygasc, bygrav, lhe, tf, teeny
+    USE LIGHTNING,         ONLY : cth_save, flash_dens
 
     ! GEOS-Chem modules
     USE HCO_Interface_Common, ONLY : SetHcoTime
     USE Time_Mod,          ONLY : Accept_External_Date_Time
-    USE Emissions_Mod,     ONLY : Emissions_Run         
+    USE Emissions_Mod,     ONLY : Emissions_Run
     USE State_Chm_Mod,     ONLY : Ind_
     USE Calc_Met_Mod,      ONLY : AirQnt
     USE Pressure_Mod,      ONLY : Set_Floating_Pressures
@@ -153,7 +157,7 @@ CONTAINS
 
     CHARACTER(LEN=256)       :: ThisLoc
     CHARACTER(LEN=512)       :: ErrMsg
-    
+
     ! External functions (from shared/Utilities.F90)
     REAL*8 SLP
     REAL*8 QSAT
@@ -211,21 +215,21 @@ CONTAINS
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Visible surface albedo [1]
-          State_Met%ALBD        (II,JJ) = save_alb(i,j)  
+          State_Met%ALBD        (II,JJ) = save_alb(i,j)
 #endif
 
           ! Grid box surface area [cm2]
-          State_Met%AREA_M2     (II,JJ) = axyp(i,j)      
+          State_Met%AREA_M2     (II,JJ) = axyp(i,j)
 
           ! Chemistry grid level [1]
-          State_Met%ChemGridLev (II,JJ) = LM             
+          State_Met%ChemGridLev (II,JJ) = LM
 
           ! Column cloud fraction [1]
-          State_Met%CLDFRC      (II,JJ) = cfrac(i,j)     
+          State_Met%CLDFRC      (II,JJ) = cfrac(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Max cloud top height [levels]
-          State_Met%CLDTOPS(II,JJ) = 1                   
+          State_Met%CLDTOPS(II,JJ) = 1
           DO K = LM, 1, -1
              IF ( State_Met%CMFMC(II,JJ,K) > 0d0 ) THEN
                 State_Met%CLDTOPS(II,JJ) = K + 1
@@ -234,29 +238,40 @@ CONTAINS
           ENDDO
 #endif
 
+#ifdef MODEL_GEOS
+          ! Convective fraction [1] (only used by GEOS)
+          State_Met%CNV_FRC     (II,JJ) = 0.0
+#endif
+
+          ! Convective cloud depth [m]
+          State_Met%CONV_DEPTH  (II,JJ) = cth_save(i,j)
+
           ! Latent heat flux [W/m2]
-          State_Met%EFLUX       (II,JJ) = -atmsrf%latht(i,j)/dtsrc    
+          State_Met%EFLUX       (II,JJ) = -atmsrf%latht(i,j)/dtsrc
+
+          ! Lightning flash density [km-2 s-1]
+          State_Met%FLASH_DENS  (II,JJ) = flash_dens(i,j)
 
           ! Olson land fraction [1]
-          State_Met%FRCLND      (II,JJ) = fland(i,j)                  
+          State_Met%FRCLND      (II,JJ) = fland(i,j)
 
           ! Fraction of lake [1]
-          State_Met%FRLAKE      (II,JJ) = flake(i,j)                  
+          State_Met%FRLAKE      (II,JJ) = flake(i,j)
 
           ! Fraction of land [1]
-          State_Met%FRLAND      (II,JJ) = fland(i,j)                  
+          State_Met%FRLAND      (II,JJ) = fland(i,j)
 
           ! Fraction of land ice [1]
-          State_Met%FRLANDICE   (II,JJ) = flice(i,j)                  
+          State_Met%FRLANDICE   (II,JJ) = flice(i,j)
 
           ! Fraction of ocean [1]
-          State_Met%FROCEAN     (II,JJ) = focean(i,j)                 
+          State_Met%FROCEAN     (II,JJ) = focean(i,j)
 
           ! Sfc sea ice fraction [1]
-          State_Met%FRSEAICE    (II,JJ) = si_atm%RSI(i,j)*focean(i,j) 
+          State_Met%FRSEAICE    (II,JJ) = si_atm%RSI(i,j)*focean(i,j)
 
           ! Surface snow fraction [1]
-          State_Met%FRSNOW       (II,JJ) = 0.0                         
+          State_Met%FRSNOW       (II,JJ) = 0.0
           if ( si_ocn%snowi(i,j) > 0. ) &
                State_Met%FRSNOW(II,JJ) = si_atm%rsi(i,j)*flake(i,j)
           if ( atmlnd%SNOWE(i,j) > 0. ) &
@@ -264,7 +279,7 @@ CONTAINS
           State_Met%FRSNOW(II,JJ) = min( 1.0, State_Met%FRSNOW(II,JJ) )
 
           ! Root soil wetness [1]
-          State_Met%GWETROOT    (II,JJ) = 0.0                                                      
+          State_Met%GWETROOT    (II,JJ) = 0.0
           if ( fearth(i,j) .gt. 0 ) then
              State_Met%GWETROOT  (II,JJ) = (wearth(i,j)+aiearth(i,j))/(wfcs(i,j)+1e-20)
           else
@@ -272,15 +287,15 @@ CONTAINS
           end if
 
           ! Top soil moisture [1] (assume same as GWETROOT for now)
-          State_Met%GWETTOP     (II,JJ) = 0.0                                                   
+          State_Met%GWETTOP     (II,JJ) = 0.0
           if ( fearth(i,j) .gt. 0 ) then
-             State_Met%GWETROOT  (II,JJ) = (wearth(i,j)+aiearth(i,j))/(wfcs(i,j)+1e-20)
+             State_Met%GWETTOP  (II,JJ) = (wearth(i,j)+aiearth(i,j))/(wfcs(i,j)+1e-20)
           else
-             State_Met%GWETROOT  (II,JJ) = 1 ! Set to 1 over oceans to match MERRA-2
+             State_Met%GWETTOP  (II,JJ) = 1 ! Set to 1 over oceans to match MERRA-2
           end if
 
           ! Sensible heat flux [W/m2]
-          State_Met%HFLUX       (II,JJ) = -atmsrf%sensht(i,j)/dtsrc   
+          State_Met%HFLUX       (II,JJ) = -atmsrf%sensht(i,j)/dtsrc
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Leaf area index [m2/m2] (online)
@@ -288,87 +303,84 @@ CONTAINS
 #endif
 
           ! Direct photsynthetically active radiation [W/m2]
-          State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)              
+          State_Met%PARDR       (II,JJ) = 0.82*srvissurf(i,j)*(fsrdir(i,j))*cosz1(i,j)
 
           ! Diffuse photsynthetically active radiation [W/m2]
-          State_Met%PARDF       (II,JJ) = 0.82*srvissurf(i,j)*(1d0-fsrdir(i,j))*cosz1(i,j)          
+          State_Met%PARDF       (II,JJ) = 0.82*srvissurf(i,j)*(1d0-fsrdir(i,j))*cosz1(i,j)
 
           ! PBL height [m] PBL top layer [1]
-          State_Met%PBLH        (II,JJ) = atmsrf%dblavg(i,j)                                        
+          State_Met%PBLH        (II,JJ) = atmsrf%dblavg(i,j)
 
           ! Surface geopotential height [m]
-          State_Met%PHIS        (II,JJ) = zatmo(i,j)                                                
+          State_Met%PHIS        (II,JJ) = zatmo(i,j)
 
           ! Anvil previp @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECANV     (II,JJ) = 0.0                                                       
+          State_Met%PRECANV     (II,JJ) = 0.0
 
           ! Conv  precip @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECCON     (II,JJ) = 86400d0*max(0.,prec(i,j)-precss(i,j))/dtsrc               
-
-          ! Total precip @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECTOT     (II,JJ) = 86400d0*prec(i,j)/dtsrc                                   
+          State_Met%PRECCON     (II,JJ) = 86400d0*max(0.,prec(i,j)-precss(i,j))/dtsrc
 
           ! LS precip @ ground [kg/m2/s] -> mm/d
-          State_Met%PRECLSC     (II,JJ) = 86400d0*precss(i,j)/dtsrc                                 
+          State_Met%PRECLSC     (II,JJ) = 86400d0*precss(i,j)/dtsrc
+
+          ! Total precip @ ground [kg/m2/s] -> mm/d
+          State_Met%PRECTOT     (II,JJ) = 86400d0*prec(i,j)/dtsrc
 
           ! Wet surface pressure at start of timestep [hPa]
-          State_Met%PS1_WET     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS1_WET     (II,JJ) = pedn(1,i,j)
 
           ! Wet surface pressure at end of timestep [hPa]
-          State_Met%PS2_WET     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS2_WET     (II,JJ) = pedn(1,i,j)
 
           ! Wet interpolated surface pressure [hPa]
-          State_Met%PSC2_WET    (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PSC2_WET    (II,JJ) = pedn(1,i,j)
 
           ! Dry surface pressure at start of timestep [hPa]
-          State_Met%PS1_DRY     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS1_DRY     (II,JJ) = pedn(1,i,j)
 
           ! Dry surface pressure at end of timestep [hPa]
-          State_Met%PS2_DRY     (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PS2_DRY     (II,JJ) = pedn(1,i,j)
 
           ! Dry interpolated surface pressure [hPa]
-          State_Met%PSC2_DRY    (II,JJ) = pedn(1,i,j)                                               
+          State_Met%PSC2_DRY    (II,JJ) = pedn(1,i,j)
 
           ! Sea ice coverage 00-10% to 90-100% (only used by Hg)
           State_Met%SEAICE00    (II,JJ) = 0.0
-          State_Met%SEAICE10    (II,JJ) = 0.0                                                       
-          State_Met%SEAICE20    (II,JJ) = 0.0                                                       
-          State_Met%SEAICE30    (II,JJ) = 0.0                                                      
+          State_Met%SEAICE10    (II,JJ) = 0.0
+          State_Met%SEAICE20    (II,JJ) = 0.0
+          State_Met%SEAICE30    (II,JJ) = 0.0
           State_Met%SEAICE40    (II,JJ) = 0.0
-          State_Met%SEAICE50    (II,JJ) = 0.0    
-          State_Met%SEAICE60    (II,JJ) = 0.0    
-          State_Met%SEAICE70    (II,JJ) = 0.0    
-          State_Met%SEAICE80    (II,JJ) = 0.0    
+          State_Met%SEAICE50    (II,JJ) = 0.0
+          State_Met%SEAICE60    (II,JJ) = 0.0
+          State_Met%SEAICE70    (II,JJ) = 0.0
+          State_Met%SEAICE80    (II,JJ) = 0.0
           State_Met%SEAICE90    (II,JJ) = 0.0
 
           ! Sea level pressure [hPa]
           State_Met%SLP         (II,JJ) = slp(pedn(1,i,j),atmsrf%tsavg(i,j),bygrav*zatmo(i,j))*100.
 
           ! Snow depth [m]
-          State_Met%SNODP       (II,JJ) = atmsrf%SNOWDP(i,j) * ( 1d0 - flice(i,j) )                 
+          State_Met%SNODP       (II,JJ) = atmsrf%SNOWDP(i,j) * ( 1d0 - flice(i,j) )
 
           ! Snow mass [kg/m2]
-          State_Met%SNOMAS      (II,JJ) = atmsrf%SNOW(i,j)                                          
+          State_Met%SNOMAS      (II,JJ) = atmsrf%SNOW(i,j)
 
           ! COS(solar zenith angle) at current time
-          State_Met%SUNCOS      (II,JJ) = cosz1(i,j)                                                
+          State_Met%SUNCOS      (II,JJ) = cosz1(i,j)
 
           ! COS(solar zenith angle) at midpoint of chem timestep
-          State_Met%SUNCOSmid   (II,JJ) = save_cosz2(i,j)                                           
+          State_Met%SUNCOSmid   (II,JJ) = save_cosz2(i,j)
 
           ! Incident radiation @ ground [W/m2]
-          State_Met%SWGDN       (II,JJ) = srdn(i,j)*save_cosz2(i,j)                                 
+          State_Met%SWGDN       (II,JJ) = srdn(i,j)*save_cosz2(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Total overhead O3 column [DU]
-          State_Met%TO3         (II,JJ) = save_to3(i,j)                                             
+          State_Met%TO3         (II,JJ) = save_to3(i,j)
 #endif
 
-          ! Tropopause pressure [hPa]     
-          State_Met%TROPP       (II,JJ) = ptropo(i,j)                                               
-
           ! Tropopause level [1]
-          State_Met%TropLev(II,JJ) = 1                   
+          State_Met%TropLev(II,JJ) = 1
           DO K = LM, 1, -1
              IF ( pedn(k,i,j) >= ptropo(i,j) ) THEN
                 State_Met%TropLev(II,JJ) = K
@@ -377,53 +389,43 @@ CONTAINS
           ENDDO
 
           ! Tropopause height [km]
-          State_Met%TropHt      (II,JJ) = 0                                             
+          State_Met%TropHt      (II,JJ) = 0
           DO K = 1, State_Met%TropLev(II,JJ)-1
              State_Met%TropHt(II,JJ) = State_Met%TropHt(II,JJ) + State_Met%BXHEIGHT(II,JJ,K) * 1d-3
           ENDDO
           State_Met%TropHt(II,JJ) = State_Met%TropHt(II,JJ) + &
                State_Met%BXHEIGHT(II,JJ,State_Met%TropLev(II,JJ)) * 0.5d-3
 
+          ! Tropopause pressure [hPa]
+          State_Met%TROPP       (II,JJ) = ptropo(i,j)
+
           ! Surface temperature [K]
-          State_Met%TS          (II,JJ) = atmsrf%tsavg(i,j) - tf + 273.15                               
+          State_Met%TS          (II,JJ) = atmsrf%tsavg(i,j) - tf + 273.15
 
           ! Surface skin temperature [K]
-          State_Met%TSKIN       (II,JJ) = atmsrf%gtempr(i,j)                                        
+          State_Met%TSKIN       (II,JJ) = atmsrf%gtempr(i,j)
 
           ! E/W wind speed @ 10m ht [m/s]
-          State_Met%U10M        (II,JJ) = atmsrf%usavg(i,j)                                         
+          State_Met%U10M        (II,JJ) = atmsrf%usavg(i,j)
 
           ! Friction velocity [m/s]
-          State_Met%USTAR       (II,JJ) = atmsrf%ustar_pbl(i,j)                                     
+          State_Met%USTAR       (II,JJ) = atmsrf%ustar_pbl(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! UV surface albedo [1]
-          State_Met%UVALBEDO    (II,JJ) = save_alb(i,j)                                             
+          State_Met%UVALBEDO    (II,JJ) = save_alb(i,j)
 #endif
 
           ! N/S wind speed @ 10m ht [m/s]
-          State_Met%V10M        (II,JJ) = atmsrf%vsavg(i,j)                                         
+          State_Met%V10M        (II,JJ) = atmsrf%vsavg(i,j)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
           ! Surface roughness height [m]
           State_Met%Z0          (II,JJ) = z0m_save(i,j)
 #endif
 
-#ifdef MODEL_GEOS
-          ! Convective fraction [1] (only used by GEOS)
-          State_Met%CNV_FRC     (II,JJ) = 0.0
-#endif
-
        ENDDO
     ENDDO
-
-!    DO J = State_Grid%NY,1,-1
-!       WRITE(6,'(144F5.2)') State_Met%SUNCOSmid(:,J) 
-!    ENDDO
-!    CALL FLUSH(6)
-!    STOP
-
-    !IF ( am_I_Root() ) WRITE(6,*) "SUNCOSmid", State_Met%SUNCOSmid(:,40)
 
     DO K=1,LM
        DO JJJ=J_0,J_1
@@ -439,99 +441,142 @@ CONTAINS
              if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
              if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
 
+             ! Dry air mass [kg]
+             State_Met%AD          (II,JJ,K) = mma(i,j,k)
+
+             ! Dry air density [kg m-3]
+             ! NOTE: Formula from DIFFG function definition in model/DRYDEF.f with pressure PMID
+             State_Met%AIRDEN      (II,JJ,K) = PMID(II,JJ,K)*avog*bygasc/t(i,j,k)*pk(k,i,j)
+
+             ! Volume of grid box [m3]
+             ! TODO: State_Met%AIRVOL      (II,JJ,K) = ???
+             ! NOTE: We could calculate this using State_Grid%XEdge and State_Grid%YEdge but what
+             !       about the edge cases?
+
+             ! Water vapor mixing ratio (w/r/t dry air)
+             ! NOTE: QSAT is a function defined in model/shared/Utilities.F90
+             State_Met%AVGW        (II,JJ,K) = QSAT(t(i,j,k)*pk(k,i,j),LHE,pmid(k,i,j))
+
+             ! Grid box height [m]
+             ! NOTE: This is the geopotential height from Model E. Do we need to deduce the heights
+             !       from the GEOS-Chem State_Grid derived type?
+             State_Met%BXHEIGHT    (II,JJ,K) = gz(i,j,k)
+
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! 3-D cloud fraction [1]
-             State_Met%CLDF        (II,JJ,K) = min(1.0,CLDSS3D(k,i,j) + CLDMC(k,i,j))                   
+             State_Met%CLDF        (II,JJ,K) = min(1.0,CLDSS3D(k,i,j) + CLDMC(k,i,j))
 
              ! Cloud mass flux [kg/m2/s]
-             State_Met%CMFMC       (II,JJ,K) = cmfmc(i,j,k)                                             
+             State_Met%CMFMC       (II,JJ,K) = cmfmc(i,j,k)
+
+#endif
+
+             ! Delta-pressure across grid box(wet air) [hPa]
+             ! NOTE: Based on EdgePressure_GISS and DeltPressure_GISS from model/FV_UTILS.f
+             ! NOTE: Some of the conditional logic related to the RESOLUTION module was dropped
+             !       here because we aren't using GISS grids.
+             ! NOTE: Surely the calculation is flawed at the top level?
+             ! NOTE: Uses PMID for pressure, which probably isn't right.
+             State_Met%DELP        (II,JJ,K) = (SIGE(K)*PMID(II,JJ,K) - SIGE(K+1)*PMID(II,JJ,K))
+
+             ! Delta-pressure across grid box (dry air) [hPa]
+             ! TODO: State_Met%DELPDRY     (II,JJ,K) = ???
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
 
              ! Conv precip production rate [kg/kg/s] (assume per dry air)
-             State_Met%DQRCU       (II,JJ,K) = dqrcu(i,j,k)                                             
+             State_Met%DQRCU       (II,JJ,K) = dqrcu(i,j,k)
 
              ! LS precip prod rate [kg/kg/s] (assume per dry air)
-             State_Met%DQRLSAN     (II,JJ,K) = dqrlsan(i,j,k)                                           
+             State_Met%DQRLSAN     (II,JJ,K) = dqrlsan(i,j,k)
 
              ! Detrainment flux [kg/m2/s]
-             State_Met%DTRAIN      (II,JJ,K) = dtrain(i,j,k)                                            
+             State_Met%DTRAIN      (II,JJ,K) = dtrain(i,j,k)
+
 #endif
 
              ! Vertical pressure velocity [Pa/s]
-             State_Met%OMEGA       (II,JJ,K) = MWs(i,j,k)*byaxyp(i,j)*100.0/dtsrc                       
+             State_Met%OMEGA       (II,JJ,K) = MWs(i,j,k)*byaxyp(i,j)*100.0/dtsrc
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! Visible optical depth [1]
-             State_Met%OPTD        (II,JJ,K) = (cldss(k,i,j)*TAUSS(k,i,j) + &                           
+             State_Met%OPTD        (II,JJ,K) = (cldss(k,i,j)*TAUSS(k,i,j) + &
                   cldmc(k,i,j)*TAUMC(k,i,j)  ) / ( cldss(k,i,j) + cldmc(k,i,j) + teeny )
 #endif
 
-             ! Wet air press @ level edges [hPa]
-             State_Met%PEDGE       (II,JJ,K) = pedn(k,i,j)                                              
+             ! Pressure (w/r/t moist air) at level edges [hPa]
+             State_Met%PEDGE       (II,JJ,K) = pedn(k,i,j)
+
+             ! Pressure (w/r/t dry air) at level edges [hPa]
+             ! TODO: State_Met%PEDGE_DRY   (II,JJ,K) = ???
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! Dwn flux ice prec:conv [kg/m2/s]
-             State_Met%PFICU       (II,JJ,K) = pficu(i,j,k)                                             
+             State_Met%PFICU       (II,JJ,K) = pficu(i,j,k)
 
              ! Dwn flux ice prec:LS+anv [kg/m2/s]
-             State_Met%PFILSAN     (II,JJ,K) = pfilsan(i,j,k)                                           
+             State_Met%PFILSAN     (II,JJ,K) = pfilsan(i,j,k)
 
              ! Dwn flux liq prec:conv [kg/m2/s]
-             State_Met%PFLCU       (II,JJ,K) = pflcu(i,j,k)                                             
+             State_Met%PFLCU       (II,JJ,K) = pflcu(i,j,k)
 
              ! Dwn flux ice prec:LS+anv [kg/m2/s]
-             State_Met%PFLLSAN     (II,JJ,K) = pfllsan(i,j,k)                                           
+             State_Met%PFLLSAN     (II,JJ,K) = pfllsan(i,j,k)
 #endif
 
              ! Ice mixing ratio [kg/kg dry air]
-             State_Met%QI          (II,JJ,K) = qci(i,j,k)                                               
+             State_Met%QI          (II,JJ,K) = qci(i,j,k)
 
              ! Water mixing ratio [kg/kg dry air]
-             State_Met%QL          (II,JJ,K) = qcl(i,j,k)                                               
+             State_Met%QL          (II,JJ,K) = qcl(i,j,k)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! Evap of precip conv [kg/kg/s] (assume per dry air)
-             State_Met%REEVAPCN    (II,JJ,K) = reevapcn(i,j,k)                                          
+             State_Met%REEVAPCN    (II,JJ,K) = reevapcn(i,j,k)
 
              ! Evap of precip LS+anvil [kg/kg/s] (assume per dry air)
-             State_Met%REEVAPLS    (II,JJ,K) = reevapls(i,j,k)                                          
+             State_Met%REEVAPLS    (II,JJ,K) = reevapls(i,j,k)
 #endif
 
              ! Relative humidity [%]
-             State_Met%RH          (II,JJ,K) = 100.*q(i,j,k)/QSAT(t(i,j,k)*pk(k,i,j),LHE,pmid(k,i,j))   
+             State_Met%RH          (II,JJ,K) = 100.*q(i,j,k)/State_Met%AVGW(II,JJ,K)
              IF ( IT_IS_NAN( State_Met%RH(II,JJ,K) ) ) THEN
-                WRITE(6,*) II,JJ,K, q(i,j,k), QSAT(t(i,j,k)*pk(k,i,j),LHE,pmid(k,i,j)), &
-                     t(i,j,k), pk(k,i,j), LHE, pmid(k,i,j)               
+                WRITE(6,*) II,JJ,K, q(i,j,k), State_Met%AVGW(II,JJ,K), &
+                     t(i,j,k), pk(k,i,j), LHE, pmid(k,i,j)
                 CALL STOP_MODEL("Bad RH",255)
              ENDIF
 
              ! Specific humidity [g H2O/kg tot air]
-             State_Met%SPHU        (II,JJ,K) = q(i,j,k)                                                 
+             State_Met%SPHU        (II,JJ,K) = q(i,j,k)
 
              ! Specific humidity at start of timestep [g/kg]
-             State_Met%SPHU1       (II,JJ,K) = q(i,j,k)                                                 
+             State_Met%SPHU1       (II,JJ,K) = q(i,j,k)
 
              ! Specific humidity at end of timestep [g/kg]  
-             State_Met%SPHU2       (II,JJ,K) = q(i,j,k)                                                 
+             State_Met%SPHU2       (II,JJ,K) = q(i,j,k)
 
              ! Temperature [K]
-             State_Met%T           (II,JJ,K) = t(i,j,k)*pk(k,i,j)                                       
+             State_Met%T           (II,JJ,K) = t(i,j,k)*pk(k,i,j)
+
+             ! Potential temperature [K]
+             State_Met%THETA       (II,JJ,K) = t(i,j,k)
 
 #ifdef CALC_MERRA2_LIKE_DIAGS
              ! Optical depth of ice clouds [1]
-             State_Met%TAUCLI      (II,JJ,K) = taui3d(i,j,k)                                            
+             State_Met%TAUCLI      (II,JJ,K) = taui3d(i,j,k)
 
              ! Optical depth of H2O clouds [1]
              State_Met%TAUCLW      (II,JJ,K) = tauw3d(i,j,k)
 #endif
 
              ! Temperature at start of timestep [K]
-             State_Met%TMPU1       (II,JJ,K) = t(i,j,k)*pk(k,i,j)                                       
+             State_Met%TMPU1       (II,JJ,K) = t(i,j,k)*pk(k,i,j)
 
              ! Temperature at end of timestep [K]
-             State_Met%TMPU2       (II,JJ,K) = t(i,j,k)*pk(k,i,j)                                       
+             State_Met%TMPU2       (II,JJ,K) = t(i,j,k)*pk(k,i,j)
 
              ! E/W component of wind [m s-1]
-             State_Met%U           (II,JJ,K) = ualij(k,i,j)                                             
+             State_Met%U           (II,JJ,K) = ualij(k,i,j)
 
 #ifdef MODEL_GEOS
              ! Updraft vertical velocity [hPa/s] (only used by GEOS)
@@ -539,7 +584,7 @@ CONTAINS
 #endif
 
              ! N/S component of wind [m s-1]
-             State_Met%V           (II,JJ,K) = valij(k,i,j)                                             
+             State_Met%V           (II,JJ,K) = valij(k,i,j)
 
           ENDDO
        ENDDO
@@ -552,7 +597,8 @@ CONTAINS
           II = I - I_0 + 1
           JJ = J - J_0 + 1
 
-          State_Met%PEDGE       (II,JJ,LM+1) =  pedn(LM+1,i,j)                                    
+          State_Met%PEDGE       (II,JJ,LM+1) =  pedn(LM+1,i,j)
+          ! TODO: State_Met%PEDGE_DRY   (II,JJ,LM+1) =  ???
 #ifdef CALC_MERRA2_LIKE_DIAGS
           State_Met%CMFMC       (II,JJ,LM+1) =  cmfmc(i,j,LM+1)
           State_Met%PFICU       (II,JJ,LM+1) =  pficu(i,j,LM+1)
@@ -561,6 +607,81 @@ CONTAINS
           State_Met%PFLLSAN     (II,JJ,LM+1) =  pfllsan(i,j,LM+1)
 #endif
 
+       ENDDO
+    ENDDO
+
+    DO K=1,LM
+       DO JJJ=J_0,J_1
+          DO III=I_0,I_1
+
+             ! GEOS-Chem local index
+             II = III - I_0 + 1
+             JJ = JJJ - J_0 + 1
+
+             ! GISS meteorology index (GISS only has one polar box)
+             I = III
+             J = JJJ
+             if(hassouthpole(grid) .and. JJJ .eq. J_0 ) I = 1
+             if(hasnorthpole(grid) .and. JJJ .eq. J_1 ) I = 1
+
+             ! Loop over all products
+             do n=1,nprod
+                ! TODO: State_Diag%Prod(n,II,JJ,K) = ???
+             end do ! products loop
+
+             ! Production of hydrophilic black carbon from hydrophobic black carbon [kg]
+             ! TODO: State_Diag%ProdBCPIfromBCPO             (II,JJ,K) = ???
+
+             ! Production of hydrophilic organic carbon from hydrophobic organic carbon [kg]
+             ! TODO: State_Diag%ProdOCPIfromOCPO             (II,JJ,K) = ???
+
+             ! Production of HMS from aqueous reaction of SO2 and HCHO in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdHMSfromSO2andHCHOinCloud             (II,JJ,K) = ???
+
+             ! Production of SO2 and HCHO from aqueous reaction of HS and OH- in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdSO2andHCHOfromHMSinCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous oxidation of O3 in clouds [kg S  s-1]
+             ! TODO: State_Diag%ProdSO4fromHMSinCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous oxidation of H2O2 in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromH2O2inCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous oxidation of O2 from metals in cloud [kg S]
+             ! TODO: State_Diag%ProdSO4fromO2inCloudMetal             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueus oxidation of O3 in cloud [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromO3inCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from O3 in sea salt [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromO3inSeaSalt             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueus oxidation of HOBr in clouds [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromHOBrInCloud             (II,JJ,K) = ???
+
+             ! Production of SO4 from sulphur production rate of O3 [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromSRO3             (II,JJ,K) = ???
+
+             ! Production of SO4 from sulphur production rate of HOBr + O3 [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromSRHObr             (II,JJ,K) = ???
+
+             ! Production of SO4 from aqueous phase SO3 loss by OH [kg S s-1]
+             ! TODO: State_Diag%ProdSO4fromO3s             (II,JJ,K) = ???
+
+             ! Loop over all losses
+             do n=1,nloss
+                ! TODO: State_Diag%Loss(n,II,JJ,K) = ???
+             end do ! losses loop
+
+             ! Loss of HNO3 on sea salt aerosols [kg s-1]
+             ! TODO: State_Diag%LossHNO3onSeaSalt             (II,JJ,K) = ???
+
+             ! Production of CO from CH4 [kg s-1]
+             ! TODO: State_Diag%ProdCOfromCH4             (II,JJ,K) = ???
+
+             ! Production of CO from NMVOCs SO3 - loss by OH [kg s-1]
+             ! TODO: State_Diag%ProdCOfromNMVOC             (II,JJ,K) = ???
+          ENDDO
        ENDDO
     ENDDO
 
@@ -2170,6 +2291,7 @@ CONTAINS
 #ifdef CACHED_SUBDD
   SUBROUTINE accumGCsubdd
 
+    use chem_com, only : nprod, nloss, prodname, lossname
     use domain_decomp_atm, only : grid, am_i_root
     use subdd_mod, only : subdd_groups,subdd_type,subdd_ngroups, &
          inc_subdd,find_groups, LmaxSUBDD
@@ -2228,13 +2350,13 @@ CONTAINS
        do k=1,subdd%ndiags
           ntm_loop: do n=1,State_Chm%nSpecies
              ! tracer 3D mixing ratios (SUBDD names are just tracer name):
-             if( trim( State_Chm%SpcData(N)%Info%Name ) .eq. trim(subdd%name(k)) ) then                
+             if( trim( State_Chm%SpcData(N)%Info%Name ) .eq. trim(subdd%name(k)) ) then
                 DO L=1,LmaxSUBDD
                 DO J=J_0,J_1
                 DO I=I_0,I_1
                    II = I - I_0 + 1
                    JJ = J - J_0 + 1
-                   sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)         
+                   sddarr3d(I,J,L) = State_Chm%Species(N)%Conc(II,JJ,L)
                 ENDDO
                 ENDDO
                 ENDDO
@@ -2242,6 +2364,707 @@ CONTAINS
                 exit ntm_loop
              end if
           end do ntm_loop
+       enddo ! k
+    enddo ! igroup
+
+    do igrp=1,ngroups
+       subdd => subdd_groups(grpids(igrp))
+       do k=1,subdd%ndiags
+          if ( trim(subdd%name(k)) == "StateMet_AD" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AD(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_AIRDEN" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AIRDEN(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_AIRVOL" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AIRVOL(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_AVGW" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%AVGW(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_BXHEIGHT" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%BXHEIGHT(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_CLDF" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%CLDF(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_CMFMC" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%CMFMC(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_DELP" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DELP(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_DELPDRY" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DELP_DRY(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_DQRCU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DQRCU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_DQRLSAN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DQRLSAN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_DTRAIN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%DTRAIN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_OMEGA" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%OMEGA(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_OPTD" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%OPTD(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PEDGE" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PEDGE(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PEDGEDRY" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PEDGE_DRY(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_PFICU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFICU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PFILSAN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFILSAN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PFLCU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFLCU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PFLLSAN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%PFLLSAN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_QI" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%QI(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_QL" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%QL(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_REEVAPCN" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%REEVAPCN(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_REEVAPLS" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%REEVAPLS(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_RH" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%RH(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SPHU" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%SPHU(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SPHU1" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%SPHU1(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SPHU2" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%SPHU2(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_T" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%T(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_THETA" ) then
+            DO L=1,LmaxSUBDD
+            DO J=J_0,J_1
+            DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%THETA(II,JJ,L)
+            ENDDO
+            ENDDO
+            ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_TAUCLI" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TAUCLI(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TAUCLW" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TAUCLW(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TMPU1" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TMPU1(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TMPU2" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%TMPU2(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_U" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%U(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef MODEL_GEOS
+
+          if ( trim(subdd%name(k)) == "StateMet_UPDVVEL" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%UPDVVEL(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_V" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Met%V(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          ! Loop over all products
+          do n=1,nprod
+            if ( trim(subdd%name(k)) == prodname(n) ) then
+              DO L=1,LmaxSUBDD
+              DO J=J_0,J_1
+              DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  sddarr3d(I,J,L) = State_Diag%Prod(n,II,JJ,L)
+              ENDDO
+              ENDDO
+              ENDDO
+            endif
+          end do ! products loop
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdBCPIfromBCPO" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdBCPIfromBCPO(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdOCPIfromOCPO" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdOCPIfromOCPO(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdHMSfromSO2andHCHOinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdHMSfromSO2andHCHOinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO2andHCHOfromHMSinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO2andHCHOfromHMSinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromHMSinCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromHMSinCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromH2O2inCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromH2O2inCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO2inCloudMetal" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO2inCloudMetal(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3inCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO3inCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3inSeaSalt" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO3inSeaSalt(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromHOBrInCloud" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromHOBrInCloud(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromSRO3" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromSRO3(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromSRHObr" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromSRHObr(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdSO4fromO3s" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdSO4fromO3s(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          ! Loop over all losses
+          do n=1,nloss
+            if ( trim(subdd%name(k)) == lossname(n) ) then
+              DO L=1,LmaxSUBDD
+              DO J=J_0,J_1
+              DO I=I_0,I_1
+                  II = I - I_0 + 1
+                  JJ = J - J_0 + 1
+                  sddarr3d(I,J,L) = State_Diag%Loss(n,II,JJ,L)
+              ENDDO
+              ENDDO
+              ENDDO
+            endif
+          end do ! losses loop
+
+          if ( trim(subdd%name(k)) == "ProdLoss_LossHNO3onSeaSalt" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%LossHNO3onSeaSalt(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdCOfromCH4" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdCOfromCH4(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "ProdLoss_ProdCOfromNMVOC" ) then
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%ProdCOfromNMVOC(II,JJ,L)
+             ENDDO
+             ENDDO
+             ENDDO
+          endif
+
+          call inc_subdd(subdd,k,sddarr3d)
        enddo ! k
     enddo ! igroup
 
@@ -2261,12 +3084,223 @@ CONTAINS
        subdd => subdd_groups(grpids(igrp))
        do k=1,subdd%ndiags
 
-          if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          if ( trim(subdd%name(k)) == "StateMet_ALBD" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%SUNCOSmid(II,JJ)
+                sddarr2d(I,J) = State_Met%ALBD(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
+          ! NOTE: Not in HISTORY file
+          if ( trim(subdd%name(k)) == "StateMet_AREAM2" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%AREA_M2(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_ChemGridLev" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%ChemGridLev(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_CLDFRC" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CLDFRC(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          if ( trim(subdd%name(k)) == "StateMet_CLDTOPS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CLDTOPS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
+#ifdef MODEL_GEOS
+          if ( trim(subdd%name(k)) == "StateMet_CNVFRC" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CNV_FRC(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_CONVDEPTH" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%CONV_DEPTH(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_EFLUX" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%EFLUX(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_FLASHDENS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FLASH_DENS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_FRCLND" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRCLND(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_FRLAKE" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRLAKE(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_FRLAND" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRLAND(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          ! NOTE: FRLANDIC in HISTORY file
+          if ( trim(subdd%name(k)) == "StateMet_FRLANDICE" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRLANDICE(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_FROCEAN" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FROCEAN(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_FRSEAICE" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRSEAICE(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          ! NOTE: FRSNO in HISTORY file
+          if ( trim(subdd%name(k)) == "StateMet_FRSNOW" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%FRSNOW(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_GWETROOT" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%GWETROOT(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_GWETTOP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%GWETTOP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_HFLUX" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%HFLUX(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          if ( trim(subdd%name(k)) == "StateMet_LAI" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%LAI(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PARDR" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PARDR(II,JJ)
              ENDDO
              ENDDO
           endif
@@ -2281,16 +3315,394 @@ CONTAINS
              ENDDO
           endif
 
-          if ( trim(subdd%name(k)) == "StateMet_PARDR" ) then
+          if ( trim(subdd%name(k)) == "StateMet_PBLH" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
                 II = I - I_0 + 1
                 JJ = J - J_0 + 1
-                sddarr2d(I,J) = State_Met%PARDR(II,JJ)
+                sddarr2d(I,J) = State_Met%PBLH(II,JJ)
              ENDDO
              ENDDO
           endif
-                  
+
+          if ( trim(subdd%name(k)) == "StateMet_PHIS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PHIS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PRECANV" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PRECANV(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PRECCON" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PRECCON(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PRECLSC" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PRECLSC(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PRECTOT" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PRECTOT(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PS1WET" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS1_WET(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PS2WET" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS2_WET(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PSC2WET" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PSC2_WET(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PS1DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS1_DRY(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_PS2DRY" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%PS2_DRY(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE00" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE00(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE10" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE10(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE20" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE20(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE30" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE30(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE40" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE40(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE50" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE50(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE60" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE60(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE70" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE70(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE80" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE80(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SEAICE90" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SEAICE90(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SLP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SLP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SNODP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SNODP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SNOMAS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SNOMAS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SUNCOS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SUNCOS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SUNCOSmid" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SUNCOSmid(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_SWGDN" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%SWGDN(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_TO3" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TO3(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TropLev" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TropLev(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TropHt" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TropHt(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TROPP" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TROPP(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TS" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TS(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_TSKIN" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%TSKIN(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_U10M" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%U10M(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+          if ( trim(subdd%name(k)) == "StateMet_USTAR" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%USTAR(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+          if ( trim(subdd%name(k)) == "StateMet_UVALBEDO" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%UVALBEDO(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
+          if ( trim(subdd%name(k)) == "StateMet_V10M" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%V10M(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+          if ( trim(subdd%name(k)) == "StateMet_Z0" ) then
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr2d(I,J) = State_Met%Z0(II,JJ)
+             ENDDO
+             ENDDO
+          endif
+#endif
+
           if ( trim(subdd%name(k)) == "lat2d" ) then
              DO J=J_0,J_1
              DO I=I_0,I_1
@@ -2300,11 +3712,11 @@ CONTAINS
              ENDDO
              ENDDO
           endif
-          
+
           call inc_subdd(subdd,k,sddarr2d)
        enddo ! k
     enddo ! igroup
-        
+
   END SUBROUTINE accumGCsubdd
 
 #endif
@@ -3067,7 +4479,7 @@ SUBROUTINE tijlh_defs(arr,nmax,decl_count)
 use subdd_mod, only : info_type
 ! info_type_ is a homemade structure constructor for older compilers
 use subdd_mod, only : info_type_
-use chem_com, only : ntm, trname, nsp, spname
+use chem_com, only : ntm, trname, nsp, nprod, nloss, spname, prodname, lossname
 implicit none
 integer :: nmax,decl_count
 integer :: n
@@ -3078,13 +4490,379 @@ decl_count = 0
 ! First, diagnostics available for all tracers:
 do n=1,nsp
    ! 3D mixing ratios (SUBDD string is just tracer name):
-   arr(next()) = info_type_(                      &
+   arr(next()) = info_type_(                     &
        sname = trim(spname(n)),                  &
        lname = trim(spname(n))//' mixing ratio', &
        units = 'mol mol-1'                       &
        )
 end do ! tracers loop
 
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AD',                       &
+    lname = 'StateMet_AD',                       &
+    units = 'kg'                                 &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AIRDEN',                   &
+    lname = 'StateMet_AIRDEN',                   &
+    units = 'kg m-3'                             &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AIRVOL',                   &
+    lname = 'StateMet_AIRVOL',                   &
+    units = 'm3'                                 &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_AVGW',                     &
+    lname = 'StateMet_AVGW',                     &
+    units = 'vol vol-1'                          &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_BXHEIGHT',                 &
+    lname = 'StateMet_BXHEIGHT',                 &
+    units = 'm'                                  &
+    )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_CLDF',                    &
+     lname = 'StateMet_CLDF',                    &
+     units = '1'                                 &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_CMFMC',                   &
+     lname = 'StateMet_CMFMC',                   &
+     units = 'kg m-2 s-1'                        &
+     )
+
+#endif
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_DELP',                     &
+    lname = 'StateMet_DELP',                     &
+    units = 'hPa'                                &
+    )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_DELPDRY',                  &
+    lname = 'StateMet_DELPDRY',                  &
+    units = 'hPa'                                &
+    )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_DQRCU',                   &
+     lname = 'StateMet_DQRCU',                   &
+     units = 'kg kg-1 s-1'                       &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_DQRLSAN',                 &
+     lname = 'StateMet_DQRLSAN',                 &
+     units = 'kg kg-1 s-1'                       &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_DTRAIN',                  &
+     lname = 'StateMet_DTRAIN',                  &
+     units = 'kg / m2 / s'                       &
+     )
+
+#endif
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_OMEGA',                   &
+     lname = 'StateMet_OMEGA',                   &
+     units = 'Pa s-1'                            &
+     )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_OPTD',                    &
+     lname = 'StateMet_OPTD',                    &
+     units = '1'                                 &
+     )
+
+#endif
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PEDGE',                   &
+     lname = 'StateMet_PEDGE',                   &
+     units = 'hPa'                               &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PEDGEDRY',                &
+     lname = 'StateMet_PEDGEDRY',                &
+     units = 'hPa'                               &
+     )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFICU',                   &
+     lname = 'StateMet_PFICU',                   &
+     units = 'kg m-2 s-1'                        &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFILSAN',                 &
+     lname = 'StateMet_PFILSAN',                 &
+     units = 'kg m-2 s-1'                        &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFLCU',                   &
+     lname = 'StateMet_PFLCU',                   &
+     units = 'kg m-2 s-1'                        &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_PFLLSAN',                 &
+     lname = 'StateMet_PFLLSAN',                 &
+     units = 'kg m-2 s-1'                        &
+     )
+
+#endif
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_QI',                      &
+     lname = 'StateMet_QI',                      &
+     units = 'kg kg-1'                           &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_QL',                      &
+     lname = 'StateMet_QL',                      &
+     units = 'kg kg-1'                           &
+     )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_REEVAPCN',                &
+     lname = 'StateMet_REEVAPCN',                &
+     units = 'kg kg-1 s-1'                       &
+     )
+
+! NOTE: In GEOS-Chem/Header/state_met_mod.F90 the units are 'kg '. Typo?
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_REEVAPLS',                &
+     lname = 'StateMet_REEVAPLS',                &
+     units = 'kg kg-1 s-1'                       &
+     )
+
+#endif
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_RH',                      &
+     lname = 'StateMet_RH',                      &
+     units = '%'                                 &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_SPHU',                    &
+     lname = 'StateMet_SPHU',                    &
+     units = 'g kg-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_SPHU1',                   &
+     lname = 'StateMet_SPHU1',                   &
+     units = 'g kg-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_SPHU2',                   &
+     lname = 'StateMet_SPHU2',                   &
+     units = 'g kg-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_T',                       &
+     lname = 'StateMet_T',                       &
+     units = 'K'                                 &
+     )
+
+arr(next()) = info_type_(                        &
+    sname = 'StateMet_THETA',                    &
+    lname = 'StateMet_THETA',                    &
+    units = 'K'                                  &
+    )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TAUCLI',                  &
+     lname = 'StateMet_TAUCLI',                  &
+     units = '1'                                 &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TAUCLW',                  &
+     lname = 'StateMet_TAUCLW',                  &
+     units = '1'                                 &
+     )
+
+#endif
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TMPU1',                   &
+     lname = 'StateMet_TMPU1',                   &
+     units = 'K'                                 &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_TMPU2',                   &
+     lname = 'StateMet_TMPU2',                   &
+     units = 'K'                                 &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_U',                       &
+     lname = 'StateMet_U',                       &
+     units = 'm s-1'                             &
+     )
+
+#ifdef MODEL_GEOS
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_UPDVVEL',                 &
+     lname = 'StateMet_UPDVVEL',                 &
+     units = 'hPa s-1'                           &
+     )
+
+#endif
+
+arr(next()) = info_type_(                        &
+     sname = 'StateMet_V',                       &
+     lname = 'StateMet_V',                       &
+     units = 'm s-1'                             &
+     )
+
+! ProdLoss Collection
+
+! Loop over all products
+do n=1,nprod
+   arr(next()) = info_type_(                     &
+       sname = trim(prodname(n)),                &
+       lname = trim(prodname(n)),                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! products loop
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdBCPIfromBCPO',                 &
+     lname = 'ProdBCPIfromBCPO',                 &
+     units = 'kg'                                &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdBCPIfromOCPO',                 &
+     lname = 'ProdBCPIfromOCPO',                 &
+     units = 'kg'                                &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdHMSfromSO2andHCHOinCloud',     &
+     lname = 'ProdHMSfromSO2andHCHOinCloud',     &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO2andHCHOfromHMSinCloud',     &
+     lname = 'ProdSO2andHCHOfromHMSinCloud',     &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromHMSinCloud',            &
+     lname = 'ProdSO4fromHMSinCloud',            &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromH2O2inCloud',           &
+     lname = 'ProdSO4fromH2O2inCloud',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO2inCloudMetal',        &
+     lname = 'ProdSO4fromO2inCloudMetal',        &
+     units = 'kg S'                              &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3inCloud',             &
+     lname = 'ProdSO4fromO3inCloud',             &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3inSeaSalt',           &
+     lname = 'ProdSO4fromO3inSeaSalt',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromHOBrInCloud',           &
+     lname = 'ProdSO4fromHOBrInCloud',           &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromSRO3',                  &
+     lname = 'ProdSO4fromSRO3',                  &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromSRHObr',                 &
+     lname = 'ProdSO4fromSRHObr',                &
+     units = 'kg S s-1'                          &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdSO4fromO3s',                   &
+     lname = 'ProdSO4fromO3s',                   &
+     units = 'kg S s-1'                          &
+     )
+
+! Loop over all losses
+do n=1,nloss
+   arr(next()) = info_type_(                     &
+       sname = trim(lossname(n)),                &
+       lname = trim(lossname(n)),                &
+       units = 'molec cm-3 s-1'                  &
+       )
+end do ! losses loop
+
+arr(next()) = info_type_(                        &
+     sname = 'LossHNO3onSeaSalt',                &
+     lname = 'LossHNO3onSeaSalt',                &
+     units = 'kg s-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdCOfromCH4',                    &
+     lname = 'ProdCOfromCH4',                    &
+     units = 'kg s-1'                            &
+     )
+
+arr(next()) = info_type_(                        &
+     sname = 'ProdCOfromNMVOC',                  &
+     lname = 'ProdCOfromNMVOC',                  &
+     units = 'kg s-1'                            &
+     )
 return
 contains
 integer function next()
@@ -3109,10 +4887,142 @@ decl_count = 0
 
 !do n=1,1
 
+#ifdef CALC_MERRA2_LIKE_DIAGS
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_SUNCOSmid',             &
-       lname = 'StateMet_SUNCOSmid',             &
+       sname = 'StateMet_ALBD',                  &
+       lname = 'StateMet_ALBD',                  &
+       units = '1'                               & 
+       )
+#endif
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_AREAM2',                &
+       lname = 'StateMet_AREAM2',                &
+       units = 'm2'                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_ChemGridLev',           &
+       lname = 'StateMet_ChemGridLev',           &
        units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CLDFRC',                &
+       lname = 'StateMet_CLDFRC',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CLDFRC',                &
+       lname = 'StateMet_CLDFRC',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CLDTOPS',               &
+       lname = 'StateMet_CLDTOPS',               &
+       units = 'level'                           &
+       )
+
+#ifdef MODEL_GEOS
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CNVFRC',                &
+       lname = 'StateMet_CNVFRC',                &
+       units = '1'                               &
+       )
+#endif
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_CONVDEPTH',             &
+       lname = 'StateMet_CONVDEPTH',             &
+       units = 'm'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_EFLUX',                 &
+       lname = 'StateMet_EFLUX',                 &
+       units = 'W m-2'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FLASHDENS',             &
+       lname = 'StateMet_FLASHDENS',             &
+       units = 'km-2 s-1'                        &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRCLND',                &
+       lname = 'StateMet_FRCLND',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRLAKE',                &
+       lname = 'StateMet_FRLAKE',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRLAND',                &
+       lname = 'StateMet_FRLAND',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRLANDICE',             &
+       lname = 'StateMet_FRLANDICE',             &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FROCEAN',               &
+       lname = 'StateMet_FROCEAN',               &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRSEAICE',              &
+       lname = 'StateMet_FRSEAICE',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_FRSNOW',                &
+       lname = 'StateMet_FRSNOW',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_GWETROOT',              &
+       lname = 'StateMet_GWETROOT',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_GWETTOP',               &
+       lname = 'StateMet_GWETTOP',               &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_HFLUX',                 &
+       lname = 'StateMet_HFLUX',                 &
+       units = 'W m-2'                           &
+       )
+
+#ifdef CALC_MERRA2_LIKE_DIAGS
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_LAI',                   &
+       lname = 'StateMet_LAI',                   &
+       units = 'm2 m-2'                          &
+       )
+#endif
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PARDR',                 &
+       lname = 'StateMet_PARDR',                 &
+       units = 'W m-2'                           &
        )
 
   arr(next()) = info_type_(                      &
@@ -3122,9 +5032,231 @@ decl_count = 0
        )
 
   arr(next()) = info_type_(                      &
-       sname = 'StateMet_PARDR',                 &
-       lname = 'StateMet_PARDR',                 &
+       sname = 'StateMet_PBLH',                  &
+       lname = 'StateMet_PBLH',                  &
+       units = 'm'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PHIS',                  &
+       lname = 'StateMet_PHIS',                  &
+       units = 'm'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PRECANV',               &
+       lname = 'StateMet_PRECANV',               &
+       units = 'kg m-2 s-1'                      &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PRECCON',               &
+       lname = 'StateMet_PRECCON',               &
+       units = 'mm day-1'                        &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PRECLSC',               &
+       lname = 'StateMet_PRECLSC',               &
+       units = 'kg m-2 s-1'                      &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PRECTOT',               &
+       lname = 'StateMet_PRECTOT',               &
+       units = 'mm day-1'                        &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS1WET',                &
+       lname = 'StateMet_PS1WET',                &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS2WET',                &
+       lname = 'StateMet_PS2WET',                &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PSC2WET',               &
+       lname = 'StateMet_PSC2WET',               &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS1DRY',                &
+       lname = 'StateMet_PS1DRY',                &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_PS2DRY',                &
+       lname = 'StateMet_PS2DRY',                &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE00',              &
+       lname = 'StateMet_SEAICE00',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE10',              &
+       lname = 'StateMet_SEAICE10',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE20',              &
+       lname = 'StateMet_SEAICE20',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE30',              &
+       lname = 'StateMet_SEAICE30',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE40',              &
+       lname = 'StateMet_SEAICE40',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE50',              &
+       lname = 'StateMet_SEAICE50',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE60',              &
+       lname = 'StateMet_SEAICE60',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE70',              &
+       lname = 'StateMet_SEAICE70',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE80',              &
+       lname = 'StateMet_SEAICE80',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SEAICE90',              &
+       lname = 'StateMet_SEAICE90',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SLP',                   &
+       lname = 'StateMet_SLP',                   &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SNODP',                 &
+       lname = 'StateMet_SNODP',                 &
+       units = 'm'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SNOMAS',                &
+       lname = 'StateMet_SNOMAS',                &
+       units = 'kg m-2'                          &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SUNCOS',                &
+       lname = 'StateMet_SUNCOS',                &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SUNCOSmid',             &
+       lname = 'StateMet_SUNCOSmid',             &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_SWGDN',                 &
+       lname = 'StateMet_SWGDN',                 &
        units = 'W m-2'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TO3',                   &
+       lname = 'StateMet_TO3',                   &
+       units = 'dobsons'                         &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TROPLEV',               &
+       lname = 'StateMet_TROPLEV',               &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TROPHT',                &
+       lname = 'StateMet_TROPHT',                &
+       units = 'km'                              &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TROPP',                 &
+       lname = 'StateMet_TROPP',                 &
+       units = 'hPa'                             &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TS',                    &
+       lname = 'StateMet_TS',                    &
+       units = 'K'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_TSKIN',                 &
+       lname = 'StateMet_TSKIN',                 &
+       units = 'K'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_U10M',                  &
+       lname = 'StateMet_U10M',                  &
+       units = 'm s-1'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_USTAR',                 &
+       lname = 'StateMet_USTAR',                 &
+       units = 'm s-1'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_UVALBEDO',              &
+       lname = 'StateMet_UVALBEDO',              &
+       units = '1'                               &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_V10M',                  &
+       lname = 'StateMet_V10M',                  &
+       units = 'm s-1'                           &
+       )
+
+  arr(next()) = info_type_(                      &
+       sname = 'StateMet_Z0',                    &
+       lname = 'StateMet_Z0',                    &
+       units = 'm'                               &
        )
 
   arr(next()) = info_type_(                      &

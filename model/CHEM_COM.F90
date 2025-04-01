@@ -16,12 +16,16 @@ module CHEM_COM
 
   INTEGER, PUBLIC                                       :: NSP        ! Number of chemical species
   INTEGER, PUBLIC                                       :: NTM        ! Number of tracers to advect
+  INTEGER, PUBLIC                                       :: NPROD      ! Number of products
+  INTEGER, PUBLIC                                       :: NLOSS      ! Number of losses
   REAL*8,  PUBLIC, ALLOCATABLE, DIMENSION(:,:,:,:)      :: TrM        ! Tracer array (kg)
   REAL*8,  PUBLIC, ALLOCATABLE, DIMENSION(:,:,:,:,:)    :: TrMom      ! Second order moments for tracers (kg)
 
   CHARACTER(LEN=12), PUBLIC, ALLOCATABLE, DIMENSION(:)  :: SpName     ! Species name
   CHARACTER(LEN=8), PUBLIC, ALLOCATABLE, DIMENSION(:)   :: TrName     ! Advected species name
   CHARACTER(LEN=163), PUBLIC, ALLOCATABLE, DIMENSION(:) :: TrFullName ! Full name
+  CHARACTER(LEN=12), PUBLIC, ALLOCATABLE, DIMENSION(:)  :: ProdName   ! Product name
+  CHARACTER(LEN=12), PUBLIC, ALLOCATABLE, DIMENSION(:)  :: LossName   ! Loss name
   LOGICAL, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: IsAdvected ! Advect this tracer?
   LOGICAL, PUBLIC, ALLOCATABLE, DIMENSION(:)            :: t_qlimit   ! Limit fluxes in QUS?    
 
