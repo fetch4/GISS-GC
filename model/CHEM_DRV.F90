@@ -604,12 +604,19 @@ CONTAINS
 
     IF ( FIRST_CHEM ) THEN
 
-       ! Set species units to kg to be put into TrM
-       DO N=1, State_Chm%nSpecies
-         State_Chm%Species(N)%Units = KG_SPECIES
-       ENDDO
-
-       ! Put State_Chm back in TrM
+       IF ( State_Chm%Species(N)%Units .ne. KG_SPECIES ) THEN
+          ! Convert to kg
+          CALL Convert_Spc_Units(                                                  &
+               Input_Opt  = Input_Opt,                                             &
+               State_Chm  = State_Chm,                                             &
+               State_Grid = State_Grid,                                            &
+               State_Met  = State_Met,                                             &
+               new_units  = KG_SPECIES,                                            &
+               RC         = RC                                                    )
+          IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
+       ENDIF
+       
+       ! Put State_Chm back in TrM (in kg)
        DO N=1,NTM
           DO L=1,LM
              DO J=J_0,J_1
@@ -1288,6 +1295,8 @@ CONTAINS
 
        ! Do mixing and apply tendencies. This will use the dynamic time step,
        ! which is fine since this call will be executed on every time step.
+
+       ! LTM: Disable for now until we can figure out bug
        CALL DO_MIXING ( Input_Opt, State_Chm, State_Diag,                    &
                         State_Grid, State_Met, RC                           )
        IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "DO_MIXING", 255 )
@@ -2014,10 +2023,6 @@ CONTAINS
     ! In the case of a cold restart, initialise GEOS-Chem from its restart file
     IF (is_coldstart) THEN
       CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
-
-      ! IF ( AM_I_ROOT() ) THEN
-      !   WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
-      ! ENDIF
   
       ! Trap potential errors
       IF ( RC /= GC_SUCCESS ) THEN
@@ -2108,21 +2113,23 @@ CONTAINS
     TrM    = 0d0
     TrMom  = 0d0
     IF (is_coldstart) THEN
-      !------------------------------------------------------------------------
-      ! In the case of a cold restart, copy State_Chm into TrM with the
-      ! appropriate units
-      !------------------------------------------------------------------------
-      DO N=1,NTM
-         DO L=1,LM
-            DO J=J_0,J_1
-               DO I=I_0,I_1
-                  II = I - I_0 + 1
-                  JJ = J - J_0 + 1
-                  TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
-               ENDDO
-            ENDDO
-         ENDDO
-      ENDDO
+       !------------------------------------------------------------------------
+       ! In the case of a cold restart, copy State_Chm into TrM with the
+       ! appropriate units
+       !------------------------------------------------------------------------
+       ! Can't convert units yet because State_Met has not been defined
+!       DO N=1,NTM
+!          DO L=1,LM
+!             DO J=J_0,J_1
+!                DO I=I_0,I_1
+!                   II = I - I_0 + 1
+!                   JJ = J - J_0 + 1
+!                   TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
+!                ENDDO
+!             ENDDO
+!          ENDDO
+!       ENDDO
+
     ELSE
       !------------------------------------------------------------------------
       ! In the case of a non-cold-restart, initialise GEOS-Chem from the Model
