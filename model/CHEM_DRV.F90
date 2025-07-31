@@ -1305,9 +1305,9 @@ CONTAINS
     ENDIF
 
     ! Set tropospheric CH4 concentrations and fill species array with
-    ! current values.
+    ! current values. (Do not do if FETCH4 mechanism).
     IF ( Phase /= 2 .AND. Input_Opt%ITS_A_FULLCHEM_SIM  &
-         .AND. IND_('CH4','A') > 0 ) THEN
+         .AND. IND_('CH4','A') > 0 .AND. IND_('C12H4') < 0 ) THEN
 
        CALL SET_CH4 ( Input_Opt, State_Chm, State_Diag, &
                       State_Grid, State_Met, RC )
@@ -2249,6 +2249,54 @@ CONTAINS
                 exit ntm_loop
              end if
           end do ntm_loop
+
+          SELECT CASE (trim(subdd%name(k)))         
+          !===============================
+          ! Isotopologue diagnostics
+          !===============================
+          CASE ('d13CCH4')
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%d13CCH4(II,JJ,L)         
+             ENDDO
+             ENDDO
+             ENDDO
+          CASE ('d2HCH4')
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%d2HCH4(II,JJ,L)         
+             ENDDO
+             ENDDO
+             ENDDO
+          CASE( 'pMCCH4' )
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%pMCCH4(II,JJ,L)         
+             ENDDO
+             ENDDO
+             ENDDO
+          CASE( 'D14CH4' )             
+             DO L=1,LmaxSUBDD
+             DO J=J_0,J_1
+             DO I=I_0,I_1
+                II = I - I_0 + 1
+                JJ = J - J_0 + 1
+                sddarr3d(I,J,L) = State_Diag%D14CH4(II,JJ,L)         
+             ENDDO
+             ENDDO
+             ENDDO
+          END SELECT
+          call inc_subdd(subdd,k,sddarr3d)
+          
        enddo ! k
     enddo ! igroup
 
@@ -3091,6 +3139,30 @@ do n=1,nsp
        units = 'mol mol-1'                       &
        )
 end do ! tracers loop
+
+arr(next()) = info_type_(                      &
+     sname = 'd13CCH4',                        &
+     lname = 'delta-13 of methane',            &
+     units = 'permil'                          &
+     )
+
+arr(next()) = info_type_(                      &
+       sname = 'd2HCH4',                       &
+       lname = 'delta-D of methane',           &
+       units = 'permil'                        &
+       )
+
+arr(next()) = info_type_(                      &
+     sname = 'pMCCH4',                         &
+     lname = 'age-corrected percent modern carbon of radiomethane', &
+     units = '%'                               &
+     )
+
+arr(next()) = info_type_(                      &
+     sname = 'D14CH4',                         &
+     lname = 'Delta-14 of radiomethane',       &
+     units = 'permil'                          &
+     )
 
 return
 contains
