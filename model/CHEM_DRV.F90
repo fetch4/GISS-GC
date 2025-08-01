@@ -997,7 +997,7 @@ CONTAINS
     DoWetDep = DoGCWetDep                        ! dynamic time step
     DoRad    = .false.
 
-    IF ( Input_Opt%ITS_A_CARBON_SIM ) THEN
+    IF ( Input_Opt%ITS_A_CARBON_SIM .or. Input_Opt%ITS_AN_ISOTOPE_SIM ) THEN
        DoDryDep = .false.
        DoWetDep = .false.
     ENDIF
