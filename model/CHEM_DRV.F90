@@ -60,6 +60,7 @@ module CHEM_DRV
   LOGICAL                               :: DoGCWetDep   = .true.
 
   LOGICAL                               :: first_chem = .true.
+  LOGICAL                               :: init_chem_from_TrM = .false.
 
   !-----------------------------------------------------------------
   ! 40-level GISS grid
@@ -604,35 +605,50 @@ CONTAINS
 
     IF ( FIRST_CHEM ) THEN
 
-       IF ( State_Chm%Species(N)%Units .ne. KG_SPECIES ) THEN
-          ! Convert to kg
-          CALL Convert_Spc_Units(                                                  &
-               Input_Opt  = Input_Opt,                                             &
-               State_Chm  = State_Chm,                                             &
-               State_Grid = State_Grid,                                            &
-               State_Met  = State_Met,                                             &
-               new_units  = KG_SPECIES,                                            &
-               RC         = RC                                                    )
-          IF ( RC /= GC_SUCCESS ) CALL STOP_MODEL( "Convert_Spc_Units", 255 )
-       ENDIF
-       
-       ! Put State_Chm back in TrM (in kg)
-       DO N=1,NTM
-          DO L=1,LM
-             DO J=J_0,J_1
-                DO I=I_0,I_1
-                   II = I - I_0 + 1
-                   JJ = J - J_0 + 1
-                   TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
+       IF ( init_chem_from_TrM ) THEN
+
+          ! ISTART=9: ModelE has read AIC into TrM.
+          ! ISTART>=10: INIT_CHEM has read fort.[12].nc into TrM.
+          ! In both cases, TrM is already kg/grid box.
+          DO N=1,NTM
+             State_Chm%Species(N)%Units = KG_SPECIES
+             DO L=1,LM
+                DO J=J_0,J_1
+                   DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      State_Chm%Species(N)%Conc(II,JJ,L) = TrM( I, J, L, N )
+                   ENDDO
                 ENDDO
              ENDDO
           ENDDO
-          CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
-          DO M=1,NMOM
-             CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
-          ENDDO
-       ENDDO
 
+       ELSE
+
+          ! Cold starts with ISTART < 9 used Get_GC_Restart,
+          ! so State_Chm is the authoritative initial state.
+          DO N=1,State_Chm%nSpecies
+             State_Chm%Species(N)%Units = KG_SPECIES
+          ENDDO
+
+          DO N=1,NTM
+             DO L=1,LM
+                DO J=J_0,J_1
+                   DO I=I_0,I_1
+                      II = I - I_0 + 1
+                      JJ = J - J_0 + 1
+                      TrM( I, J, L, N ) = State_Chm%Species(N)%Conc(II,JJ,L)
+                   ENDDO
+                ENDDO
+             ENDDO
+             CALL HALO_UPDATE( GRID, TrM(:,:,:,N) )
+             DO M=1,NMOM
+                CALL HALO_UPDATE( GRID, TrMom(M,:,:,:,N) )
+             ENDDO
+          ENDDO
+ 
+       ENDIF
+ 
        ! Initialize PBL quantities from the initial met fields
        CALL Compute_Pbl_Height( Input_Opt, State_Grid, State_Met, RC )
        IF ( RC /= GC_SUCCESS ) THEN
@@ -1427,7 +1443,7 @@ CONTAINS
 
   !==========================================================================================================
 
-  SUBROUTINE INIT_CHEM( grid, is_coldstart )
+  SUBROUTINE INIT_CHEM( grid, is_coldstart, istart )
 
     USE DOMAIN_DECOMP_1D,        ONLY : getMpiCommunicator 
     USE DOMAIN_DECOMP_ATM,       ONLY : DIST_GRID, Am_I_Root, getDomainBounds
@@ -1469,6 +1485,7 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE (DIST_GRID), INTENT(IN) :: grid
+    INTEGER, INTENT(IN)          :: istart
     LOGICAL, INTENT(IN)          :: is_coldstart
 
     LOGICAL   :: isRoot, prtDebug, TimeForEmis
@@ -2021,7 +2038,7 @@ CONTAINS
     ENDIF
 
     ! In the case of a cold restart, initialise GEOS-Chem from its restart file
-    IF (is_coldstart) THEN
+    IF (is_coldstart .and. istart < 9) THEN
       CALL Get_GC_Restart( Input_Opt, State_Chm, State_Grid, State_Met, RC )
   
       ! Trap potential errors
@@ -2075,7 +2092,12 @@ CONTAINS
     
     NSP = State_Chm%nSpecies
     NTM = State_Chm%nAdvect
-    
+   
+    ! For ISTART=9, ModelE reads the AIC later into TrM.
+    ! For ISTART>=10, TrM is read from fort.[12].nc here.
+    ! In both cases, TrM is the authoritative initial tracer state.
+    init_chem_from_TrM = ( istart >= 9 )
+ 
     ALLOCATE( TrID_to_SpcChmID(NTM) )
     ALLOCATE( SpcChmID_to_TrID(NSP) )
     TrID_to_SpcChmID = 0
@@ -2112,7 +2134,7 @@ CONTAINS
 
     TrM    = 0d0
     TrMom  = 0d0
-    IF (is_coldstart) THEN
+    IF (is_coldstart .or. istart < 9) THEN
        !------------------------------------------------------------------------
        ! In the case of a cold restart, copy State_Chm into TrM with the
        ! appropriate units

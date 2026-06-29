@@ -236,7 +236,8 @@ C****
       call parse_params(iu_IFILE)
       call closeunit(iu_IFILE)
 
-      call initializeModelE(coldRestart)
+      call read_istart_only(ifile, coldRestart, istart)
+      call initializeModelE(coldRestart,istart)
 
       ! Only the root node pays attention to allotted wall time
       if (AM_I_ROOT()) then
@@ -546,7 +547,73 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       contains
 
-      subroutine initializeModelE(is_coldstart)
+      subroutine read_istart_only(ifile, coldRestart, istart)
+      USE FILEMANAGER, only : openunit,closeunit
+      implicit none
+
+      character(len=*), intent(in) :: ifile
+      logical, intent(in)  :: coldRestart
+      integer, intent(out) :: istart
+
+      integer :: iu_IFILE
+      character*132 :: bufs
+      integer :: IRANDI, IWRITE, JWRITE, ITWRITE
+      integer :: IHOURE, TIMEE, IYEAR1
+      integer :: KDIAG(13)
+      logical :: QCHECK
+      real*8 :: HOURE, DATEE, MONTHE, YEARE
+      real*8 :: HOURI, DATEI, MONTHI, YEARI
+
+      NAMELIST/INPUTZ/ ISTART,IRANDI
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,KDIAG
+     *     ,IHOURE, TIMEE,HOURE,DATEE,MONTHE,YEARE,IYEAR1
+     *     ,HOURI,DATEI,MONTHI,YEARI
+      NAMELIST/INPUTZ_cold/ ISTART,IRANDI
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,KDIAG
+     *     ,IHOURE, TIMEE,HOURE,DATEE,MONTHE,YEARE,IYEAR1
+     *     ,HOURI,DATEI,MONTHI,YEARI
+
+      istart = 10
+      IRANDI = 0
+      IWRITE = 0
+      JWRITE = 0
+      ITWRITE = 23
+      QCHECK = .false.
+      KDIAG(1:12) = 0
+      KDIAG(13) = 9
+      IHOURE = -1
+      TIMEE = -1
+      IYEAR1 = -1
+      HOURE = -1.d0
+      DATEE = -1.d0
+      MONTHE = -1.d0
+      YEARE = -1.d0
+      HOURI = -1.d0
+      DATEI = -1.d0
+      MONTHI = -1.d0
+      YEARI = -1.d0
+
+      call openunit(trim(ifile),iu_IFILE,.false.,.true.)
+
+      read(iu_IFILE,'(A80)') bufs
+
+      do
+        read(iu_IFILE, *, err=910, end=910) bufs
+        if (bufs == '&&END_PARAMETERS') exit
+      enddo
+
+      read(iu_IFILE,NML=INPUTZ,ERR=900)
+      if (coldRestart) read(iu_IFILE,NML=INPUTZ_cold,ERR=900)
+
+      call closeunit(iu_IFILE)
+      return
+
+900   call stop_model('read_istart_only: Error in INPUTZ namelist',255)
+910   call stop_model('read_istart_only: Error reading I-file',255)
+
+      end subroutine read_istart_only
+
+      subroutine initializeModelE(is_coldstart,istart)
       USE DOMAIN_DECOMP_1D, ONLY : init_app, am_i_root
       use Model_com, only: orbit, calendar, makeOrbit
       use Dictionary_mod
@@ -555,6 +622,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
       implicit none
 
       LOGICAL, INTENT(IN) :: is_coldstart
+      INTEGER, INTENT(IN) :: istart
 
       call initializeSysTimers()
 
@@ -579,7 +647,7 @@ C**** RUN TERMINATED BECAUSE IT REACHED TAUE (OR SS6 WAS TURNED ON)
 
       if (am_i_root()) call calendar%print(2000)
 
-      call alloc_drv_atm(is_coldstart)
+      call alloc_drv_atm(is_coldstart,istart)
       call alloc_drv_ocean()
 
       end subroutine initializeModelE
