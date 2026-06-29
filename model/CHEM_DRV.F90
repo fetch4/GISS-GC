@@ -2220,6 +2220,7 @@ CONTAINS
          LM                               ) :: sddarr3d
     ! real*8 :: convert
     integer :: previous_units
+    logical :: regular_species_found, special_diag_found
     
 !    ! 3-D diagnostics of advected tracers on model levels
 !    call find_groups('taijlh',grpids,ngroups)
@@ -2257,6 +2258,10 @@ CONTAINS
     do igrp=1,ngroups
        subdd => subdd_groups(grpids(igrp))
        do k=1,subdd%ndiags
+
+          regular_species_found = .false.
+          special_diag_found    = .false.
+
           ntm_loop: do n=1,State_Chm%nSpecies
              ! tracer 3D mixing ratios (SUBDD names are just tracer name):
              if( trim( State_Chm%SpcData(N)%Info%Name ) .eq. trim(subdd%name(k)) ) then                
@@ -2270,9 +2275,12 @@ CONTAINS
                 ENDDO
                 ENDDO
                 call inc_subdd(subdd,k,sddarr3d)
+                regular_species_found = .true.
                 exit ntm_loop
              end if
           end do ntm_loop
+
+          if ( .not. regular_species_found ) then
 
           SELECT CASE (trim(subdd%name(k)))         
           !===============================
@@ -2288,6 +2296,7 @@ CONTAINS
              ENDDO
              ENDDO
              ENDDO
+             special_diag_found = .true.
           CASE ('d2HCH4')
              DO L=1,LmaxSUBDD
              DO J=J_0,J_1
@@ -2298,6 +2307,7 @@ CONTAINS
              ENDDO
              ENDDO
              ENDDO
+             special_diag_found = .true.
           CASE( 'pMCCH4' )
              DO L=1,LmaxSUBDD
              DO J=J_0,J_1
@@ -2308,6 +2318,7 @@ CONTAINS
              ENDDO
              ENDDO
              ENDDO
+             special_diag_found = .true.
           CASE( 'D14CH4' )             
              DO L=1,LmaxSUBDD
              DO J=J_0,J_1
@@ -2318,9 +2329,13 @@ CONTAINS
              ENDDO
              ENDDO
              ENDDO
+             special_diag_found = .true.
           END SELECT
-          call inc_subdd(subdd,k,sddarr3d)
-          
+
+          if ( special_diag_found ) call inc_subdd(subdd,k,sddarr3d)
+         
+          endif
+ 
        enddo ! k
     enddo ! igroup
 
