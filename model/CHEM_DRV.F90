@@ -749,6 +749,8 @@ CONTAINS
        ENDDO
     ENDDO
 
+    ! CALL DEBUG_PRINT_TRACER_SUMMARY()
+
     ! IF ( AM_I_ROOT() ) THEN
     !    WRITE(6,*) State_Chm%Species(182)%Conc(1,:,1)
     ! ENDIF
@@ -3132,6 +3134,76 @@ CONTAINS
 
 END SUBROUTINE Get_GC_Restart
 
+  SUBROUTINE DEBUG_PRINT_TRACER_SUMMARY()
+
+    USE CHEM_COM, ONLY : NTM, TrM, TrName, TrID_to_SpcChmID
+    USE DOMAIN_DECOMP_ATM, ONLY : AM_I_ROOT
+    USE DOMAIN_DECOMP_1D,  ONLY : SUMXPE
+
+    IMPLICIT NONE
+
+    INTEGER :: N, L, I, J, II, JJ, SPC
+    REAL*8  :: MW, XPPBV
+    REAL*8, DIMENSION(NTM) :: KG_LOC, KG_GLOB
+    REAL*8, DIMENSION(NTM) :: XNUM_LOC, XNUM_GLOB
+    REAL*8, DIMENSION(NTM) :: XDEN_LOC, XDEN_GLOB
+
+    KG_LOC   = 0D0
+    XNUM_LOC = 0D0
+    XDEN_LOC = 0D0
+
+    DO N = 1, NTM
+       SPC = TrID_to_SpcChmID(N)
+       MW  = State_Chm%SpcData(SPC)%Info%MW_g
+
+       DO L = 1, LM
+          DO J = J_0, J_1
+             DO I = I_0, I_1
+                KG_LOC(N) = KG_LOC(N) + TrM(I,J,L,N)
+             ENDDO
+          ENDDO
+       ENDDO
+
+       DO J = J_0, J_1
+          JJ = J - J_0 + 1
+          DO I = I_0, I_1
+             II = I - I_0 + 1
+             IF ( State_Met%AD(II,JJ,1) > 0D0 .AND. MW > 0D0 ) THEN
+                XPPBV = 1D9 * ( TrM(I,J,1,N) / State_Met%AD(II,JJ,1) ) * ( 28.97D0 / MW )
+                XNUM_LOC(N) = XNUM_LOC(N) + XPPBV * State_Grid%Area_M2(II,JJ)
+                XDEN_LOC(N) = XDEN_LOC(N) +        State_Grid%Area_M2(II,JJ)
+             ENDIF
+          ENDDO
+       ENDDO
+    ENDDO
+
+    CALL SUMXPE(KG_LOC,   KG_GLOB)
+    CALL SUMXPE(XNUM_LOC, XNUM_GLOB)
+    CALL SUMXPE(XDEN_LOC, XDEN_GLOB)
+
+    IF ( AM_I_ROOT() ) THEN
+       WRITE(6,'(/A)') 'GC_TRACER_SUMMARY_BEGIN end_of_DO_CHEM'
+       WRITE(6,'(A,1X,A,1X,A,1X,A)') 'GC_TRACER_SUMMARY_HEADER', 'Tracer', 'Global_kg', 'Surf_ppbv'
+
+       DO N = 1, NTM
+          IF ( XDEN_GLOB(N) > 0D0 ) THEN
+             WRITE(6,'(A,1X,A12,1X,A,1X,ES24.16,1X,A,1X,ES24.16)') &
+                  'GC_TRACER_SUMMARY', TRIM(TrName(N)), &
+                  'kg=', KG_GLOB(N), &
+                  'ppbv_sfc=', XNUM_GLOB(N)/XDEN_GLOB(N)
+          ELSE
+             WRITE(6,'(A,1X,A12,1X,A,1X,ES24.16,1X,A,1X,A)') &
+                  'GC_TRACER_SUMMARY', TRIM(TrName(N)), &
+                  'kg=', KG_GLOB(N), &
+                  'ppbv_sfc=', 'NA'
+          ENDIF
+       ENDDO
+
+       WRITE(6,'(A/)') 'GC_TRACER_SUMMARY_END'
+       CALL FLUSH(6)
+    ENDIF
+
+  END SUBROUTINE DEBUG_PRINT_TRACER_SUMMARY
 
 END MODULE CHEM_DRV
 !==========================================================================================================
